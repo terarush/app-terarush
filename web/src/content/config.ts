@@ -6,10 +6,22 @@ export const siteConfig = {
 	tagline: "Build. Collaborate. Innovate.",
 	url: "https://terarush.studio",
 	email: "hello@terarush.studio",
+	primaryEmail: "hello@terarush.studio",
+	phone: "+62 821 4333 8737",
+	whatsapp: "+6282143338737",
 	links: {
 		github: "https://github.com/terarush",
 		twitter: "https://twitter.com/terarush",
 		linkedin: "https://linkedin.com/company/terarush",
+		instagram: "https://instagram.com/terarush.tech",
+	},
+	businessHours: {
+		weekdays: "3:00 PM - 10:00 PM PST",
+		weekends: "9:00 AM - 8:00 PM PST",
+	},
+	location: {
+		country: "Indonesian",
+		region: "East Java, Malang",
 	},
 };
 
@@ -255,7 +267,7 @@ export const aboutContent = {
 	story: {
 		title: "Our Story",
 		paragraphs: [
-			"Founded in 2019, TeraRush was born from the need for digital infrastructure that truly empowers organizations. Frustrated by limited, complex solutions, our founders set out to build a platform that's simple, robust, and future-proof.",
+			"Founded in 2024, TeraRush was born from the need for digital infrastructure that truly empowers organizations. Frustrated by limited, complex solutions, our founders set out to build a platform that's simple, robust, and future-proof.",
 			"Today, we serve clients in over 60 countries, providing everything from blazing-fast website hosting to secure cloud storage and enterprise-grade microservice solutions—all from one dashboard.",
 		],
 		quote: {
@@ -265,10 +277,6 @@ export const aboutContent = {
 		image: {
 			src: "assets/art_logo.png",
 			alt: "TeraRush Team working together",
-		},
-		award: {
-			title: "Best Cloud Service",
-			subtitle: "Tech Innovator Awards 2024",
 		},
 	},
 
@@ -288,6 +296,7 @@ export const aboutContent = {
 			{
 				icon: "target",
 				title: "Reliability",
+
 				description:
 					"We focus on uptime, performance, and robust infrastructure. Your business is always online with TeraRush.",
 				color: "bg-chart-2/90",
@@ -330,7 +339,7 @@ export const aboutContent = {
 				name: "Rakha Adi",
 				role: "Co-founder",
 				bio: "Cloud-native architect passionate about secure, high-performance infrastructure and microservices.",
-				avatar: "/rakha.jpg",
+				avatar: "assets/team/rakha_adi.jpg",
 				initials: "RA",
 				social: {
 					linkedin: "https://linkedin.com/in/rakhaadi",
@@ -341,7 +350,7 @@ export const aboutContent = {
 				name: "Bintang Adi Alvaro",
 				role: "Graphics Designer",
 				bio: "Creative designer with a passion for crafting stunning visuals that enhance user experience and brand identity.",
-				avatar: "/bintangadialvaro.jpeg",
+				avatar: "https://avatars.githubusercontent.com/u/143677312?v=4",
 				initials: "BA",
 				social: {
 					linkedin: "https://linkedin.com/in/rakhaadi",

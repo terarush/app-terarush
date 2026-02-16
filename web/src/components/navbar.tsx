@@ -123,7 +123,7 @@ export default function Navbar() {
 									<img
 										src="/assets/logo.png"
 										alt={siteConfig.name}
-										className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110"
+										className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110 rounded-md"
 									/>
 								</div>
 								<span className="text-xl font-bold text-gray-900 dark:text-white">

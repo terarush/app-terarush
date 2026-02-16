@@ -1,5 +1,3 @@
-import type React from "react";
-import { useState } from "react";
 import {
 	Mail,
 	MapPin,
@@ -10,8 +8,6 @@ import {
 	ExternalLink,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { siteConfig } from "@/content/config";
 
 const footerLinks = {
@@ -59,46 +55,16 @@ const socialLinks = [
 ];
 
 export default function Footer() {
-	const [isSubscribed, setIsSubscribed] = useState(false);
-	const [subscribeError, setSubscribeError] = useState("");
-	const [email, setEmail] = useState("");
-
-	const handleNewsletterSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setSubscribeError("");
-
-		// Simple email validation
-		if (!email || !email.includes("@")) {
-			setSubscribeError("Please enter a valid email");
-			return;
-		}
-
-		try {
-			// Simulate API call (replace with actual endpoint)
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			setEmail("");
-			setIsSubscribed(true);
-			setTimeout(() => setIsSubscribed(false), 3000);
-		} catch (error) {
-			setIsSubscribed(false);
-			setSubscribeError("Failed to subscribe. Please try again.");
-		}
-	};
-
 	return (
 		<footer className="relative bg-background border-t border-border">
-			{/* Background decorations */}
 			<div className="absolute inset-0 overflow-hidden opacity-30">
 				<div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 				<div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 			</div>
 
 			<div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-				{/* Main Footer Content */}
 				<div className="py-16">
 					<div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-						{/* Left Column - Brand & Newsletter */}
 						<div className="lg:col-span-4">
 							<div className="mb-8">
 								<a
@@ -108,7 +74,7 @@ export default function Footer() {
 									<img
 										src="/assets/logo.png"
 										alt="Terarush"
-										className="h-10 w-10 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300"
+										className="h-10 w-10 rounded-md shadow-lg group-hover:scale-110 transition-transform duration-300"
 									/>
 									<span className="text-2xl font-bold text-foreground">
 										{siteConfig.name}
@@ -119,52 +85,6 @@ export default function Footer() {
 								</p>
 							</div>
 
-							{/* Newsletter */}
-							<div className="mb-8">
-								<h3 className="text-lg font-semibold text-foreground mb-4">
-									Stay Updated
-								</h3>
-								<p className="text-muted-foreground mb-4">
-									Get the latest updates on our open-source
-									projects and tools.
-								</p>
-								<form
-									onSubmit={handleNewsletterSubmit}
-									className="space-y-3"
-								>
-									<div className="flex flex-col sm:flex-row gap-3">
-										<Input
-											type="email"
-											placeholder="Enter your email"
-											value={email}
-											onChange={(e) =>
-												setEmail(e.target.value)
-											}
-											className="flex-1 rounded-xl border-border focus:border-primary"
-											required
-										/>
-										<Button
-											type="submit"
-											className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6 font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-										>
-											Subscribe
-											<ArrowRight className="ml-2 h-4 w-4" />
-										</Button>
-									</div>
-									{subscribeError && (
-										<p className="text-red-600 dark:text-red-400 text-sm font-medium">
-											{subscribeError}
-										</p>
-									)}
-									{isSubscribed && (
-										<p className="text-green-600 dark:text-green-400 text-sm font-medium">
-											✓ Successfully subscribed!
-										</p>
-									)}
-								</form>
-							</div>
-
-							{/* Contact Info */}
 							<div className="space-y-3">
 								<div className="flex items-center space-x-3 text-muted-foreground hover:text-foreground transition-colors">
 									<Mail className="h-5 w-5" />
@@ -179,10 +99,8 @@ export default function Footer() {
 							</div>
 						</div>
 
-						{/* Right Columns - Links */}
 						<div className="lg:col-span-8">
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-								{/* Product */}
 								<div>
 									<h3 className="text-lg font-semibold text-foreground mb-6">
 										Product
@@ -295,8 +213,8 @@ export default function Footer() {
 					<div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
 						<div className="flex items-center space-x-2 text-muted-foreground">
 							<span>
-								© {new Date().getFullYear()} {siteConfig.name}
-								. All rights reserved.
+								© {new Date().getFullYear()} {siteConfig.name}.
+								All rights reserved.
 							</span>
 						</div>
 

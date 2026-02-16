@@ -1,6 +1,10 @@
-import About from "@/components/about";
-import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
+import Hero from "@/components/hero";
+import Services from "@/components/services";
+import OpenSource from "@/components/opensource";
+import About from "@/components/about";
+import WhyUs from "@/components/whyus";
+import Contact from "@/components/contact";
 import Footer from "@/components/footer";
 
 export default function Index() {
@@ -8,7 +12,11 @@ export default function Index() {
 		<>
 			<Navbar />
 			<Hero />
+			<Services />
+			<OpenSource />
 			<About />
+			<WhyUs />
+			<Contact />
 			<Footer />
 		</>
 	);
