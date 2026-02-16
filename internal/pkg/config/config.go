@@ -4,8 +4,6 @@ import (
 	"go-modular/internal/pkg/jwt"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -19,14 +17,8 @@ func NewConfig(filename string) Config {
 }
 func (c *Config) Initialize() error {
 
-	configName := filepath.Base(c.filename)
-
-	configExtension := filepath.Ext(c.filename)
-	configExtension = strings.TrimPrefix(configExtension, ".")
-
-	viper.SetConfigName(configName)
-	viper.SetConfigType(configExtension)
-	viper.AddConfigPath(filepath.Dir(c.filename))
+	viper.SetConfigFile(c.filename)
+	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
@@ -64,7 +56,7 @@ func GetBool(key string) bool {
 }
 
 func GetJWTService() jwt.JWT {
-	signatureKey := GetString("jwt.signature_key")
+	signatureKey := GetString("JWT_SIGNATURE_KEY")
 	if signatureKey == "" {
 		panic("JWT signature key not found in configuration")
 	}
