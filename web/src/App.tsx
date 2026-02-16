@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "./assets/globals.css";
 import Index from "./pages/Index";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
