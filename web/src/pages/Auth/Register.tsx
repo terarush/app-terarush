@@ -1,14 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-	Mail,
-	Lock,
-	Eye,
-	EyeOff,
-	ArrowRight,
-	Github,
-	User,
-	Check,
-} from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 
@@ -34,16 +25,14 @@ export default function Register() {
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
-			// Logo animation
 			if (logoRef.current) {
 				gsap.fromTo(
 					logoRef.current,
 					{ y: -30, opacity: 0 },
-					{ y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
+					{ y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
 				);
 			}
 
-			// Form animation
 			if (formRef.current) {
 				gsap.fromTo(
 					formRef.current.children,
@@ -55,7 +44,7 @@ export default function Register() {
 						stagger: 0.1,
 						delay: 0.3,
 						ease: "power3.out",
-					}
+					},
 				);
 			}
 		}, containerRef);
@@ -120,7 +109,6 @@ export default function Register() {
 			</div>
 
 			<div className="w-full max-w-md relative z-10">
-				{/* Logo and Title */}
 				<div ref={logoRef} className="text-center mb-8 opacity-0">
 					<Link
 						to="/"
@@ -147,7 +135,10 @@ export default function Register() {
 				<Card className="border border-border bg-card shadow-xl">
 					<CardContent className="p-8">
 						<div ref={formRef}>
-							<form onSubmit={handleSubmit} className="space-y-5 opacity-0">
+							<form
+								onSubmit={handleSubmit}
+								className="space-y-5 opacity-0"
+							>
 								{/* Name Field */}
 								<div>
 									<label
@@ -164,7 +155,10 @@ export default function Register() {
 											placeholder="John Doe"
 											value={formData.name}
 											onChange={(e) =>
-												setFormData({ ...formData, name: e.target.value })
+												setFormData({
+													...formData,
+													name: e.target.value,
+												})
 											}
 											className="pl-10 rounded-xl border-border focus:border-primary h-12"
 											required
@@ -188,7 +182,10 @@ export default function Register() {
 											placeholder="you@example.com"
 											value={formData.email}
 											onChange={(e) =>
-												setFormData({ ...formData, email: e.target.value })
+												setFormData({
+													...formData,
+													email: e.target.value,
+												})
 											}
 											className="pl-10 rounded-xl border-border focus:border-primary h-12"
 											required
@@ -208,18 +205,27 @@ export default function Register() {
 										<Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
 										<Input
 											id="password"
-											type={showPassword ? "text" : "password"}
+											type={
+												showPassword
+													? "text"
+													: "password"
+											}
 											placeholder="Create a strong password"
 											value={formData.password}
 											onChange={(e) =>
-												setFormData({ ...formData, password: e.target.value })
+												setFormData({
+													...formData,
+													password: e.target.value,
+												})
 											}
 											className="pl-10 pr-10 rounded-xl border-border focus:border-primary h-12"
 											required
 										/>
 										<button
 											type="button"
-											onClick={() => setShowPassword(!showPassword)}
+											onClick={() =>
+												setShowPassword(!showPassword)
+											}
 											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 										>
 											{showPassword ? (
@@ -237,7 +243,8 @@ export default function Register() {
 													<div
 														key={level}
 														className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-															level <= passwordStrength
+															level <=
+															passwordStrength
 																? getPasswordStrengthColor()
 																: "bg-muted"
 														}`}
@@ -245,7 +252,8 @@ export default function Register() {
 												))}
 											</div>
 											<p className="text-xs text-muted-foreground">
-												Password strength: {getPasswordStrengthText()}
+												Password strength:{" "}
+												{getPasswordStrengthText()}
 											</p>
 										</div>
 									)}
@@ -263,13 +271,18 @@ export default function Register() {
 										<Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
 										<Input
 											id="confirmPassword"
-											type={showConfirmPassword ? "text" : "password"}
+											type={
+												showConfirmPassword
+													? "text"
+													: "password"
+											}
 											placeholder="Confirm your password"
 											value={formData.confirmPassword}
 											onChange={(e) =>
 												setFormData({
 													...formData,
-													confirmPassword: e.target.value,
+													confirmPassword:
+														e.target.value,
 												})
 											}
 											className="pl-10 pr-10 rounded-xl border-border focus:border-primary h-12"
@@ -278,7 +291,9 @@ export default function Register() {
 										<button
 											type="button"
 											onClick={() =>
-												setShowConfirmPassword(!showConfirmPassword)
+												setShowConfirmPassword(
+													!showConfirmPassword,
+												)
 											}
 											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 										>
@@ -290,7 +305,8 @@ export default function Register() {
 										</button>
 									</div>
 									{formData.confirmPassword &&
-										formData.password === formData.confirmPassword && (
+										formData.password ===
+											formData.confirmPassword && (
 											<p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
 												<Check className="h-3 w-3" />
 												Passwords match
