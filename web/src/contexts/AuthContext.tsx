@@ -51,9 +51,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: LoginRequest) => {
     try {
-      await authApi.login(credentials);
-      const userProfile = await authApi.getProfile();
-      setUser(userProfile);
+      const authResponse = await authApi.login(credentials);
+      // Set user from auth response
+      if (authResponse.user) {
+        setUser(authResponse.user);
+      } else {
+        // Fallback: fetch profile if user not in response
+        const userProfile = await authApi.getProfile();
+        setUser(userProfile);
+      }
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -62,9 +68,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (data: RegisterRequest) => {
     try {
-      await authApi.register(data);
-      const userProfile = await authApi.getProfile();
-      setUser(userProfile);
+      const authResponse = await authApi.register(data);
+      // Set user from auth response
+      if (authResponse.user) {
+        setUser(authResponse.user);
+      } else {
+        // Fallback: fetch profile if user not in response
+        const userProfile = await authApi.getProfile();
+        setUser(userProfile);
+      }
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;

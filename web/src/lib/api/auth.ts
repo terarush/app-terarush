@@ -29,7 +29,9 @@ export interface UpdateProfileRequest {
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;
+  token_type: string;
   expires_in: number;
+  user: UserResponse;
 }
 
 export interface UserResponse {
@@ -52,13 +54,17 @@ export const authApi = {
    */
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>("/auth/register", data);
-    const { access_token, refresh_token } = response.data;
+    const authData = response.data;
     
     // Store tokens in cookies
-    Cookies.set("accessToken", access_token, { expires: 7 });
-    Cookies.set("refreshToken", refresh_token, { expires: 30 });
+    if (authData.access_token) {
+      Cookies.set("accessToken", authData.access_token, { expires: 7 });
+    }
+    if (authData.refresh_token) {
+      Cookies.set("refreshToken", authData.refresh_token, { expires: 30 });
+    }
     
-    return response.data;
+    return authData;
   },
 
   /**
@@ -66,13 +72,17 @@ export const authApi = {
    */
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>("/auth/login", data);
-    const { access_token, refresh_token } = response.data;
+    const authData = response.data;
     
     // Store tokens in cookies
-    Cookies.set("accessToken", access_token, { expires: 7 });
-    Cookies.set("refreshToken", refresh_token, { expires: 30 });
+    if (authData.access_token) {
+      Cookies.set("accessToken", authData.access_token, { expires: 7 });
+    }
+    if (authData.refresh_token) {
+      Cookies.set("refreshToken", authData.refresh_token, { expires: 30 });
+    }
     
-    return response.data;
+    return authData;
   },
 
   /**
@@ -105,9 +115,13 @@ export const authApi = {
     const response = await apiClient.post<AuthResponse>("/auth/refresh", {
       refresh_token: refreshToken,
     });
-    const { access_token } = response.data;
-    Cookies.set("accessToken", access_token, { expires: 7 });
-    return response.data;
+    const authData = response.data;
+    
+    if (authData.access_token) {
+      Cookies.set("accessToken", authData.access_token, { expires: 7 });
+    }
+    
+    return authData;
   },
 
   /**

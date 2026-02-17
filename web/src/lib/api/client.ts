@@ -26,9 +26,15 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle token refresh on 401
+// Response interceptor - unwrap response and handle token refresh on 401
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap the response data if it's wrapped
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -43,12 +49,17 @@ apiClient.interceptors.response.use(
             refresh_token: refreshToken,
           });
 
-          const { access_token } = response.data;
-          Cookies.set("accessToken", access_token, { expires: 7 });
+          // Extract access_token from wrapped response
+          const data = response.data?.data || response.data;
+          const access_token = data.access_token || data.AccessToken;
+          
+          if (access_token) {
+            Cookies.set("accessToken", access_token, { expires: 7 });
 
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return apiClient(originalRequest);
+            // Retry original request with new token
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return apiClient(originalRequest);
+          }
         } catch (refreshError) {
           // Refresh failed, clear tokens and redirect to login
           Cookies.remove("accessToken");
