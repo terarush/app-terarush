@@ -32,11 +32,11 @@ func (m *Module) Initialize(db *gorm.DB, log *logger.Logger, event *bus.EventBus
 	// Initialize repositories
 	userRepo := repository.NewUserRepositoryImpl()
 
-	// Initialize services
-	m.authService = service.NewAuthService(userRepo)
-
 	// Initialize JWT
 	jwtService := config.GetJWTService()
+
+	// Initialize services
+	m.authService = service.NewAuthService(userRepo, jwtService)
 
 	// Initialize handlers
 	m.authHandler = handler.NewAuthHandler(m.logger, m.event, m.authService, jwtService)

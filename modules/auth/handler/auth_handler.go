@@ -5,6 +5,7 @@ import (
 	"go-modular/internal/pkg/bus"
 	"go-modular/internal/pkg/jwt"
 	"go-modular/internal/pkg/logger"
+	"go-modular/internal/pkg/middleware"
 	"go-modular/internal/pkg/utils"
 	"go-modular/modules/auth/domain/service"
 	"go-modular/modules/users/domain/entity"
@@ -57,7 +58,14 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 	h.log.Debug("Request validated successfully:", req)
 
+	// Create user with role (default to "user" if not specified)
 	user := entity.NewUser(req.Name, req.Email, req.Password)
+	if req.Role != "" {
+		user.Role = req.Role
+	} else {
+		user.Role = "user"
+	}
+
 	err := h.authService.CreateUser(c.Request().Context(), user)
 	if err != nil {
 		if err == service.ErrEmailAlreadyUsed {
@@ -73,9 +81,22 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	h.event.Publish(bus.Event{Type: "user.created", Payload: user})
 	h.log.Debug("Event 'user.created' published successfully")
 
-	return h.r.SuccessResponse(c, map[string]interface{}{
-		"user": response.FromEntity(user),
-	}, "User registered successfully")
+	// Generate tokens
+	accessToken, refreshToken, expiresIn, err := h.authService.GenerateTokens(user)
+	if err != nil {
+		h.log.Error("Failed to generate tokens:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate tokens")
+	}
+
+	authResponse := &response.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    expiresIn,
+		User:         response.FromEntity(user),
+	}
+
+	return h.r.SuccessResponse(c, authResponse, "User registered successfully")
 }
 
 // Login handles user login.
@@ -107,27 +128,186 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 	h.log.Debug("User authenticated successfully:", user)
 
-	tokenData := map[string]interface{}{
-		"user_id": user.ID,
-		"email":   user.Email,
-		"name":    user.Name,
+	// Generate tokens
+	accessToken, refreshToken, expiresIn, err := h.authService.GenerateTokens(user)
+	if err != nil {
+		h.log.Error("Failed to generate tokens:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate tokens")
 	}
 
-	token, err := h.jwt.GenerateToken(tokenData)
+	authResponse := &response.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    expiresIn,
+		User:         response.FromEntity(user),
+	}
+
+	return h.r.SuccessResponse(c, authResponse, "Login successful")
+}
+
+// GetProfile retrieves the authenticated user's profile.
+func (h *AuthHandler) GetProfile(c echo.Context) error {
+	h.log.Info("Handling get profile request")
+
+	// Get user ID from context (set by auth middleware)
+	claims := c.Get("user").(map[string]interface{})
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		h.log.Error("Invalid user ID in token claims")
+		return h.r.ErrorResponse(c, http.StatusUnauthorized, "Invalid token claims")
+	}
+	userID := uint(userIDFloat)
+
+	user, err := h.authService.GetProfile(c.Request().Context(), userID)
 	if err != nil {
-		h.log.Error("Failed to generate token:", err)
+		if err == service.ErrUserNotFound {
+			h.log.Warn("User not found:", userID)
+			return h.r.ErrorResponse(c, http.StatusNotFound, "User not found")
+		}
+		h.log.Error("Failed to get profile:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return h.r.SuccessResponse(c, response.FromEntity(user), "Profile retrieved successfully")
+}
+
+// UpdateProfile updates the authenticated user's profile.
+func (h *AuthHandler) UpdateProfile(c echo.Context) error {
+	h.log.Info("Handling update profile request")
+
+	// Get user ID from context
+	claims := c.Get("user").(map[string]interface{})
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		h.log.Error("Invalid user ID in token claims")
+		return h.r.ErrorResponse(c, http.StatusUnauthorized, "Invalid token claims")
+	}
+	userID := uint(userIDFloat)
+
+	req := new(request.UpdateUserRequest)
+	if err := c.Bind(req); err != nil {
+		h.log.Error("Failed to bind request:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.Validate(req); err != nil {
+		h.log.Error("Validation failed:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	user, err := h.authService.UpdateProfile(c.Request().Context(), userID, req.Name, req.Email)
+	if err != nil {
+		if err == service.ErrEmailAlreadyUsed {
+			h.log.Warn("Email already in use:", req.Email)
+			return h.r.ErrorResponse(c, http.StatusConflict, "Email already in use")
+		}
+		if err == service.ErrUserNotFound {
+			h.log.Warn("User not found:", userID)
+			return h.r.ErrorResponse(c, http.StatusNotFound, "User not found")
+		}
+		h.log.Error("Failed to update profile:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return h.r.SuccessResponse(c, response.FromEntity(user), "Profile updated successfully")
+}
+
+// ChangePassword handles password change request.
+func (h *AuthHandler) ChangePassword(c echo.Context) error {
+	h.log.Info("Handling change password request")
+
+	// Get user ID from context
+	claims := c.Get("user").(map[string]interface{})
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		h.log.Error("Invalid user ID in token claims")
+		return h.r.ErrorResponse(c, http.StatusUnauthorized, "Invalid token claims")
+	}
+	userID := uint(userIDFloat)
+
+	req := new(request.ChangePasswordRequest)
+	if err := c.Bind(req); err != nil {
+		h.log.Error("Failed to bind request:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.Validate(req); err != nil {
+		h.log.Error("Validation failed:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	err := h.authService.ChangePassword(c.Request().Context(), userID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		if err == service.ErrInvalidOldPassword {
+			h.log.Warn("Invalid old password for user:", userID)
+			return h.r.ErrorResponse(c, http.StatusBadRequest, "Old password is incorrect")
+		}
+		if err == service.ErrUserNotFound {
+			h.log.Warn("User not found:", userID)
+			return h.r.ErrorResponse(c, http.StatusNotFound, "User not found")
+		}
+		h.log.Error("Failed to change password:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return h.r.SuccessResponse(c, nil, "Password changed successfully")
+}
+
+// RefreshToken handles refresh token request.
+func (h *AuthHandler) RefreshToken(c echo.Context) error {
+	h.log.Info("Handling refresh token request")
+
+	req := new(request.RefreshTokenRequest)
+	if err := c.Bind(req); err != nil {
+		h.log.Error("Failed to bind request:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.Validate(req); err != nil {
+		h.log.Error("Validation failed:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	accessToken, expiresIn, err := h.authService.RefreshAccessToken(c.Request().Context(), req.RefreshToken)
+	if err != nil {
+		if err == service.ErrUnauthorized {
+			h.log.Warn("Invalid refresh token")
+			return h.r.ErrorResponse(c, http.StatusUnauthorized, "Invalid refresh token")
+		}
+		h.log.Error("Failed to refresh token:", err)
 		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
 	return h.r.SuccessResponse(c, map[string]interface{}{
-		"token": token,
-		"user":  response.FromEntity(user),
-	}, "Login successful")
+		"access_token": accessToken,
+		"token_type":   "Bearer",
+		"expires_in":   expiresIn,
+	}, "Token refreshed successfully")
+}
+
+// Logout handles user logout (invalidate token on client side).
+func (h *AuthHandler) Logout(c echo.Context) error {
+	h.log.Info("Handling logout request")
+
+	// In a stateless JWT system, logout is handled on the client side
+	// by removing the token. Here we just return a success response.
+	return h.r.SuccessResponse(c, nil, "Logged out successfully")
 }
 
 // RegisterRoutes sets up the auth routes.
 func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath + "/auth")
+
+	// Public routes
 	group.POST("/register", h.Register)
 	group.POST("/login", h.Login)
+	group.POST("/refresh", h.RefreshToken)
+
+	// Protected routes (require authentication)
+	protected := group.Group("", middleware.Auth)
+	protected.GET("/profile", h.GetProfile)
+	protected.PUT("/profile", h.UpdateProfile)
+	protected.POST("/change-password", h.ChangePassword)
+	protected.POST("/logout", h.Logout)
 }

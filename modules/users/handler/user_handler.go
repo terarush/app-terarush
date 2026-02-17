@@ -126,8 +126,8 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 
 	user.Name = req.Name
 	user.Email = req.Email
-	if req.Password != "" {
-		user.Password = req.Password
+	if req.Role != "" {
+		user.Role = req.Role
 	}
 
 	err = h.userService.UpdateUser(ctx, user)
