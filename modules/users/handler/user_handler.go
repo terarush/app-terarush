@@ -160,11 +160,16 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 
 // RegisterRoutes registers the user routes
 func (h *UserHandler) RegisterRoutes(e *echo.Echo, basePath string) {
-	group := e.Group(basePath+"/users", middleware.Auth)
+	group := e.Group(basePath + "/users")
 
-	group.GET("", h.GetAllUsers)
-	group.GET("/:id", h.GetUser)
-	group.POST("", h.CreateUser)
-	group.PUT("/:id", h.UpdateUser)
-	group.DELETE("/:id", h.DeleteUser)
+	// Admin only routes - full CRUD access
+	admin := group.Group("", middleware.Auth, middleware.AdminOnly)
+	admin.GET("", h.GetAllUsers)
+	admin.POST("", h.CreateUser)
+	admin.PUT("/:id", h.UpdateUser)
+	admin.DELETE("/:id", h.DeleteUser)
+
+	// User or Admin can view their own profile or admin can view any
+	userOrAdmin := group.Group("", middleware.Auth)
+	userOrAdmin.GET("/:id", h.GetUser)
 }
