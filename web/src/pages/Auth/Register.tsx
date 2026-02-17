@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Github } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check, Github } from "lucide-react";
+import { Link } from "react-router-dom";
 import gsap from "gsap";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { siteConfig } from "@/content/config";
-import { useAuth } from "@/contexts/AuthContext";
-import { registerSchema } from "@/lib/validations/auth";
-import type { RegisterFormData } from "@/lib/validations/auth";
 
 export default function Register() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -19,29 +14,14 @@ export default function Register() {
 	const formRef = useRef<HTMLDivElement>(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [errorMessage, setErrorMessage] = useState("");
-	const [passwordStrength, setPasswordStrength] = useState(0);
-	
-	const navigate = useNavigate();
-	const { register: registerUser, isAuthenticated } = useAuth();
-	
-	const {
-		register,
-		handleSubmit,
-		watch,
-		formState: { errors, isSubmitting },
-	} = useForm<RegisterFormData>({
-		resolver: zodResolver(registerSchema),
+	const [formData, setFormData] = useState({
+		name: "",
+		email: "",
+		password: "",
+		confirmPassword: "",
 	});
-	
-	const password = watch("password", "");
-
-	useEffect(() => {
-		// Redirect if already authenticated
-		if (isAuthenticated) {
-			navigate("/dashboard");
-		}
-	}, [isAuthenticated, navigate]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [passwordStrength, setPasswordStrength] = useState(0);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
@@ -73,27 +53,31 @@ export default function Register() {
 	}, []);
 
 	useEffect(() => {
-		// Calculate password strength
+		const password = formData.password;
 		let strength = 0;
 		if (password.length >= 8) strength++;
 		if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
 		if (/\d/.test(password)) strength++;
 		if (/[^a-zA-Z0-9]/.test(password)) strength++;
 		setPasswordStrength(strength);
-	}, [password]);
+	}, [formData.password]);
 
-	const onSubmit = async (data: RegisterFormData) => {
-		setErrorMessage("");
-		
-		try {
-			await registerUser(data);
-			navigate("/dashboard");
-		} catch (error: any) {
-			console.error("Registration error:", error);
-			setErrorMessage(
-				error.response?.data?.error || "Registration failed. Please try again."
-			);
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (formData.password !== formData.confirmPassword) {
+			alert("Passwords do not match!");
+			return;
 		}
+
+		setIsLoading(true);
+
+		// Simulate API call
+		setTimeout(() => {
+			setIsLoading(false);
+			console.log("Register attempt:", formData);
+			// Handle registration logic here
+		}, 2000);
 	};
 
 	const getPasswordStrengthColor = () => {
@@ -151,16 +135,9 @@ export default function Register() {
 					<CardContent className="p-8">
 						<div ref={formRef}>
 							<form
-								onSubmit={handleSubmit(onSubmit)}
+								onSubmit={handleSubmit}
 								className="space-y-5 opacity-0"
 							>
-								{/* Error Message */}
-								{errorMessage && (
-									<div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-										{errorMessage}
-									</div>
-								)}
-
 								{/* Name Field */}
 								<div>
 									<label
@@ -175,13 +152,17 @@ export default function Register() {
 											id="name"
 											type="text"
 											placeholder="John Doe"
-											{...register("name")}
+											value={formData.name}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													name: e.target.value,
+												})
+											}
 											className="pl-10 rounded-xl border-border focus:border-primary h-12"
+											required
 										/>
 									</div>
-									{errors.name && (
-										<p className="mt-1 text-sm text-destructive">{errors.name.message}</p>
-									)}
 								</div>
 
 								{/* Email Field */}
@@ -198,13 +179,17 @@ export default function Register() {
 											id="email"
 											type="email"
 											placeholder="you@example.com"
-											{...register("email")}
+											value={formData.email}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													email: e.target.value,
+												})
+											}
 											className="pl-10 rounded-xl border-border focus:border-primary h-12"
+											required
 										/>
 									</div>
-									{errors.email && (
-										<p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
-									)}
 								</div>
 
 								{/* Password Field */}
@@ -225,7 +210,13 @@ export default function Register() {
 													: "password"
 											}
 											placeholder="Create a strong password"
-											{...register("password")}
+											value={formData.password}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													password: e.target.value,
+												})
+											}
 											className="pl-10 pr-10 rounded-xl border-border focus:border-primary h-12"
 											required
 										/>
@@ -244,7 +235,7 @@ export default function Register() {
 										</button>
 									</div>
 									{/* Password Strength Indicator */}
-									{password && (
+									{formData.password && (
 										<div className="mt-2">
 											<div className="flex gap-1 mb-1">
 												{[1, 2, 3, 4].map((level) => (
@@ -265,15 +256,12 @@ export default function Register() {
 											</p>
 										</div>
 									)}
-									{errors.password && (
-										<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
-									)}
 								</div>
 
 								{/* Confirm Password Field */}
 								<div>
 									<label
-										htmlFor="confirm_password"
+										htmlFor="confirmPassword"
 										className="block text-sm font-medium text-foreground mb-2"
 									>
 										Confirm Password
@@ -281,15 +269,23 @@ export default function Register() {
 									<div className="relative">
 										<Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
 										<Input
-											id="confirm_password"
+											id="confirmPassword"
 											type={
 												showConfirmPassword
 													? "text"
 													: "password"
 											}
 											placeholder="Confirm your password"
-											{...register("confirm_password")}
+											value={formData.confirmPassword}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													confirmPassword:
+														e.target.value,
+												})
+											}
 											className="pl-10 pr-10 rounded-xl border-border focus:border-primary h-12"
+											required
 										/>
 										<button
 											type="button"
@@ -307,9 +303,14 @@ export default function Register() {
 											)}
 										</button>
 									</div>
-									{errors.confirm_password && (
-										<p className="mt-1 text-sm text-destructive">{errors.confirm_password.message}</p>
-									)}
+									{formData.confirmPassword &&
+										formData.password ===
+											formData.confirmPassword && (
+											<p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+												<Check className="h-3 w-3" />
+												Passwords match
+											</p>
+										)}
 								</div>
 
 								{/* Terms and Conditions */}
@@ -344,10 +345,10 @@ export default function Register() {
 								{/* Submit Button */}
 								<Button
 									type="submit"
-									disabled={isSubmitting}
+									disabled={isLoading}
 									className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
 								>
-									{isSubmitting ? (
+									{isLoading ? (
 										"Creating account..."
 									) : (
 										<>

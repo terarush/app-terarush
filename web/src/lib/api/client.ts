@@ -39,7 +39,11 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
 
     // If 401 and we haven't retried yet, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // BUT skip refresh for login/register/refresh endpoints
+    const skipRefreshUrls = ['/auth/login', '/auth/register', '/auth/refresh'];
+    const isSkipUrl = skipRefreshUrls.some(url => originalRequest?.url?.includes(url));
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isSkipUrl) {
       originalRequest._retry = true;
 
       const refreshToken = Cookies.get("refreshToken");
@@ -64,12 +68,24 @@ apiClient.interceptors.response.use(
           // Refresh failed, clear tokens and redirect to login
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
-          window.location.href = "/login";
+          
+          // Only redirect if not already on login/register page
+          if (!window.location.pathname.includes('/login') && 
+              !window.location.pathname.includes('/register')) {
+            window.location.href = "/login";
+          }
           return Promise.reject(refreshError);
         }
       } else {
-        // No refresh token, redirect to login
-        window.location.href = "/login";
+        // No refresh token, clear cookies and redirect only if authenticated page
+        Cookies.remove("accessToken");
+        Cookies.remove("refreshToken");
+        
+        if (!window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register') &&
+            window.location.pathname !== '/') {
+          window.location.href = "/login";
+        }
       }
     }
 

@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { siteConfig } from "@/content/config";
 import { useAuth } from "@/contexts/AuthContext";
-import { loginSchema } from "@/lib/validations/auth";
-import type { LoginFormData } from "@/lib/validations/auth";
+import { loginSchema } from "@/validations/auth";
+import type { LoginFormData } from "@/validations/auth";
 
 export default function Login() {
 	const containerRef = useRef<HTMLDivElement>(null);

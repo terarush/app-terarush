@@ -20,13 +20,13 @@ createRoot(document.getElementById("root")!).render(
 						<Route path="" element={<Index />} />
 						<Route path="login" element={<Login />} />
 						<Route path="register" element={<Register />} />
-						<Route 
-							path="dashboard" 
+						<Route
+							path="dashboard"
 							element={
 								<ProtectedRoute>
 									<Dashboard />
 								</ProtectedRoute>
-							} 
+							}
 						/>
 						<Route path="*" element={<NotFound />} />
 					</Routes>
