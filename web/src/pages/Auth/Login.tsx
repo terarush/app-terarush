@@ -1,23 +1,42 @@
 import { useEffect, useRef, useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Github } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import gsap from "gsap";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { siteConfig } from "@/content/config";
+import { useAuth } from "@/contexts/AuthContext";
+import { loginSchema } from "@/lib/validations/auth";
+import type { LoginFormData } from "@/lib/validations/auth";
 
 export default function Login() {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const logoRef = useRef<HTMLDivElement>(null);
 	const formRef = useRef<HTMLDivElement>(null);
 	const [showPassword, setShowPassword] = useState(false);
-	const [formData, setFormData] = useState({
-		email: "",
-		password: "",
+	const [errorMessage, setErrorMessage] = useState("");
+	
+	const navigate = useNavigate();
+	const { login, isAuthenticated } = useAuth();
+	
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+	} = useForm<LoginFormData>({
+		resolver: zodResolver(loginSchema),
 	});
-	const [isLoading, setIsLoading] = useState(false);
+
+	useEffect(() => {
+		// Redirect if already authenticated
+		if (isAuthenticated) {
+			navigate("/dashboard");
+		}
+	}, [isAuthenticated, navigate]);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
@@ -50,16 +69,18 @@ export default function Login() {
 		return () => ctx.revert();
 	}, []);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setIsLoading(true);
-
-		// Simulate API call
-		setTimeout(() => {
-			setIsLoading(false);
-			console.log("Login attempt:", formData);
-			// Handle login logic here
-		}, 2000);
+	const onSubmit = async (data: LoginFormData) => {
+		setErrorMessage("");
+		
+		try {
+			await login(data);
+			navigate("/dashboard");
+		} catch (error: any) {
+			console.error("Login error:", error);
+			setErrorMessage(
+				error.response?.data?.error || "Login failed. Please check your credentials."
+			);
+		}
 	};
 
 	return (
@@ -101,7 +122,14 @@ export default function Login() {
 				<Card className="border border-border bg-card shadow-xl">
 					<CardContent className="p-8">
 						<div ref={formRef}>
-							<form onSubmit={handleSubmit} className="space-y-6 opacity-0">
+							<form onSubmit={handleSubmit(onSubmit)} className="space-y-6 opacity-0">
+								{/* Error Message */}
+								{errorMessage && (
+									<div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+										{errorMessage}
+									</div>
+								)}
+
 								{/* Email Field */}
 								<div>
 									<label
@@ -116,14 +144,13 @@ export default function Login() {
 											id="email"
 											type="email"
 											placeholder="you@example.com"
-											value={formData.email}
-											onChange={(e) =>
-												setFormData({ ...formData, email: e.target.value })
-											}
+											{...register("email")}
 											className="pl-10 rounded-xl border-border focus:border-primary h-12"
-											required
 										/>
 									</div>
+									{errors.email && (
+										<p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+									)}
 								</div>
 
 								{/* Password Field */}
@@ -140,12 +167,8 @@ export default function Login() {
 											id="password"
 											type={showPassword ? "text" : "password"}
 											placeholder="Enter your password"
-											value={formData.password}
-											onChange={(e) =>
-												setFormData({ ...formData, password: e.target.value })
-											}
+											{...register("password")}
 											className="pl-10 pr-10 rounded-xl border-border focus:border-primary h-12"
-											required
 										/>
 										<button
 											type="button"
@@ -159,6 +182,9 @@ export default function Login() {
 											)}
 										</button>
 									</div>
+									{errors.password && (
+										<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
+									)}
 								</div>
 
 								{/* Remember Me & Forgot Password */}
@@ -183,10 +209,10 @@ export default function Login() {
 								{/* Submit Button */}
 								<Button
 									type="submit"
-									disabled={isLoading}
+									disabled={isSubmitting}
 									className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
 								>
-									{isLoading ? (
+									{isSubmitting ? (
 										"Signing in..."
 									) : (
 										<>
