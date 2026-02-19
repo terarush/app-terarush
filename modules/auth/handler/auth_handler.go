@@ -18,21 +18,23 @@ import (
 
 // AuthHandler struct handles HTTP request for auth.
 type AuthHandler struct {
-	authService *service.AuthService
-	log         *logger.Logger
-	event       *bus.EventBus
-	jwt         jwt.JWT
-	r           *utils.Response
+	authService   *service.AuthService
+	githubService *service.GitHubOAuthService
+	log           *logger.Logger
+	event         *bus.EventBus
+	jwt           jwt.JWT
+	r             *utils.Response
 }
 
 // NewAuthHandler creates a new auth handler.
 func NewAuthHandler(log *logger.Logger, event *bus.EventBus, authService *service.AuthService, jwt jwt.JWT) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
-		log:         log,
-		event:       event,
-		jwt:         jwt,
-		r:           &utils.Response{},
+		authService:   authService,
+		githubService: service.NewGitHubOAuthService(),
+		log:           log,
+		event:         event,
+		jwt:           jwt,
+		r:             &utils.Response{},
 	}
 }
 
@@ -295,6 +297,74 @@ func (h *AuthHandler) Logout(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "Logged out successfully")
 }
 
+// GitHubCallback handles the GitHub OAuth callback
+func (h *AuthHandler) GitHubCallback(c echo.Context) error {
+	h.log.Info("Handling GitHub OAuth callback")
+
+	// Parse request body
+	var req struct {
+		Code string `json:"code" validate:"required"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		h.log.Error("Failed to bind request:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, "Invalid request body")
+	}
+
+	if req.Code == "" {
+		h.log.Error("No code provided in callback")
+		return h.r.ErrorResponse(c, http.StatusBadRequest, "No authorization code provided")
+	}
+
+	code := req.Code
+
+	// Exchange code for access token
+	accessToken, err := h.githubService.ExchangeCode(c.Request().Context(), code)
+	if err != nil {
+		h.log.Error("Failed to exchange code:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to exchange authorization code")
+	}
+
+	// Get user info from GitHub
+	githubUser, err := h.githubService.GetUserInfo(c.Request().Context(), accessToken)
+	if err != nil {
+		h.log.Error("Failed to get GitHub user info:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to fetch user information")
+	}
+
+	h.log.Debug("GitHub user info:", githubUser)
+
+	// Check if user already exists by GitHub ID
+	user, err := h.authService.FindOrCreateGitHubUser(
+		c.Request().Context(),
+		fmt.Sprintf("%d", githubUser.ID),
+		githubUser.Name,
+		githubUser.Email,
+		githubUser.AvatarURL,
+	)
+	if err != nil {
+		h.log.Error("Failed to find or create user:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to process user")
+	}
+
+	// Generate tokens
+	accessTokenJWT, refreshToken, expiresIn, err := h.authService.GenerateTokens(user)
+	if err != nil {
+		h.log.Error("Failed to generate tokens:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate tokens")
+	}
+
+	authResponse := &response.AuthResponse{
+		AccessToken:  accessTokenJWT,
+		RefreshToken: refreshToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    expiresIn,
+		User:         response.FromEntity(user),
+	}
+
+	return h.r.SuccessResponse(c, authResponse, "GitHub login successful")
+}
+
 // RegisterRoutes sets up the auth routes.
 func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath + "/auth")
@@ -303,6 +373,9 @@ func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group.POST("/register", h.Register)
 	group.POST("/login", h.Login)
 	group.POST("/refresh", h.RefreshToken)
+
+	// GitHub OAuth routes
+	group.POST("/github/callback", h.GitHubCallback)
 
 	// Protected routes (require authentication)
 	protected := group.Group("", middleware.Auth)

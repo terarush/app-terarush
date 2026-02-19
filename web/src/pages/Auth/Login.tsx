@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { siteConfig } from "@/content/config";
-import { useAuth } from "@/contexts/AuthContext";
+import { useLogin, useRedirectIfAuthenticated } from "@/hooks";
 import { loginSchema } from "@/validations/auth";
 import type { LoginFormData } from "@/validations/auth";
+import { authApi } from "@/lib/api/auth";
 
 export default function Login() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -21,7 +22,10 @@ export default function Login() {
 	const [errorMessage, setErrorMessage] = useState("");
 	
 	const navigate = useNavigate();
-	const { login, isAuthenticated } = useAuth();
+	const login = useLogin();
+	
+	// Redirect if already authenticated
+	useRedirectIfAuthenticated("/dashboard");
 	
 	const {
 		register,
@@ -30,13 +34,6 @@ export default function Login() {
 	} = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
 	});
-
-	useEffect(() => {
-		// Redirect if already authenticated
-		if (isAuthenticated) {
-			navigate("/dashboard");
-		}
-	}, [isAuthenticated, navigate]);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
@@ -81,6 +78,11 @@ export default function Login() {
 				error.response?.data?.error || "Login failed. Please check your credentials."
 			);
 		}
+	};
+
+	const handleGitHubLogin = () => {
+		const githubAuthUrl = authApi.getGitHubAuthUrl();
+		window.location.href = githubAuthUrl;
 	};
 
 	return (
@@ -240,6 +242,7 @@ export default function Login() {
 								<Button
 									type="button"
 									variant="outline"
+									onClick={handleGitHubLogin}
 									className="w-full border-border hover:bg-muted rounded-xl h-12 font-semibold transition-all duration-300 hover:scale-105"
 								>
 									<Github className="mr-2 h-5 w-5" />

@@ -38,6 +38,7 @@ export interface UserResponse {
   id: number;
   name: string;
   email: string;
+  avatar: string;
   role: string;
   created_at: string;
   updated_at: string;
@@ -135,5 +136,40 @@ export const authApi = {
       Cookies.remove("accessToken");
       Cookies.remove("refreshToken");
     }
+  },
+
+  /**
+   * Get GitHub OAuth URL
+   */
+  getGitHubAuthUrl: (): string => {
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || "Ov23cttKASN7Qk5CBwRS";
+    const redirectUri = `${window.location.origin}/auth/github/callback`;
+    const scope = "user:email";
+    const state = Math.random().toString(36).substring(7);
+    
+    // Store state in sessionStorage for verification
+    sessionStorage.setItem("github_oauth_state", state);
+    
+    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
+  },
+
+  /**
+   * Handle GitHub OAuth callback
+   */
+  githubCallback: async (code: string): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>("/auth/github/callback", {
+      code,
+    });
+    const authData = response.data;
+    
+    // Store tokens in cookies
+    if (authData.access_token) {
+      Cookies.set("accessToken", authData.access_token, { expires: 7 });
+    }
+    if (authData.refresh_token) {
+      Cookies.set("refreshToken", authData.refresh_token, { expires: 30 });
+    }
+    
+    return authData;
   },
 };

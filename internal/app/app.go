@@ -103,6 +103,10 @@ func (a *App) Initialize() error {
 	// api version
 	version := fmt.Sprintf("/api/v%s", config.GetString("API_VERSION"))
 
+	// Serve static files from public directory
+	a.r.Static("/public", "./public")
+	a.logger.Info("Static file serving enabled for /public")
+
 	// Register routes for all modules
 	for _, module := range a.modules {
 		a.logger.Info("Registering routes for module: %s", module.Name())

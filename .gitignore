@@ -5,3 +5,4 @@ crash.log
 .vscode/
 .idea/
 *.iml
+public/uploads/

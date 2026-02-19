@@ -5,29 +5,34 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import GitHubCallback from "./pages/Auth/GitHubCallback";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Profile from "./pages/Dashboard/Profile";
+import Nodes from "./pages/Dashboard/Nodes";
+import { DashboardLayout } from "./pages/Dashboard/Layout";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Toaster } from "sonner";
+import Settings from "./pages/Dashboard/Settings";
 
 createRoot(document.getElementById("root")!).render(
 	<ThemeProvider defaultTheme="system">
 		<StrictMode>
 			<BrowserRouter>
 				<AuthProvider>
+					<Toaster position="top-right" richColors />
 					<Routes>
 						<Route path="" element={<Index />} />
 						<Route path="login" element={<Login />} />
 						<Route path="register" element={<Register />} />
-						<Route
-							path="dashboard"
-							element={
-								<ProtectedRoute>
-									<Dashboard />
-								</ProtectedRoute>
-							}
-						/>
+						<Route path="auth/github/callback" element={<GitHubCallback />} />
+						<Route path="dashboard" element={<DashboardLayout />}>
+							<Route index element={<Dashboard />} />
+							<Route path="profile" element={<Profile />} />
+							<Route path="nodes" element={<Nodes />} />
+							<Route path="settings" element={<Settings />} />
+						</Route>
 						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</AuthProvider>

@@ -44,3 +44,9 @@ type VerifyResetTokenRequest struct {
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
+
+// UpdateProfileRequest represents a request to update user profile
+type UpdateProfileRequest struct {
+	Name   string `json:"name" validate:"required"`
+	Avatar string `json:"avatar" validate:"omitempty"`
+}

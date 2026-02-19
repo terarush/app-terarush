@@ -11,8 +11,13 @@ import (
 	"go-modular/modules/users/domain/service"
 	"go-modular/modules/users/dto/request"
 	"go-modular/modules/users/dto/response"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/labstack/echo"
 )
@@ -36,6 +41,21 @@ func NewUserHandler(log *logger.Logger, event *bus.EventBus, userService *servic
 // Event Bus Event user created
 func (h *UserHandler) Handle(event bus.Event) {
 	fmt.Printf("User created: %v", event.Payload)
+}
+
+// getUserIDFromContext extracts user ID from JWT claims in context
+func getUserIDFromContext(c echo.Context) (uint, error) {
+	claims, ok := c.Get("user").(map[string]interface{})
+	if !ok {
+		return 0, fmt.Errorf("user not found in context")
+	}
+
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("invalid user ID in token")
+	}
+
+	return uint(userIDFloat), nil
 }
 
 // GetAllUsers gets all users
@@ -158,6 +178,130 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// GetCurrentUser gets the current authenticated user
+func (h *UserHandler) GetCurrentUser(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	// Get user ID from context
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+	}
+
+	user, err := h.userService.GetUserByID(ctx, userID)
+	if err != nil {
+		if err == service.ErrUserNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, response.FromEntity(user))
+}
+
+// UpdateProfile updates the current user's profile
+func (h *UserHandler) UpdateProfile(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	// Get user ID from context
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+	}
+
+	req := new(request.UpdateProfileRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	if err := c.Validate(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	user, err := h.userService.GetUserByID(ctx, userID)
+	if err != nil {
+		if err == service.ErrUserNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	user.Name = req.Name
+	if req.Avatar != "" {
+		user.Avatar = req.Avatar
+	}
+
+	err = h.userService.UpdateUser(ctx, user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, response.FromEntity(user))
+}
+
+// UploadAvatar handles avatar file upload
+func (h *UserHandler) UploadAvatar(c echo.Context) error {
+	// Get user ID from context
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+	}
+
+	// Get file from form
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No file uploaded"})
+	}
+
+	// Validate file type
+	if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File must be an image"})
+	}
+
+	// Validate file size (max 5MB)
+	if file.Size > 5*1024*1024 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File size must be less than 5MB"})
+	}
+
+	// Open uploaded file
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to open file"})
+	}
+	defer src.Close()
+
+	// Create uploads directory if not exists
+	uploadDir := "./public/uploads/avatars"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create upload directory"})
+	}
+
+	// Generate unique filename
+	ext := filepath.Ext(file.Filename)
+	filename := fmt.Sprintf("%d_%d%s", userID, time.Now().Unix(), ext)
+	filePath := filepath.Join(uploadDir, filename)
+
+	// Create destination file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create file"})
+	}
+	defer dst.Close()
+
+	// Copy file
+	if _, err := io.Copy(dst, src); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
+	}
+
+	// Return the URL path
+	avatarURL := fmt.Sprintf("/public/uploads/avatars/%s", filename)
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"avatar_url": avatarURL,
+		"message":    "Avatar uploaded successfully",
+	})
+}
+
 // RegisterRoutes registers the user routes
 func (h *UserHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath + "/users")
@@ -172,4 +316,10 @@ func (h *UserHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	// User or Admin can view their own profile or admin can view any
 	userOrAdmin := group.Group("", middleware.Auth)
 	userOrAdmin.GET("/:id", h.GetUser)
+
+	// Current user profile routes
+	profile := e.Group(basePath+"/profile", middleware.Auth)
+	profile.GET("", h.GetCurrentUser)
+	profile.PUT("", h.UpdateProfile)
+	profile.POST("/avatar", h.UploadAvatar)
 }

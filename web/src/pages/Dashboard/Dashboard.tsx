@@ -1,16 +1,23 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User, Settings, Home } from "lucide-react";
+import {
+	User,
+	Settings,
+	TrendingUp,
+	Package,
+	FileText,
+	Activity,
+} from "lucide-react";
 import gsap from "gsap";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
-import { siteConfig } from "@/content/config";
+import { useUser, useIsAdmin } from "@/hooks";
 
 export default function Dashboard() {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { user, logout } = useAuth();
+	const user = useUser();
+	const isAdmin = useIsAdmin();
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -25,7 +32,7 @@ export default function Dashboard() {
 						duration: 0.8,
 						stagger: 0.15,
 						ease: "power3.out",
-					}
+					},
 				);
 			}
 		}, containerRef);
@@ -33,65 +40,92 @@ export default function Dashboard() {
 		return () => ctx.revert();
 	}, []);
 
-	const handleLogout = async () => {
-		try {
-			await logout();
-			navigate("/login");
-		} catch (error) {
-			console.error("Logout error:", error);
-		}
-	};
-
 	return (
-		<div className="min-h-screen bg-background">
-			{/* Header */}
-			<header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-				<div className="container mx-auto px-4 py-4 flex items-center justify-between">
-					<div className="flex items-center space-x-3">
-						<img
-							src="/assets/logo.png"
-							alt={siteConfig.name}
-							className="h-10 w-10 rounded-lg"
-						/>
-						<span className="text-2xl font-bold text-foreground">
-							{siteConfig.name}
-						</span>
-					</div>
-					
-					<div className="flex items-center gap-4">
-						<Button
-							variant="ghost"
-							onClick={() => navigate("/")}
-							className="text-muted-foreground hover:text-foreground"
-						>
-							<Home className="h-5 w-5 mr-2" />
-							Home
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleLogout}
-							className="rounded-lg"
-						>
-							<LogOut className="h-5 w-5 mr-2" />
-							Logout
-						</Button>
-					</div>
+		<div className="flex-1 overflow-y-auto">
+			{/* Page Header */}
+			<div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+				<div className="px-8 py-6">
+					<h1 className="text-3xl font-bold text-foreground">
+						Dashboard
+					</h1>
+					<p className="text-muted-foreground mt-1">
+						Welcome back, {user?.name}! Here's what's happening
+						today.
+					</p>
 				</div>
-			</header>
+			</div>
 
 			{/* Main Content */}
-			<main className="container mx-auto px-4 py-12">
-				<div ref={containerRef} className="max-w-4xl mx-auto space-y-8">
-					{/* Welcome Section */}
-					<div className="opacity-0">
-						<h1 className="text-4xl font-bold text-foreground mb-2">
-							Welcome back, {user?.name}!
-						</h1>
-						<p className="text-muted-foreground">
-							You're logged in to your dashboard.
-						</p>
-					</div>
+			<div className="p-8">
+				<div ref={containerRef} className="max-w-7xl mx-auto space-y-8">
+					{/* Stats Grid */}
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 opacity-0">
+						<Card className="border-border hover:shadow-lg transition-shadow">
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Total Projects
+								</CardTitle>
+								<Package className="h-4 w-4 text-muted-foreground" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold">24</div>
+								<p className="text-xs text-muted-foreground mt-1">
+									<span className="text-green-600">+2</span>{" "}
+									from last month
+								</p>
+							</CardContent>
+						</Card>
 
+						<Card className="border-border hover:shadow-lg transition-shadow">
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Active Tasks
+								</CardTitle>
+								<Activity className="h-4 w-4 text-muted-foreground" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold">142</div>
+								<p className="text-xs text-muted-foreground mt-1">
+									<span className="text-green-600">+12</span>{" "}
+									this week
+								</p>
+							</CardContent>
+						</Card>
+
+						<Card className="border-border hover:shadow-lg transition-shadow">
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Documents
+								</CardTitle>
+								<FileText className="h-4 w-4 text-muted-foreground" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold">89</div>
+								<p className="text-xs text-muted-foreground mt-1">
+									<span className="text-blue-600">+5</span>{" "}
+									added today
+								</p>
+							</CardContent>
+						</Card>
+
+						<Card className="border-border hover:shadow-lg transition-shadow">
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Growth Rate
+								</CardTitle>
+								<TrendingUp className="h-4 w-4 text-muted-foreground" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold">+12.5%</div>
+								<p className="text-xs text-muted-foreground mt-1">
+									<span className="text-green-600">
+										+2.1%
+									</span>{" "}
+									from last month
+								</p>
+							</CardContent>
+						</Card>
+					</div>
 					{/* User Info Card */}
 					<Card className="opacity-0 border-border">
 						<CardHeader>
@@ -103,21 +137,38 @@ export default function Dashboard() {
 						<CardContent className="space-y-4">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div>
-									<p className="text-sm text-muted-foreground mb-1">Name</p>
-									<p className="text-lg font-semibold text-foreground">{user?.name}</p>
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground mb-1">Email</p>
-									<p className="text-lg font-semibold text-foreground">{user?.email}</p>
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground mb-1">Role</p>
-									<p className="text-lg font-semibold text-foreground capitalize">{user?.role}</p>
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground mb-1">Member Since</p>
+									<p className="text-sm text-muted-foreground mb-1">
+										Name
+									</p>
 									<p className="text-lg font-semibold text-foreground">
-										{user?.created_at && new Date(user.created_at).toLocaleDateString()}
+										{user?.name}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm text-muted-foreground mb-1">
+										Email
+									</p>
+									<p className="text-lg font-semibold text-foreground">
+										{user?.email}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm text-muted-foreground mb-1">
+										Role
+									</p>
+									<p className="text-lg font-semibold text-foreground capitalize">
+										{user?.role}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm text-muted-foreground mb-1">
+										Member Since
+									</p>
+									<p className="text-lg font-semibold text-foreground">
+										{user?.created_at &&
+											new Date(
+												user.created_at,
+											).toLocaleDateString()}
 									</p>
 								</div>
 							</div>
@@ -136,37 +187,57 @@ export default function Dashboard() {
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								<Button
 									variant="outline"
+									onClick={() =>
+										navigate("/dashboard/profile")
+									}
 									className="h-auto p-6 flex flex-col items-center gap-2 border-border hover:bg-muted"
 								>
 									<User className="h-8 w-8 text-primary" />
-									<span className="font-semibold">Edit Profile</span>
-									<span className="text-xs text-muted-foreground">Update your information</span>
+									<span className="font-semibold">
+										Edit Profile
+									</span>
+									<span className="text-xs text-muted-foreground">
+										Update your information
+									</span>
 								</Button>
-								
+
 								<Button
 									variant="outline"
+									onClick={() =>
+										navigate("/dashboard/settings")
+									}
 									className="h-auto p-6 flex flex-col items-center gap-2 border-border hover:bg-muted"
 								>
 									<Settings className="h-8 w-8 text-primary" />
-									<span className="font-semibold">Settings</span>
-									<span className="text-xs text-muted-foreground">Manage preferences</span>
+									<span className="font-semibold">
+										Settings
+									</span>
+									<span className="text-xs text-muted-foreground">
+										Manage preferences
+									</span>
 								</Button>
-								
+
 								<Button
 									variant="outline"
-									onClick={() => navigate("/")}
+									onClick={() =>
+										navigate("/dashboard/projects")
+									}
 									className="h-auto p-6 flex flex-col items-center gap-2 border-border hover:bg-muted"
 								>
-									<Home className="h-8 w-8 text-primary" />
-									<span className="font-semibold">Go Home</span>
-									<span className="text-xs text-muted-foreground">Back to landing page</span>
+									<Package className="h-8 w-8 text-primary" />
+									<span className="font-semibold">
+										Projects
+									</span>
+									<span className="text-xs text-muted-foreground">
+										View all projects
+									</span>
 								</Button>
 							</div>
 						</CardContent>
 					</Card>
 
 					{/* Admin Badge (if admin) */}
-					{user?.role === "admin" && (
+					{isAdmin && (
 						<Card className="opacity-0 border-primary bg-primary/5">
 							<CardContent className="p-6">
 								<div className="flex items-center gap-3">
@@ -174,7 +245,9 @@ export default function Dashboard() {
 										<Settings className="h-6 w-6 text-primary" />
 									</div>
 									<div>
-										<h3 className="font-semibold text-foreground">Admin Access</h3>
+										<h3 className="font-semibold text-foreground">
+											Admin Access
+										</h3>
 										<p className="text-sm text-muted-foreground">
 											You have administrator privileges
 										</p>
@@ -184,7 +257,7 @@ export default function Dashboard() {
 						</Card>
 					)}
 				</div>
-			</main>
+			</div>
 		</div>
 	);
 }

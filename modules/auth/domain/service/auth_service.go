@@ -259,3 +259,40 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshToken strin
 
 	return accessToken, expiresIn, nil
 }
+
+// FindOrCreateGitHubUser finds or creates a user from GitHub OAuth
+func (s *AuthService) FindOrCreateGitHubUser(ctx context.Context, githubID, name, email, avatar string) (*entity.User, error) {
+	// First try to find by GitHub ID
+	user, err := s.userRepo.FindByGithubID(ctx, githubID)
+	if err == nil {
+		// User exists, update avatar if changed
+		if user.Avatar != avatar {
+			user.Avatar = avatar
+			user.Name = name
+			_ = s.userRepo.Update(ctx, user)
+		}
+		return user, nil
+	}
+
+	// If not found by GitHub ID, check by email
+	if err == repository.ERR_RECORD_NOT_FOUND {
+		user, err = s.userRepo.FindByEmail(ctx, email)
+		if err == nil {
+			// Email exists but doesn't have GitHub linked
+			// We'll reject this for security - user should link manually
+			return nil, errors.New("email already registered with password login")
+		}
+	}
+
+	// User doesn't exist, create new one
+	if err == repository.ERR_RECORD_NOT_FOUND {
+		newUser := entity.NewGithubUser(name, email, avatar, githubID)
+		err = s.userRepo.Create(ctx, newUser)
+		if err != nil {
+			return nil, err
+		}
+		return newUser, nil
+	}
+
+	return nil, err
+}
