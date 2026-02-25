@@ -31,6 +31,7 @@ import {
 import { ThemeToggle } from "./elements/toggle-theme";
 import { siteConfig, navConfig } from "@/content/config";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAvatarUrl } from "@/lib/utils";
 
 export default function Navbar() {
 	const [isScrolled, setIsScrolled] = useState(false);
@@ -232,7 +233,7 @@ export default function Navbar() {
 										<Avatar className="h-8 w-8 border-2 border-primary/20">
 											{user.avatar && (
 												<AvatarImage
-													src={`${import.meta.env.VITE_API_URL}${user.avatar}`}
+													src={getAvatarUrl(user.avatar)}
 													alt={user.name}
 												/>
 											)}
@@ -343,7 +344,7 @@ export default function Navbar() {
 									<Avatar className="h-10 w-10 border-2 border-primary/20">
 										{user.avatar && (
 											<AvatarImage
-												src={`${import.meta.env.VITE_API_URL}${user.avatar}`}
+												src={getAvatarUrl(user.avatar)}
 												alt={user.name}
 											/>
 										)}

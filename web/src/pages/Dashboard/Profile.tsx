@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Camera, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
+import { getAvatarUrl } from "@/lib/utils";
 
 export default function Profile() {
   const user = useUser();
@@ -102,7 +103,7 @@ export default function Profile() {
           <CardContent className="flex flex-col items-center space-y-4">
             <div className="relative group">
               <Avatar className="h-32 w-32 border-4 border-primary/20">
-                <AvatarImage src={avatar ? `${import.meta.env.VITE_API_URL}${avatar}` : undefined} alt={user.name} />
+                <AvatarImage src={getAvatarUrl(avatar)} alt={user.name} />
                 <AvatarFallback className="bg-primary/10 text-primary text-3xl font-semibold">
                   {getInitials(user.name)}
                 </AvatarFallback>

@@ -10,7 +10,7 @@ import {
 	Moon,
 	Sun,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getAvatarUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -293,7 +293,7 @@ export function AppSidebar() {
 					>
 					<Avatar className="h-9 w-9 border-2 border-primary/20">
 						{user?.avatar && (
-							<AvatarImage src={`${import.meta.env.VITE_API_URL}${user.avatar}`} alt={user.name} />
+							<AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} />
 						)}
 						<AvatarFallback className="bg-primary/10 text-primary font-semibold">
 							{user?.name ? getInitials(user.name) : "U"}
