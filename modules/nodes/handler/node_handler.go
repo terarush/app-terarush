@@ -61,7 +61,7 @@ func (h *NodeHandler) CreateNode(c echo.Context) error {
 
 	if err := h.validator.Validate(req); err != nil {
 		h.log.Error("Validation failed", "error", err)
-		return h.response.BadRequestResponse(c, err.Error())
+		return h.response.ValidationErrorResponse(c, err.Error())
 	}
 
 	node, err := h.nodeService.CreateNode(userID, &req)
@@ -143,7 +143,7 @@ func (h *NodeHandler) UpdateNode(c echo.Context) error {
 
 	if err := h.validator.Validate(req); err != nil {
 		h.log.Error("Validation failed", "error", err)
-		return h.response.BadRequestResponse(c, err.Error())
+		return h.response.ValidationErrorResponse(c, err.Error())
 	}
 
 	node, err := h.nodeService.UpdateNode(uint(id), userID, &req)
@@ -205,7 +205,7 @@ func (h *NodeHandler) NodeAction(c echo.Context) error {
 
 	if err := h.validator.Validate(req); err != nil {
 		h.log.Error("Validation failed", "error", err)
-		return h.response.BadRequestResponse(c, err.Error())
+		return h.response.ValidationErrorResponse(c, err.Error())
 	}
 
 	var actionErr error
