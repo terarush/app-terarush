@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getProducts, type Product } from "@/lib/api/products";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductCard } from "@/components/fragments/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
