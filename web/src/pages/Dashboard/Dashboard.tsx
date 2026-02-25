@@ -41,23 +41,20 @@ export default function Dashboard() {
 	}, []);
 
 	return (
-		<div className="flex-1 overflow-y-auto">
+		<>
 			{/* Page Header */}
-			<div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-				<div className="px-8 py-6">
-					<h1 className="text-3xl font-bold text-foreground">
-						Dashboard
-					</h1>
-					<p className="text-muted-foreground mt-1">
-						Welcome back, {user?.name}! Here's what's happening
-						today.
-					</p>
-				</div>
+			<div className="mb-8">
+				<h1 className="text-3xl font-bold text-foreground">
+					Dashboard
+				</h1>
+				<p className="text-muted-foreground mt-1">
+					Welcome back, {user?.name}! Here's what's happening
+					today.
+				</p>
 			</div>
 
 			{/* Main Content */}
-			<div className="p-8">
-				<div ref={containerRef} className="max-w-7xl mx-auto space-y-8">
+			<div ref={containerRef} className="max-w-7xl mx-auto space-y-8">
 					{/* Stats Grid */}
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 opacity-0">
 						<Card className="border-border hover:shadow-lg transition-shadow">

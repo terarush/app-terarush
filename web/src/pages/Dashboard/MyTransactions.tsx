@@ -4,20 +4,21 @@ import {
 	getMyTransactions,
 	cancelTransaction,
 	type Transaction,
-	type TransactionStatus,
 	getStatusColor,
 	getStatusText,
 } from "@/lib/api/transactions";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Package, Calendar, CreditCard } from "lucide-react";
+import { Loader2, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export function MyTransactions() {
 	const location = useLocation();
@@ -26,15 +27,12 @@ export function MyTransactions() {
 	const [error, setError] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
 	const [total, setTotal] = useState(0);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const pageSize = 10;
 
 	useEffect(() => {
 		// Check for success message from location state
 		if (location.state?.message) {
-			setSuccessMessage(location.state.message);
-			// Clear the message after 5 seconds
-			setTimeout(() => setSuccessMessage(null), 5000);
+			toast.success(location.state.message);
 		}
 	}, [location]);
 
@@ -70,13 +68,12 @@ export function MyTransactions() {
 
 		try {
 			await cancelTransaction(orderId);
-			// Refresh the list
+			toast.success("Transaction cancelled successfully");
 			await loadTransactions();
 		} catch (err: any) {
 			console.error("Error cancelling transaction:", err);
-			alert(
-				err.response?.data?.message ||
-					"Failed to cancel transaction. Please try again.",
+			toast.error(
+				err.response?.data?.message || "Failed to cancel transaction",
 			);
 		}
 	};
@@ -89,18 +86,14 @@ export function MyTransactions() {
 		}).format(price);
 	};
 
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString("en-US", {
+	const formatDate = (date: string) => {
+		return new Date(date).toLocaleDateString("id-ID", {
 			year: "numeric",
-			month: "long",
+			month: "short",
 			day: "numeric",
 			hour: "2-digit",
 			minute: "2-digit",
 		});
-	};
-
-	const canCancel = (transaction: Transaction) => {
-		return transaction.status === "pending" || transaction.status === "processing";
 	};
 
 	const totalPages = Math.ceil(total / pageSize);
@@ -113,143 +106,86 @@ export function MyTransactions() {
 		);
 	}
 
+	if (error) {
+		return (
+			<div className="text-center py-12">
+				<p className="text-destructive mb-4">{error}</p>
+				<Button onClick={loadTransactions}>Try Again</Button>
+			</div>
+		);
+	}
+
 	return (
-		<div className="space-y-6">
-			<div>
+		<>
+			<div className="mb-6">
 				<h1 className="text-3xl font-bold">My Transactions</h1>
-				<p className="text-muted-foreground">
+				<p className="text-muted-foreground mt-1">
 					View and manage your purchase history
 				</p>
 			</div>
 
-			{successMessage && (
-				<div className="bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg">
-					{successMessage}
+			{transactions.length === 0 ? (
+				<div className="text-center py-12 border rounded-lg">
+					<p className="text-muted-foreground text-lg">
+						No transactions found. Start by purchasing a product!
+					</p>
 				</div>
-			)}
-
-			{error && (
-				<div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg">
-					{error}
-				</div>
-			)}
-
-			{transactions.length === 0 && !loading ? (
-				<Card>
-					<CardContent className="py-12 text-center">
-						<Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-						<p className="text-muted-foreground text-lg">
-							No transactions found.
-						</p>
-						<Button className="mt-4" onClick={() => (window.location.href = "/products")}>
-							Browse Products
-						</Button>
-					</CardContent>
-				</Card>
 			) : (
 				<>
-					<div className="space-y-4">
-						{transactions.map((transaction) => (
-							<Card key={transaction.id}>
-								<CardHeader>
-									<div className="flex items-start justify-between">
-										<div>
-											<CardTitle className="text-lg">
-												{transaction.product?.name || "Product"}
-											</CardTitle>
-											<CardDescription>
-												Order #{transaction.order_id}
-											</CardDescription>
-										</div>
-										<Badge className={getStatusColor(transaction.status)}>
-											{getStatusText(transaction.status)}
-										</Badge>
-									</div>
-								</CardHeader>
-
-								<CardContent>
-									<div className="grid md:grid-cols-2 gap-6">
-										<div className="space-y-3">
-											<div className="flex items-center gap-2 text-sm">
-												<Calendar className="h-4 w-4 text-muted-foreground" />
-												<span className="text-muted-foreground">Ordered:</span>
-												<span>{formatDate(transaction.created_at)}</span>
-											</div>
-
-											<div className="flex items-center gap-2 text-sm">
-												<Package className="h-4 w-4 text-muted-foreground" />
-												<span className="text-muted-foreground">Quantity:</span>
-												<span>{transaction.quantity}</span>
-											</div>
-
-											{transaction.payment_method && (
-												<div className="flex items-center gap-2 text-sm">
-													<CreditCard className="h-4 w-4 text-muted-foreground" />
-													<span className="text-muted-foreground">Payment:</span>
-													<span>{transaction.payment_method}</span>
-												</div>
-											)}
-										</div>
-
-										<div className="space-y-3">
-											<div className="flex justify-between items-center">
-												<span className="text-muted-foreground">Amount</span>
-												<span className="text-xl font-bold">
-													{formatPrice(transaction.amount)}
-												</span>
-											</div>
-
-											{transaction.expired_at && transaction.status === "pending" && (
-												<div className="text-sm">
-													<span className="text-muted-foreground">Expires:</span>
-													<span className="ml-2">
-														{formatDate(transaction.expired_at)}
-													</span>
-												</div>
-											)}
-
-											{transaction.paid_at && (
-												<div className="text-sm">
-													<span className="text-muted-foreground">Paid:</span>
-													<span className="ml-2">
-														{formatDate(transaction.paid_at)}
-													</span>
-												</div>
-											)}
-										</div>
-									</div>
-
-									{canCancel(transaction) && (
-										<div className="mt-4 pt-4 border-t flex gap-2">
-											{transaction.payment_url && (
+					<div className="border rounded-lg">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Order ID</TableHead>
+									<TableHead>Amount</TableHead>
+									<TableHead>Quantity</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead>Payment Method</TableHead>
+									<TableHead>Date</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{transactions.map((transaction) => (
+									<TableRow key={transaction.id}>
+										<TableCell className="font-medium">
+											{transaction.order_id}
+										</TableCell>
+										<TableCell>{formatPrice(transaction.amount)}</TableCell>
+										<TableCell>{transaction.quantity}</TableCell>
+										<TableCell>
+											<Badge variant={getStatusColor(transaction.status)}>
+												{getStatusText(transaction.status)}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											{transaction.payment_method || "-"}
+										</TableCell>
+										<TableCell>
+											{formatDate(transaction.created_at)}
+										</TableCell>
+										<TableCell className="text-right">
+											{transaction.status === "pending" && (
 												<Button
-													variant="default"
+													variant="ghost"
 													size="sm"
 													onClick={() =>
-														window.open(transaction.payment_url, "_blank")
+														handleCancelTransaction(transaction.order_id)
 													}
 												>
-													Continue Payment
+													<XCircle className="h-4 w-4 mr-2" />
+													Cancel
 												</Button>
 											)}
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() =>
-													handleCancelTransaction(transaction.order_id)
-												}
-											>
-												Cancel Order
-											</Button>
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						))}
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
 					</div>
 
 					{totalPages > 1 && (
-						<div className="flex items-center justify-center gap-2">
+						<div className="flex items-center justify-center gap-2 mt-6">
 							<Button
 								variant="outline"
 								onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -271,6 +207,6 @@ export function MyTransactions() {
 					)}
 				</>
 			)}
-		</div>
+		</>
 	);
 }

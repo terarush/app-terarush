@@ -7,7 +7,6 @@ import {
 	type Product,
 	type CreateProductRequest,
 } from "@/lib/api/products";
-import { ProductCard } from "@/components/fragments/ProductCard";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -17,22 +16,28 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function AdminProducts() {
+export function Products() {
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 	const [formLoading, setFormLoading] = useState(false);
-	const [page, setPage] = useState(1);
-	const [total, setTotal] = useState(0);
-	const pageSize = 12;
 
 	const [formData, setFormData] = useState<CreateProductRequest>({
 		name: "",
@@ -49,17 +54,13 @@ export function AdminProducts() {
 
 	useEffect(() => {
 		loadProducts();
-	}, [page]);
+	}, []);
 
 	const loadProducts = async () => {
 		try {
 			setLoading(true);
-			const response = await getProducts({
-				page,
-				page_size: pageSize,
-			});
+			const response = await getProducts();
 			setProducts(response.products || []);
-			setTotal(response.total || 0);
 		} catch (err: any) {
 			console.error("Error loading products:", err);
 			toast.error("Failed to load products");
@@ -81,7 +82,7 @@ export function AdminProducts() {
 				bandwidth_gb: product.bandwidth_gb,
 				is_active: product.is_active,
 				stock: product.stock,
-				image_url: product.image_url,
+				image_url: product.image_url || "",
 			});
 		} else {
 			setEditingProduct(null);
@@ -119,41 +120,46 @@ export function AdminProducts() {
 				toast.success("Product created successfully");
 			}
 			handleCloseDialog();
-			await loadProducts();
+			loadProducts();
 		} catch (err: any) {
 			console.error("Error saving product:", err);
 			toast.error(
-				err.response?.data?.message || "Failed to save product",
+				err.response?.data?.error?.message || "Failed to save product",
 			);
 		} finally {
 			setFormLoading(false);
 		}
 	};
 
-	const handleDelete = async (product: Product) => {
-		if (
-			!confirm(
-				`Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
-			)
-		) {
-			return;
-		}
+	const handleDelete = async (id: number) => {
+		if (!confirm("Are you sure you want to delete this product?")) return;
 
 		try {
-			await deleteProduct(product.id);
+			await deleteProduct(id);
 			toast.success("Product deleted successfully");
-			await loadProducts();
+			loadProducts();
 		} catch (err: any) {
 			console.error("Error deleting product:", err);
-			toast.error(
-				err.response?.data?.message || "Failed to delete product",
-			);
+			toast.error("Failed to delete product");
 		}
 	};
 
-	const totalPages = Math.ceil(total / pageSize);
+	const formatPrice = (price: number) => {
+		return new Intl.NumberFormat("id-ID", {
+			style: "currency",
+			currency: "IDR",
+			minimumFractionDigits: 0,
+		}).format(price);
+	};
 
-	if (loading && products.length === 0) {
+	const formatStorage = (mb: number) => {
+		if (mb >= 1024) {
+			return `${(mb / 1024).toFixed(0)} GB`;
+		}
+		return `${mb} MB`;
+	};
+
+	if (loading) {
 		return (
 			<div className="flex items-center justify-center min-h-[400px]">
 				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -162,11 +168,11 @@ export function AdminProducts() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+		<>
+			<div className="flex items-center justify-between mb-6">
 				<div>
-					<h1 className="text-3xl font-bold">Products Management</h1>
-					<p className="text-muted-foreground">
+					<h1 className="text-3xl font-bold">Products</h1>
+					<p className="text-muted-foreground mt-1">
 						Manage container products for Node.js, Python, and Ubuntu
 					</p>
 				</div>
@@ -176,7 +182,7 @@ export function AdminProducts() {
 				</Button>
 			</div>
 
-			{products.length === 0 && !loading ? (
+			{products.length === 0 ? (
 				<div className="text-center py-12 border rounded-lg">
 					<p className="text-muted-foreground text-lg mb-4">
 						No products found. Create your first product!
@@ -187,41 +193,67 @@ export function AdminProducts() {
 					</Button>
 				</div>
 			) : (
-				<>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{products.map((product) => (
-							<ProductCard
-								key={product.id}
-								product={product}
-								showAdminActions={true}
-								onEdit={handleOpenDialog}
-								onDelete={handleDelete}
-							/>
-						))}
-					</div>
-
-					{totalPages > 1 && (
-						<div className="flex items-center justify-center gap-2">
-							<Button
-								variant="outline"
-								onClick={() => setPage((p) => Math.max(1, p - 1))}
-								disabled={page === 1 || loading}
-							>
-								Previous
-							</Button>
-							<span className="text-sm text-muted-foreground px-4">
-								Page {page} of {totalPages}
-							</span>
-							<Button
-								variant="outline"
-								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-								disabled={page === totalPages || loading}
-							>
-								Next
-							</Button>
-						</div>
-					)}
-				</>
+				<div className="border rounded-lg">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Name</TableHead>
+								<TableHead>Description</TableHead>
+								<TableHead>Price</TableHead>
+								<TableHead>CPU</TableHead>
+								<TableHead>RAM</TableHead>
+								<TableHead>Storage</TableHead>
+								<TableHead>Bandwidth</TableHead>
+								<TableHead>Stock</TableHead>
+								<TableHead>Status</TableHead>
+								<TableHead className="text-right">Actions</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{products.map((product) => (
+								<TableRow key={product.id}>
+									<TableCell className="font-medium">
+										{product.name}
+									</TableCell>
+									<TableCell className="max-w-xs truncate">
+										{product.description}
+									</TableCell>
+									<TableCell>{formatPrice(product.price)}</TableCell>
+									<TableCell>{product.cpu_cores} Cores</TableCell>
+									<TableCell>{formatStorage(product.ram_mb)}</TableCell>
+									<TableCell>{product.storage_gb} GB</TableCell>
+									<TableCell>{product.bandwidth_gb} GB</TableCell>
+									<TableCell>
+										{product.stock === -1 ? "Unlimited" : product.stock}
+									</TableCell>
+									<TableCell>
+										<Badge variant={product.is_active ? "default" : "secondary"}>
+											{product.is_active ? "Active" : "Inactive"}
+										</Badge>
+									</TableCell>
+									<TableCell className="text-right">
+										<div className="flex items-center justify-end gap-2">
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => handleOpenDialog(product)}
+											>
+												<Pencil className="h-4 w-4" />
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => handleDelete(product.id)}
+											>
+												<Trash2 className="h-4 w-4 text-destructive" />
+											</Button>
+										</div>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</div>
 			)}
 
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -245,7 +277,10 @@ export function AdminProducts() {
 									placeholder="e.g., Node.js Bot Starter"
 									value={formData.name}
 									onChange={(e) =>
-										setFormData({ ...formData, name: e.target.value })
+										setFormData({
+											...formData,
+											name: e.target.value,
+										})
 									}
 									required
 								/>
@@ -258,7 +293,10 @@ export function AdminProducts() {
 									placeholder="Perfect for running Discord, Telegram, or WhatsApp bots..."
 									value={formData.description}
 									onChange={(e) =>
-										setFormData({ ...formData, description: e.target.value })
+										setFormData({
+											...formData,
+											description: e.target.value,
+										})
 									}
 									rows={3}
 									required
@@ -327,7 +365,7 @@ export function AdminProducts() {
 								<Input
 									id="storage_gb"
 									type="number"
-									min="5"
+									min="1"
 									placeholder="10"
 									value={formData.storage_gb}
 									onChange={(e) =>
@@ -341,11 +379,11 @@ export function AdminProducts() {
 							</div>
 
 							<div>
-								<Label htmlFor="bandwidth_gb">Bandwidth (GB/month) *</Label>
+								<Label htmlFor="bandwidth_gb">Bandwidth (GB) *</Label>
 								<Input
 									id="bandwidth_gb"
 									type="number"
-									min="10"
+									min="1"
 									placeholder="100"
 									value={formData.bandwidth_gb}
 									onChange={(e) =>
@@ -378,14 +416,17 @@ export function AdminProducts() {
 							</div>
 
 							<div className="col-span-2">
-								<Label htmlFor="image_url">Image URL (optional)</Label>
+								<Label htmlFor="image_url">Image URL</Label>
 								<Input
 									id="image_url"
 									type="url"
 									placeholder="https://example.com/image.png"
 									value={formData.image_url}
 									onChange={(e) =>
-										setFormData({ ...formData, image_url: e.target.value })
+										setFormData({
+											...formData,
+											image_url: e.target.value,
+										})
 									}
 								/>
 							</div>
@@ -395,7 +436,10 @@ export function AdminProducts() {
 									id="is_active"
 									checked={formData.is_active}
 									onCheckedChange={(checked) =>
-										setFormData({ ...formData, is_active: checked })
+										setFormData({
+											...formData,
+											is_active: checked,
+										})
 									}
 								/>
 								<Label htmlFor="is_active" className="cursor-pointer">
@@ -429,6 +473,6 @@ export function AdminProducts() {
 					</form>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</>
 	);
 }

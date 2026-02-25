@@ -35,7 +35,7 @@ export const sidebarNavItems: SidebarNavItem[] = [
 	},
 	{
 		name: "Products",
-		link: "/dashboard/admin/products",
+		link: "/dashboard/products",
 		icon: Package,
 		adminOnly: true,
 	},
