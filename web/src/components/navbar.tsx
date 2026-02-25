@@ -166,15 +166,30 @@ export default function Navbar() {
 								</span>
 							</Link>
 							<div className="hidden lg:flex items-center space-x-1">
-								{navConfig.mainNav.map((item) => (
-									<a
-										key={item.href}
-										href={item.href}
-										className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 font-medium"
-									>
-										{item.label}
-									</a>
-								))}
+								{navConfig.mainNav.map((item) => {
+									// Use Link component for internal routes
+									if (item.href.startsWith("/")) {
+										return (
+											<Link
+												key={item.href}
+												to={item.href}
+												className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 font-medium"
+											>
+												{item.label}
+											</Link>
+										);
+									}
+									// Use anchor tag for hash links
+									return (
+										<a
+											key={item.href}
+											href={item.href}
+											className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 font-medium"
+										>
+											{item.label}
+										</a>
+									);
+								})}
 							</div>
 						</div>
 						<div className="flex items-center space-x-3">
@@ -369,20 +384,40 @@ export default function Navbar() {
 								)}
 
 								<div className="space-y-2">
-									{navConfig.mainNav.map((item) => (
-										<a
-											key={item.href}
-											href={item.href}
-											className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-											onClick={() =>
-												setIsMobileMenuOpen(false)
-											}
-										>
-											<span className="font-medium text-gray-900 dark:text-white">
-												{item.label}
-											</span>
-										</a>
-									))}
+									{navConfig.mainNav.map((item) => {
+										// Use Link component for internal routes
+										if (item.href.startsWith("/")) {
+											return (
+												<Link
+													key={item.href}
+													to={item.href}
+													className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
+													onClick={() =>
+														setIsMobileMenuOpen(false)
+													}
+												>
+													<span className="font-medium text-gray-900 dark:text-white">
+														{item.label}
+													</span>
+												</Link>
+											);
+										}
+										// Use anchor tag for hash links
+										return (
+											<a
+												key={item.href}
+												href={item.href}
+												className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
+												onClick={() =>
+													setIsMobileMenuOpen(false)
+												}
+											>
+												<span className="font-medium text-gray-900 dark:text-white">
+													{item.label}
+												</span>
+											</a>
+										);
+									})}
 
 									{/* Additional menu items when authenticated */}
 									{isAuthenticated && (

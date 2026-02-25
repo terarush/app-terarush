@@ -13,6 +13,7 @@ import { DashboardLayout } from "./pages/Dashboard/Layout";
 import { ProductList } from "./pages/Products/ProductList";
 import { ProductDetail } from "./pages/Products/ProductDetail";
 import { MyTransactions } from "./pages/Dashboard/MyTransactions";
+import { AdminProducts } from "./pages/Dashboard/AdminProducts";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -37,6 +38,7 @@ createRoot(document.getElementById("root")!).render(
 							<Route path="profile" element={<Profile />} />
 							<Route path="nodes" element={<Nodes />} />
 							<Route path="transactions" element={<MyTransactions />} />
+							<Route path="admin/products" element={<AdminProducts />} />
 							<Route path="settings" element={<Settings />} />
 						</Route>
 						<Route path="*" element={<NotFound />} />

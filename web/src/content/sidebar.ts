@@ -3,6 +3,8 @@ import {
 	Users,
 	Settings,
 	Server,
+	Package,
+	Receipt,
 	type LucideIcon,
 } from "lucide-react";
 
@@ -21,9 +23,20 @@ export const sidebarNavItems: SidebarNavItem[] = [
 		icon: LayoutDashboard,
 	},
 	{
+		name: "My Transactions",
+		link: "/dashboard/transactions",
+		icon: Receipt,
+	},
+	{
 		name: "Nodes",
 		link: "/dashboard/nodes",
 		icon: Server,
+		adminOnly: true,
+	},
+	{
+		name: "Products",
+		link: "/dashboard/admin/products",
+		icon: Package,
 		adminOnly: true,
 	},
 	{
