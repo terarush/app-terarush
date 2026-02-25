@@ -17,10 +17,10 @@ export interface Product {
 }
 
 export interface ProductListResponse {
-	products: Product[];
-	total: number;
-	page: number;
-	page_size: number;
+	products?: Product[];
+	total?: number;
+	page?: number;
+	page_size?: number;
 }
 
 export interface CreateProductRequest {
@@ -45,6 +45,17 @@ export const getProducts = async (params?: {
 	is_active?: boolean;
 }): Promise<ProductListResponse> => {
 	const response = await apiClient.get("/products", { params });
+	
+	// Handle both array response (current backend) and paginated response (future)
+	if (Array.isArray(response.data)) {
+		return {
+			products: response.data,
+			total: response.data.length,
+			page: 1,
+			page_size: response.data.length,
+		};
+	}
+	
 	return response.data;
 };
 
