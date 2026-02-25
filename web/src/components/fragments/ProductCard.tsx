@@ -41,6 +41,21 @@ export function ProductCard({
 
 	return (
 		<Card className="h-full flex flex-col">
+			{/* Product Image */}
+			{product.image_url && !showAdminActions && (
+				<div className="w-full h-48 overflow-hidden rounded-t-lg">
+					<img
+						src={product.image_url}
+						alt={product.name}
+						className="w-full h-full object-cover"
+						onError={(e) => {
+							// Fallback if image fails to load
+							e.currentTarget.style.display = "none";
+						}}
+					/>
+				</div>
+			)}
+
 			<CardHeader>
 				<div className="flex items-start justify-between">
 					<div className="flex-1">
