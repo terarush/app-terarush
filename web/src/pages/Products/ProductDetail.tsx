@@ -15,22 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Cpu, HardDrive, Gauge, Network } from "lucide-react";
 
-declare global {
-	interface Window {
-		snap: {
-			pay: (
-				token: string,
-				options: {
-					onSuccess: (result: any) => void;
-					onPending: (result: any) => void;
-					onError: (result: any) => void;
-					onClose: () => void;
-				},
-			) => void;
-		};
-	}
-}
-
 export function ProductDetail() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
@@ -71,12 +55,6 @@ export function ProductDetail() {
 
 		if (!product) return;
 
-		// Check if Midtrans Snap is loaded
-		if (!window.snap) {
-			alert("Payment system is not ready. Please refresh the page and try again.");
-			return;
-		}
-
 		try {
 			setCheckoutLoading(true);
 			const response = await checkout({
@@ -84,27 +62,11 @@ export function ProductDetail() {
 				quantity,
 			});
 
-			// Open Midtrans Snap popup
-			window.snap.pay(response.snap_token, {
-				onSuccess: (result) => {
-					console.log("Payment success:", result);
-					navigate("/dashboard/transactions", {
-						state: { message: "Payment successful!" },
-					});
-				},
-				onPending: (result) => {
-					console.log("Payment pending:", result);
-					navigate("/dashboard/transactions", {
-						state: { message: "Payment is being processed." },
-					});
-				},
-				onError: (result) => {
-					console.error("Payment error:", result);
-					alert("Payment failed. Please try again.");
-				},
-				onClose: () => {
-					console.log("Payment popup closed");
-					setCheckoutLoading(false);
+			// Transaction created successfully, navigate to transactions page
+			navigate("/dashboard/transactions", {
+				state: { 
+					message: "Transaction created! Your order is being processed.",
+					orderId: response.order_id 
 				},
 			});
 		} catch (err: any) {

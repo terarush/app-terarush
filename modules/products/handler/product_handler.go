@@ -221,9 +221,8 @@ func (h *ProductHandler) RegisterRoutes(e *echo.Echo, basePath string, authMiddl
 	group.GET("", h.GetProducts)
 	group.GET("/:id", h.GetProductByID)
 
-	// Admin only routes
-	admin := group.Group("", authMiddleware, adminMiddleware)
-	admin.POST("", h.CreateProduct)
-	admin.PUT("/:id", h.UpdateProduct)
-	admin.DELETE("/:id", h.DeleteProduct)
+	// Admin only routes - apply middleware per route to avoid leaking
+	group.POST("", h.CreateProduct, authMiddleware, adminMiddleware)
+	group.PUT("/:id", h.UpdateProduct, authMiddleware, adminMiddleware)
+	group.DELETE("/:id", h.DeleteProduct, authMiddleware, adminMiddleware)
 }
