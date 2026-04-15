@@ -77,16 +77,16 @@ export function ProductDetail() {
 				product_id: product.id,
 				quantity,
 				image_tag: selectedVersion || "latest",
-			});
+		});
 
-			// Transaction created successfully, navigate to transactions page
-			navigate("/dashboard/transactions", {
-				state: {
-					message:
-						"Transaction created! Your order is being processed.",
-					orderId: response.order_id,
-				},
-			});
+		// Transaction created successfully, navigate to transactions page
+		navigate("/dashboard/transactions", {
+			state: {
+				message:
+					"Transaction created! Your order is being processed.",
+				orderId: response.transaction?.order_id,
+			},
+		});
 		} catch (err: any) {
 			console.error("Error during checkout:", err);
 			alert(

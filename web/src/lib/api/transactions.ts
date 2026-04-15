@@ -89,23 +89,25 @@ export const cancelTransaction = async (orderId: string): Promise<void> => {
 	await apiClient.post(`/transactions/${orderId}/cancel`);
 };
 
-// Get status badge color based on transaction status
-export const getStatusColor = (status: TransactionStatus): string => {
+// Get status badge variant based on transaction status
+export const getStatusColor = (
+	status: TransactionStatus,
+): "default" | "destructive" | "outline" | "secondary" => {
 	switch (status) {
 		case "success":
-			return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+			return "default";
 		case "pending":
-			return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+			return "secondary";
 		case "processing":
-			return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+			return "outline";
 		case "failed":
-			return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+			return "destructive";
 		case "cancelled":
-			return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+			return "secondary";
 		case "expired":
-			return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+			return "destructive";
 		default:
-			return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+			return "default";
 	}
 };
 

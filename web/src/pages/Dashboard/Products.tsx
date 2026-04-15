@@ -50,6 +50,8 @@ export function Products() {
 		is_active: true,
 		stock: -1,
 		image_url: "",
+		docker_image: "",
+		image_tags: [],
 	});
 
 	useEffect(() => {
@@ -83,6 +85,8 @@ export function Products() {
 				is_active: product.is_active,
 				stock: product.stock,
 				image_url: product.image_url || "",
+				docker_image: product.docker_image || "",
+				image_tags: [],
 			});
 		} else {
 			setEditingProduct(null);
@@ -97,6 +101,8 @@ export function Products() {
 				is_active: true,
 				stock: -1,
 				image_url: "",
+				docker_image: "",
+				image_tags: [],
 			});
 		}
 		setDialogOpen(true);
