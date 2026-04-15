@@ -19,32 +19,41 @@ import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "sonner";
 import Settings from "./pages/Dashboard/Settings";
+import { useSmoothScroll } from "./hooks/useSmoothScroll";
+
+function AppContent() {
+	useSmoothScroll();
+
+	return (
+		<BrowserRouter>
+			<AuthProvider>
+				<Toaster position="top-right" richColors />
+				<Routes>
+					<Route path="" element={<Index />} />
+					<Route path="login" element={<Login />} />
+					<Route path="register" element={<Register />} />
+					<Route path="auth/github/callback" element={<GitHubCallback />} />
+					<Route path="products" element={<ProductList />} />
+					<Route path="products/:id" element={<ProductDetail />} />
+					<Route path="dashboard" element={<DashboardLayout />}>
+						<Route index element={<Dashboard />} />
+						<Route path="profile" element={<Profile />} />
+						<Route path="nodes" element={<Nodes />} />
+						<Route path="transactions" element={<MyTransactions />} />
+						<Route path="products" element={<Products />} />
+						<Route path="settings" element={<Settings />} />
+					</Route>
+					<Route path="*" element={<NotFound />} />
+				</Routes>
+			</AuthProvider>
+		</BrowserRouter>
+	);
+}
 
 createRoot(document.getElementById("root")!).render(
 	<ThemeProvider defaultTheme="system">
 		<StrictMode>
-			<BrowserRouter>
-				<AuthProvider>
-					<Toaster position="top-right" richColors />
-					<Routes>
-						<Route path="" element={<Index />} />
-						<Route path="login" element={<Login />} />
-						<Route path="register" element={<Register />} />
-						<Route path="auth/github/callback" element={<GitHubCallback />} />
-						<Route path="products" element={<ProductList />} />
-						<Route path="products/:id" element={<ProductDetail />} />
-						<Route path="dashboard" element={<DashboardLayout />}>
-							<Route index element={<Dashboard />} />
-							<Route path="profile" element={<Profile />} />
-							<Route path="nodes" element={<Nodes />} />
-							<Route path="transactions" element={<MyTransactions />} />
-							<Route path="products" element={<Products />} />
-							<Route path="settings" element={<Settings />} />
-						</Route>
-						<Route path="*" element={<NotFound />} />
-					</Routes>
-				</AuthProvider>
-			</BrowserRouter>
+			<AppContent />
 		</StrictMode>
 	</ThemeProvider>,
 );
