@@ -13,7 +13,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Cpu, HardDrive, Gauge, Network } from "lucide-react";
+import {
+	Loader2,
+	ArrowLeft,
+	Cpu,
+	HardDrive,
+	Gauge,
+	Network,
+} from "lucide-react";
 
 export function ProductDetail() {
 	const { id } = useParams<{ id: string }>();
@@ -24,12 +31,20 @@ export function ProductDetail() {
 	const [checkoutLoading, setCheckoutLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [quantity, setQuantity] = useState(1);
+	const [selectedVersion, setSelectedVersion] = useState<string>("");
 
 	useEffect(() => {
 		if (id) {
 			loadProduct();
 		}
 	}, [id]);
+
+	useEffect(() => {
+		// Set default version when product loads
+		if (product?.image_tags && product.image_tags.length > 0) {
+			setSelectedVersion(product.image_tags[0]);
+		}
+	}, [product]);
 
 	const loadProduct = async () => {
 		try {
@@ -40,7 +55,8 @@ export function ProductDetail() {
 		} catch (err: any) {
 			console.error("Error loading product:", err);
 			setError(
-				err.response?.data?.message || "Failed to load product details.",
+				err.response?.data?.message ||
+					"Failed to load product details.",
 			);
 		} finally {
 			setLoading(false);
@@ -60,13 +76,15 @@ export function ProductDetail() {
 			const response = await checkout({
 				product_id: product.id,
 				quantity,
+				image_tag: selectedVersion || "latest",
 			});
 
 			// Transaction created successfully, navigate to transactions page
 			navigate("/dashboard/transactions", {
-				state: { 
-					message: "Transaction created! Your order is being processed.",
-					orderId: response.order_id 
+				state: {
+					message:
+						"Transaction created! Your order is being processed.",
+					orderId: response.order_id,
 				},
 			});
 		} catch (err: any) {
@@ -111,7 +129,9 @@ export function ProductDetail() {
 					<p className="text-destructive mb-4">
 						{error || "Product not found"}
 					</p>
-					<Button onClick={() => navigate("/products")}>Back to Products</Button>
+					<Button onClick={() => navigate("/products")}>
+						Back to Products
+					</Button>
 				</div>
 			</div>
 		);
@@ -136,7 +156,9 @@ export function ProductDetail() {
 					<CardHeader>
 						<div className="flex items-start justify-between">
 							<div>
-								<CardTitle className="text-3xl">{product.name}</CardTitle>
+								<CardTitle className="text-3xl">
+									{product.name}
+								</CardTitle>
 								<CardDescription className="mt-2 text-base">
 									{product.description}
 								</CardDescription>
@@ -149,13 +171,27 @@ export function ProductDetail() {
 
 					<CardContent>
 						<div className="space-y-6">
+							{/* Docker Image Information */}
+							{product.docker_image && (
+								<div className="pb-4 border-b">
+									<p className="text-sm text-muted-foreground mb-1">
+										Docker Image
+									</p>
+									<p className="text-lg font-semibold">
+										{product.docker_image}
+									</p>
+								</div>
+							)}
+
 							<div className="grid grid-cols-2 gap-6">
 								<div className="flex items-start gap-3">
 									<div className="p-2 bg-primary/10 rounded-lg">
 										<Cpu className="h-5 w-5 text-primary" />
 									</div>
 									<div>
-										<p className="text-sm text-muted-foreground">CPU Cores</p>
+										<p className="text-sm text-muted-foreground">
+											CPU Cores
+										</p>
 										<p className="text-lg font-semibold">
 											{product.cpu_cores} Cores
 										</p>
@@ -167,7 +203,9 @@ export function ProductDetail() {
 										<Gauge className="h-5 w-5 text-primary" />
 									</div>
 									<div>
-										<p className="text-sm text-muted-foreground">RAM</p>
+										<p className="text-sm text-muted-foreground">
+											RAM
+										</p>
 										<p className="text-lg font-semibold">
 											{formatStorage(product.ram_mb)}
 										</p>
@@ -179,7 +217,9 @@ export function ProductDetail() {
 										<HardDrive className="h-5 w-5 text-primary" />
 									</div>
 									<div>
-										<p className="text-sm text-muted-foreground">Storage</p>
+										<p className="text-sm text-muted-foreground">
+											Storage
+										</p>
 										<p className="text-lg font-semibold">
 											{product.storage_gb} GB
 										</p>
@@ -191,7 +231,9 @@ export function ProductDetail() {
 										<Network className="h-5 w-5 text-primary" />
 									</div>
 									<div>
-										<p className="text-sm text-muted-foreground">Bandwidth</p>
+										<p className="text-sm text-muted-foreground">
+											Bandwidth
+										</p>
 										<p className="text-lg font-semibold">
 											{product.bandwidth_gb} GB
 										</p>
@@ -215,11 +257,44 @@ export function ProductDetail() {
 
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-2xl">Order Summary</CardTitle>
+						<CardTitle className="text-2xl">
+							Order Summary
+						</CardTitle>
 					</CardHeader>
 
 					<CardContent>
 						<div className="space-y-6">
+							{/* Version Selector */}
+							{product.image_tags && product.image_tags.length > 0 && (
+								<div>
+									<label
+										htmlFor="version"
+										className="text-sm font-medium block mb-2"
+									>
+										Select Docker Image Version
+									</label>
+									<select
+										id="version"
+										value={selectedVersion}
+										onChange={(e) =>
+											setSelectedVersion(e.target.value)
+										}
+										className="w-full border rounded-md px-3 py-2 bg-background"
+										disabled={checkoutLoading}
+									>
+										{product.image_tags.map((tag) => (
+											<option key={tag} value={tag}>
+												{tag}
+											</option>
+										))}
+									</select>
+									<p className="text-sm text-muted-foreground mt-1">
+										Full image: {product.docker_image}:
+										{selectedVersion}
+									</p>
+								</div>
+							)}
+
 							<div>
 								<label
 									htmlFor="quantity"
@@ -231,7 +306,11 @@ export function ProductDetail() {
 									<Button
 										variant="outline"
 										size="sm"
-										onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+										onClick={() =>
+											setQuantity((q) =>
+												Math.max(1, q - 1),
+											)
+										}
 										disabled={checkoutLoading}
 									>
 										-
@@ -240,10 +319,20 @@ export function ProductDetail() {
 										id="quantity"
 										type="number"
 										min="1"
-										max={product.stock === -1 ? 100 : product.stock}
+										max={
+											product.stock === -1
+												? 100
+												: product.stock
+										}
 										value={quantity}
 										onChange={(e) =>
-											setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+											setQuantity(
+												Math.max(
+													1,
+													parseInt(e.target.value) ||
+														1,
+												),
+											)
 										}
 										className="w-20 text-center border rounded-md px-3 py-2"
 										disabled={checkoutLoading}
@@ -251,10 +340,13 @@ export function ProductDetail() {
 									<Button
 										variant="outline"
 										size="sm"
-										onClick={() => setQuantity((q) => q + 1)}
+										onClick={() =>
+											setQuantity((q) => q + 1)
+										}
 										disabled={
 											checkoutLoading ||
-											(product.stock !== -1 && quantity >= product.stock)
+											(product.stock !== -1 &&
+												quantity >= product.stock)
 										}
 									>
 										+
@@ -269,18 +361,28 @@ export function ProductDetail() {
 
 							<div className="space-y-2 pt-4 border-t">
 								<div className="flex justify-between">
-									<span className="text-muted-foreground">Price per unit</span>
-									<span className="font-medium">{formatPrice(product.price)}</span>
+									<span className="text-muted-foreground">
+										Price per unit
+									</span>
+									<span className="font-medium">
+										{formatPrice(product.price)}
+									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-muted-foreground">Quantity</span>
-									<span className="font-medium">{quantity}</span>
+									<span className="text-muted-foreground">
+										Quantity
+									</span>
+									<span className="font-medium">
+										{quantity}
+									</span>
 								</div>
 								<div className="flex justify-between text-lg font-bold pt-2 border-t">
 									<span>Total</span>
 									<span>{formatPrice(totalPrice)}</span>
 								</div>
-								<p className="text-sm text-muted-foreground">per month</p>
+								<p className="text-sm text-muted-foreground">
+									per month
+								</p>
 							</div>
 						</div>
 					</CardContent>

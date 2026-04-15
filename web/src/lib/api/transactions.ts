@@ -40,6 +40,7 @@ export interface TransactionListResponse {
 export interface CheckoutRequest {
 	product_id: number;
 	quantity: number;
+	image_tag: string;
 }
 
 export interface CheckoutResponse {

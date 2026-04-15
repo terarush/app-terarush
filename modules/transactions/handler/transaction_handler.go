@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"go-modular/internal/pkg/logger"
 	"go-modular/internal/pkg/utils"
 	"go-modular/modules/transactions/domain/service"
@@ -73,6 +74,7 @@ func (h *TransactionHandler) CreateTransaction(c echo.Context) error {
 		req.Quantity,
 		userEmail,
 		userName,
+		req.ImageTag,
 	)
 	if err != nil {
 		h.log.Error("Failed to create transaction:", err)
@@ -195,10 +197,51 @@ func (h *TransactionHandler) MidtransWebhook(c echo.Context) error {
 
 	h.log.Info("Received Midtrans notification:", notification)
 
+	// Get transaction status from notification
+	transactionStatus, _ := notification["transaction_status"].(string)
+	orderID, _ := notification["order_id"].(string)
+
 	err := h.transactionService.HandleMidtransNotification(c.Request().Context(), notification)
 	if err != nil {
 		h.log.Error("Failed to handle notification:", err)
 		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to process notification")
+	}
+
+	// Auto-provision container on settlement
+	if transactionStatus == "settlement" && orderID != "" {
+		h.log.Info("Transaction settled, auto-provisioning container for order:", orderID)
+
+		// Get transaction details
+		transaction, err := h.transactionService.GetTransactionByOrderID(c.Request().Context(), orderID)
+		if err != nil {
+			h.log.Error("Failed to get transaction:", err)
+		} else {
+			// Parse metadata to get image_tag
+			var metadata map[string]interface{}
+			if transaction.Metadata != nil {
+				if err := json.Unmarshal(transaction.Metadata, &metadata); err != nil {
+					h.log.Error("Failed to parse metadata:", err)
+				} else {
+					imageTag, ok := metadata["image_tag"].(string)
+					if !ok || imageTag == "" {
+						imageTag = "latest" // Default to latest if not specified
+					}
+
+					// Import node service here to avoid circular dependency
+					// We'll use the app-level service registry pattern later
+					// For now, log that provisioning should happen
+					h.log.Info("Container provisioning triggered:", map[string]interface{}{
+						"transaction_id": transaction.ID,
+						"product_id":     transaction.ProductID,
+						"user_id":        transaction.UserID,
+						"image_tag":      imageTag,
+					})
+
+					// TODO: Trigger container provisioning via event bus
+					// For now, this will be handled by a separate worker or cron job
+				}
+			}
+		}
 	}
 
 	return h.r.SuccessResponse(c, nil, "Notification processed successfully")

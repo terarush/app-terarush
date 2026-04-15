@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go-modular/internal/pkg/config"
@@ -43,7 +44,7 @@ func NewTransactionService(repo repository.TransactionRepository, productRepo pr
 }
 
 // CreateTransaction creates a new transaction and gets Snap token from Midtrans
-func (s *TransactionService) CreateTransaction(ctx context.Context, userID uint, productID uint, quantity int, userEmail, userName string) (*transactionEntity.Transaction, error) {
+func (s *TransactionService) CreateTransaction(ctx context.Context, userID uint, productID uint, quantity int, userEmail, userName, imageTag string) (*transactionEntity.Transaction, error) {
 	// Get product details
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
@@ -66,6 +67,13 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, userID uint,
 	// Generate unique order ID
 	orderID := fmt.Sprintf("TRS-%d-%d", time.Now().Unix(), userID)
 
+	// Create metadata JSON with image_tag
+	metadataMap := map[string]interface{}{
+		"image_tag":    imageTag,
+		"product_name": product.Name,
+	}
+	metadataJSON, _ := json.Marshal(metadataMap)
+
 	// Create transaction
 	transaction := &transactionEntity.Transaction{
 		OrderID:   orderID,
@@ -74,6 +82,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, userID uint,
 		Quantity:  quantity,
 		Amount:    amount,
 		Status:    transactionEntity.StatusPending,
+		Metadata:  metadataJSON,
 	}
 
 	// Set expiration (24 hours from now)

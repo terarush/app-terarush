@@ -30,7 +30,6 @@ export const navConfig = {
 		{ label: "Home", href: "#home" },
 		{ label: "Products", href: "/products" },
 		{ label: "Services", href: "#services" },
-		{ label: "Open Source", href: "#opensource" },
 		{ label: "About", href: "#about" },
 		{ label: "Why Us", href: "#why" },
 		{ label: "Contact", href: "#contact" },

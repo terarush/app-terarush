@@ -17,6 +17,8 @@ type Product struct {
 	IsActive    bool       `gorm:"default:true" json:"is_active"`
 	Stock       int        `gorm:"default:-1" json:"stock"` // -1 means unlimited
 	ImageURL    string     `gorm:"size:255" json:"image_url"`
+	DockerImage string     `gorm:"size:100" json:"docker_image"` // e.g., "node", "python", "ubuntu"
+	ImageTags   string     `gorm:"type:json" json:"image_tags"`  // JSON array: ["18","20","latest"]
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	DeletedAt   *time.Time `gorm:"index" json:"deleted_at,omitempty"`

@@ -12,6 +12,8 @@ export interface Product {
 	is_active: boolean;
 	stock: number;
 	image_url: string;
+	docker_image: string;
+	image_tags: string[];
 	created_at: string;
 	updated_at: string;
 }
@@ -34,6 +36,8 @@ export interface CreateProductRequest {
 	is_active?: boolean;
 	stock?: number;
 	image_url?: string;
+	docker_image: string;
+	image_tags: string[];
 }
 
 export interface UpdateProductRequest extends Partial<CreateProductRequest> {}

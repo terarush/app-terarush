@@ -9,6 +9,7 @@ import (
 	"go-modular/modules/nodes/domain/repository"
 	"go-modular/modules/nodes/domain/service"
 	"go-modular/modules/nodes/handler"
+	productRepo "go-modular/modules/products/domain/repository"
 
 	"github.com/labstack/echo"
 	"gorm.io/gorm"
@@ -41,10 +42,11 @@ func (m *Module) Initialize(db *gorm.DB, log *logger.Logger, event *bus.EventBus
 
 	// Initialize repositories
 	nodeRepo := repository.NewNodeRepository(db)
+	productRepository := productRepo.NewProductRepository(db)
 	m.logger.Debug("Node repository initialized")
 
 	// Initialize services
-	nodeService, err := service.NewNodeService(nodeRepo)
+	nodeService, err := service.NewNodeService(nodeRepo, productRepository)
 	if err != nil {
 		m.logger.Error("Failed to initialize node service", "error", err)
 		return err

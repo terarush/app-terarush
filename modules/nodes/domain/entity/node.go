@@ -18,6 +18,8 @@ const (
 type Node struct {
 	ID            uint           `gorm:"primaryKey" json:"id"`
 	UserID        uint           `gorm:"not null;index" json:"user_id"`
+	ProductID     *uint          `gorm:"index" json:"product_id"`     // Product that was purchased
+	TransactionID *uint          `gorm:"index" json:"transaction_id"` // Transaction that created this node
 	Name          string         `gorm:"not null;size:255" json:"name"`
 	Image         string         `gorm:"not null;size:255" json:"image"`
 	ContainerID   string         `gorm:"size:255;uniqueIndex" json:"container_id"`

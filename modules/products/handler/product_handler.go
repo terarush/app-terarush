@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"go-modular/internal/pkg/logger"
 	"go-modular/internal/pkg/utils"
 	"go-modular/modules/products/domain/entity"
@@ -111,6 +112,12 @@ func (h *ProductHandler) CreateProduct(c echo.Context) error {
 		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
+	// Marshal ImageTags to JSON string
+	imageTagsJSON, err := json.Marshal(req.ImageTags)
+	if err != nil {
+		return h.r.ErrorResponse(c, http.StatusBadRequest, "Invalid image tags")
+	}
+
 	product := &entity.Product{
 		Name:        req.Name,
 		Description: req.Description,
@@ -122,9 +129,11 @@ func (h *ProductHandler) CreateProduct(c echo.Context) error {
 		IsActive:    req.IsActive,
 		Stock:       req.Stock,
 		ImageURL:    req.ImageURL,
+		DockerImage: req.DockerImage,
+		ImageTags:   string(imageTagsJSON),
 	}
 
-	err := h.productService.CreateProduct(c.Request().Context(), product)
+	err = h.productService.CreateProduct(c.Request().Context(), product)
 	if err != nil {
 		h.log.Error("Failed to create product:", err)
 		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to create product")
@@ -159,6 +168,12 @@ func (h *ProductHandler) UpdateProduct(c echo.Context) error {
 		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
+	// Marshal ImageTags to JSON string
+	imageTagsJSON, err := json.Marshal(req.ImageTags)
+	if err != nil {
+		return h.r.ErrorResponse(c, http.StatusBadRequest, "Invalid image tags")
+	}
+
 	product := &entity.Product{
 		ID:          uint(id),
 		Name:        req.Name,
@@ -171,6 +186,8 @@ func (h *ProductHandler) UpdateProduct(c echo.Context) error {
 		IsActive:    req.IsActive,
 		Stock:       req.Stock,
 		ImageURL:    req.ImageURL,
+		DockerImage: req.DockerImage,
+		ImageTags:   string(imageTagsJSON),
 	}
 
 	err = h.productService.UpdateProduct(c.Request().Context(), product)

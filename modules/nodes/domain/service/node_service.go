@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"go-modular/modules/nodes/domain/entity"
 	"go-modular/modules/nodes/domain/repository"
 	"go-modular/modules/nodes/dto/request"
+	productRepo "go-modular/modules/products/domain/repository"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
@@ -26,14 +28,16 @@ type NodeService interface {
 	StopNode(id uint, userID uint) error
 	RestartNode(id uint, userID uint) error
 	GetAllNodes() ([]entity.Node, error)
+	CreateFromTransaction(ctx context.Context, transactionID uint, productID uint, userID uint, imageTag string) (*entity.Node, error)
 }
 
 type nodeServiceImpl struct {
 	repo         repository.NodeRepository
+	productRepo  productRepo.ProductRepository
 	dockerClient *client.Client
 }
 
-func NewNodeService(repo repository.NodeRepository) (NodeService, error) {
+func NewNodeService(repo repository.NodeRepository, productRepo productRepo.ProductRepository) (NodeService, error) {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create docker client: %w", err)
@@ -41,6 +45,7 @@ func NewNodeService(repo repository.NodeRepository) (NodeService, error) {
 
 	return &nodeServiceImpl{
 		repo:         repo,
+		productRepo:  productRepo,
 		dockerClient: dockerClient,
 	}, nil
 }
@@ -337,4 +342,151 @@ func (s *nodeServiceImpl) updateNodeStatus(node *entity.Node) error {
 	}
 
 	return s.repo.Update(node)
+}
+
+// CreateFromTransaction auto-provisions a container from a completed transaction
+func (s *nodeServiceImpl) CreateFromTransaction(ctx context.Context, transactionID uint, productID uint, userID uint, imageTag string) (*entity.Node, error) {
+	// 1. Get product details to retrieve specs
+	product, err := s.productRepo.FindByID(ctx, productID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get product: %w", err)
+	}
+
+	// 2. Build full Docker image name
+	fullImage := fmt.Sprintf("%s:%s", product.DockerImage, imageTag)
+
+	// 3. Generate unique node name
+	nodeName := fmt.Sprintf("%s-%d-%d", product.Name, userID, time.Now().Unix())
+
+	// 4. Get next available port (8000-9000 range)
+	port, err := s.getNextAvailablePort()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get available port: %w", err)
+	}
+
+	// 5. Pull image
+	dockerCtx := context.Background()
+	_, _, err = s.dockerClient.ImageInspectWithRaw(dockerCtx, fullImage)
+	if err != nil {
+		reader, err := s.dockerClient.ImagePull(dockerCtx, fullImage, image.PullOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to pull image: %w", err)
+		}
+		defer reader.Close()
+		// Wait for pull to complete
+		buf := make([]byte, 4096)
+		for {
+			_, err := reader.Read(buf)
+			if err != nil {
+				break
+			}
+		}
+	}
+
+	// 6. Determine internal port based on image type
+	internalPort := 3000 // Default for Node.js
+	if product.DockerImage == "python" {
+		internalPort = 5000
+	} else if product.DockerImage == "ubuntu" {
+		internalPort = 8080
+	}
+
+	// 7. Prepare port bindings
+	exposedPorts := nat.PortSet{
+		nat.Port(fmt.Sprintf("%d/tcp", internalPort)): struct{}{},
+	}
+
+	portBindings := nat.PortMap{
+		nat.Port(fmt.Sprintf("%d/tcp", internalPort)): []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: strconv.Itoa(port),
+			},
+		},
+	}
+
+	// 8. Prepare resource limits from product specs
+	resources := container.Resources{
+		NanoCPUs: int64(product.CPUCores) * 1e9,
+		Memory:   int64(product.RAMMB) * 1024 * 1024, // Convert MB to bytes
+	}
+
+	// 9. Create container configuration
+	containerConfig := &container.Config{
+		Image:        fullImage,
+		ExposedPorts: exposedPorts,
+	}
+
+	hostConfig := &container.HostConfig{
+		PortBindings:  portBindings,
+		Resources:     resources,
+		RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyUnlessStopped},
+	}
+
+	// 10. Create container
+	resp, err := s.dockerClient.ContainerCreate(dockerCtx, containerConfig, hostConfig, nil, nil, nodeName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create container: %w", err)
+	}
+
+	// 11. Start container
+	if err := s.dockerClient.ContainerStart(dockerCtx, resp.ID, container.StartOptions{}); err != nil {
+		// Cleanup on failure
+		_ = s.dockerClient.ContainerRemove(dockerCtx, resp.ID, container.RemoveOptions{Force: true})
+		return nil, fmt.Errorf("failed to start container: %w", err)
+	}
+
+	// 12. Create node entity
+	prodID := productID
+	transID := transactionID
+	node := &entity.Node{
+		UserID:        userID,
+		ProductID:     &prodID,
+		TransactionID: &transID,
+		Name:          nodeName,
+		Image:         fullImage,
+		ContainerID:   resp.ID,
+		Status:        entity.NodeStatusRunning,
+		Port:          port,
+		InternalPort:  internalPort,
+		CPULimit:      float64(product.CPUCores),
+		MemoryLimit:   int64(product.RAMMB),
+		Environment:   "{}",
+		Volumes:       "{}",
+		Command:       "",
+		RestartPolicy: "unless-stopped",
+	}
+
+	// 13. Save to database
+	if err := s.repo.Create(node); err != nil {
+		// Cleanup: stop and remove container if database save fails
+		_ = s.dockerClient.ContainerStop(dockerCtx, resp.ID, container.StopOptions{})
+		_ = s.dockerClient.ContainerRemove(dockerCtx, resp.ID, container.RemoveOptions{Force: true})
+		return nil, fmt.Errorf("failed to save node: %w", err)
+	}
+
+	return node, nil
+}
+
+// getNextAvailablePort finds the next available port in range 8000-9000
+func (s *nodeServiceImpl) getNextAvailablePort() (int, error) {
+	// Get all existing nodes to check used ports
+	nodes, err := s.repo.FindAll()
+	if err != nil {
+		return 0, err
+	}
+
+	usedPorts := make(map[int]bool)
+	for _, node := range nodes {
+		usedPorts[node.Port] = true
+	}
+
+	// Find first available port in range
+	for port := 8000; port <= 9000; port++ {
+		if !usedPorts[port] {
+			return port, nil
+		}
+	}
+
+	return 0, fmt.Errorf("no available ports in range 8000-9000")
 }

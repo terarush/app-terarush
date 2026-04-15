@@ -49,6 +49,8 @@ func (s *ProductService) UpdateProduct(ctx context.Context, product *entity.Prod
 	existing.IsActive = product.IsActive
 	existing.Stock = product.Stock
 	existing.ImageURL = product.ImageURL
+	existing.DockerImage = product.DockerImage
+	existing.ImageTags = product.ImageTags
 
 	return s.repo.Update(ctx, existing)
 }
