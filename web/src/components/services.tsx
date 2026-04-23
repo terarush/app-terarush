@@ -104,12 +104,12 @@ export default function Services() {
 						return (
 							<Card
 								key={index}
-								className="service-card opacity-0 group relative overflow-hidden border border-border bg-gradient-to-br from-card to-card/50 hover:shadow-2xl hover:scale-105 transition-all duration-500"
+								className="service-card opacity-0 group relative overflow-hidden border border-border bg-gradient-to-br from-card to-card/50 hover:shadow-2xl hover:scale-105 transition-all duration-500 flex flex-col"
 							>
 								{/* Gradient overlay */}
 								<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-								<CardContent className="p-8 relative z-10">
+								<CardContent className="p-8 relative z-10 flex flex-col h-full">
 									{/* Icon */}
 									<div className="mb-6">
 										<div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 group-hover:scale-110 transition-transform duration-300">
@@ -122,12 +122,12 @@ export default function Services() {
 										{service.title}
 									</h3>
 
-									{/* Description */}
-									<p className="text-muted-foreground mb-6 leading-relaxed">
+									{/* Description - Flexible grow */}
+									<p className="text-muted-foreground mb-6 leading-relaxed flex-grow">
 										{service.description}
 									</p>
 
-									{/* Features List */}
+									{/* Features List - Always at bottom */}
 									<ul className="space-y-3">
 										{service.features.map((feature, idx) => (
 											<li
