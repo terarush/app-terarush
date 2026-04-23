@@ -2,41 +2,41 @@
 export const servicesContent = {
 	title: "Our Services",
 	subtitle:
-		"From concept to deployment, we deliver reliable solutions tailored to your needs.",
+		"Comprehensive development solutions tailored to your business needs. From concept to launch and beyond.",
 	services: [
 		{
-			title: "Website Development",
+			title: "Web Development",
 			description:
-				"Custom websites, dashboards, and landing pages built with modern frameworks. Responsive, fast, and optimized for performance.",
+				"Custom websites and web applications built with modern frameworks. Responsive, fast, and user-focused solutions for any industry.",
 			features: [
-				"React, Next.js, and Go-based solutions",
-				"SEO-optimized and accessibility-ready",
-				"Modern UI/UX design principles",
-				"Mobile-first approach",
+				"React, Next.js, Vue.js development",
+				"Responsive & mobile-friendly design",
+				"SEO optimization & performance",
+				"Progressive Web Apps (PWA)",
 			],
 			icon: "globe",
 		},
 		{
-			title: "Hosting Solutions",
+			title: "Backend & API Development",
 			description:
-				"Secure, scalable hosting infrastructure for your applications. Developer-ready with CI/CD integration and monitoring.",
+				"Robust server-side solutions and RESTful APIs. Scalable infrastructure built with Go, Node.js, and Python for reliable performance.",
 			features: [
-				"99.9% uptime guarantee",
-				"Auto-scaling and load balancing",
-				"SSL/TLS encryption included",
-				"24/7 monitoring and support",
+				"REST & GraphQL APIs",
+				"Database design & optimization",
+				"Microservices architecture",
+				"Real-time data processing",
 			],
 			icon: "server",
 		},
 		{
-			title: "Maintenance & Support",
+			title: "Bug Fixes & Maintenance",
 			description:
-				"Ongoing maintenance, updates, and technical support to keep your projects running smoothly.",
+				"Expert debugging, performance optimization, and ongoing maintenance. Keep your applications running smoothly and efficiently.",
 			features: [
-				"Regular security updates",
+				"Code review & refactoring",
 				"Performance optimization",
-				"Bug fixes and feature updates",
-				"Dedicated support team",
+				"Security audits & fixes",
+				"Continuous improvement",
 			],
 			icon: "shield",
 		},

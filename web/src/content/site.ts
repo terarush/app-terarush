@@ -5,8 +5,8 @@ export const siteConfig = {
 		"Empowering developers worldwide through open-source innovation. Build, collaborate, and scale with reliable web solutions.",
 	tagline: "Build. Collaborate. Innovate.",
 	url: "https://terarush.studio",
-	email: "hello@terarush.studio",
-	primaryEmail: "hello@terarush.studio",
+	email: "hello@terarush.dev",
+	primaryEmail: "hello@terarush.dev",
 	phone: "+62 821 4333 8737",
 	whatsapp: "+6282143338737",
 	links: {

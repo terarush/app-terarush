@@ -1,14 +1,14 @@
 // Hero Section Content
 export const heroContent = {
 	badge: {
-		text: "Open Source Development Agency",
+		text: "Custom Web & App Development Agency",
 	},
-	title: "Empowering Developers Through Open Source Innovation",
+	title: "Build Your Digital Future with Expert Development",
 	description:
-		"Build scalable web solutions with Terarush. We deliver high-quality open-source tools, custom websites, and reliable hosting for developers and businesses worldwide.",
+		"Professional web development, mobile app creation, backend solutions, and bug fixes. From concept to deployment, we deliver high-quality code and exceptional results.",
 	email: {
 		placeholder: "Enter your email address",
-		buttonText: "Start Building",
+		buttonText: "Start Your Project",
 	},
 	location: {
 		title: "Based in Indonesia",
@@ -17,10 +17,10 @@ export const heroContent = {
 		availability: "Remote Worldwide",
 	},
 	features: [
-		"Custom Development",
-		"Open Source Tools",
-		"Secure Hosting",
-		"Full Support",
+		"Full-Stack Development",
+		"Bug Fixes & Maintenance",
+		"Backend Services",
+		"Expert Support",
 	],
 };
 
@@ -29,28 +29,28 @@ export const missionVisionContent = {
 	mission: {
 		title: "Our Mission",
 		content:
-			"To empower developers worldwide by providing accessible, high-quality open-source tools and fostering a collaborative ecosystem where innovation thrives.",
+			"To empower businesses and developers by delivering cutting-edge web and application development services, solving technical challenges, and creating robust digital solutions.",
 	},
 	vision: {
 		title: "Our Vision",
 		content:
-			"Building sustainable digital solutions that drive impact. We believe in transparent development, community collaboration, and creating technology that serves everyone.",
+			"Building reliable, scalable, and innovative digital products. We believe in clean code, best practices, and creating technology that transforms businesses and improves user experiences.",
 	},
 };
 
 // Closing Statement
 export const closingContent = {
-	title: "Ready to Build Something Great?",
+	title: "Ready to Build Your Next Project?",
 	description:
-		"Whether you're launching a new project, need reliable hosting, or want to collaborate on open-source tools, we're here to help.",
+		"Whether you need a custom website, mobile app development, backend services, bug fixes, or technical consultation, our expert team is ready to help.",
 	cta: {
 		primary: {
 			text: "Start Your Project",
 			href: "#contact",
 		},
 		secondary: {
-			text: "Explore Open Source",
-			href: "#opensource",
+			text: "View Our Services",
+			href: "#services",
 		},
 	},
 	contact: {
@@ -62,19 +62,19 @@ export const closingContent = {
 // Additional Content Snippets
 export const contentSnippets = {
 	heroAlt1: {
-		title: "Build the Future with Open Source",
+		title: "Expert Developers Ready to Ship",
 		description:
-			"Collaborate on projects that matter. Access high-quality tools, contribute to innovation, and scale with confidence.",
+			"From frontend to backend, we build complete solutions. Fast delivery, clean code, and exceptional results.",
 	},
 	heroAlt2: {
-		title: "Tools Built by Developers, for Developers",
+		title: "Your Technical Partner",
 		description:
-			"From custom web development to production-ready hosting, Terarush delivers solutions that work.",
+			"Custom development, bug fixes, performance optimization, and technical consulting all in one place.",
 	},
 	valuePropositions: [
-		"No vendor lock-in—open-source by design",
-		"Production-tested, battle-hardened infrastructure",
-		"Active development and long-term maintenance",
-		"Clear documentation and responsive support",
+		"Experienced full-stack developers",
+		"Fast turnaround without compromising quality",
+		"Transparent communication and regular updates",
+		"Dedicated support and maintenance options",
 	],
 };

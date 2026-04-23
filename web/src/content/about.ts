@@ -4,21 +4,21 @@ export const aboutContent = {
 		text: "About TeraRush",
 	},
 	headline: {
-		line1: "Empowering Digital Growth",
-		line2: "for Modern Businesses",
+		line1: "Expert Development",
+		line2: "Partners for Your Success",
 	},
 	description:
-		"TeraRush helps organizations of all sizes build, deploy, and scale with confidence—delivering powerful website development, microservices, hosting, and cloud storage in one unified platform. We are dedicated to accelerating your digital journey, so you can focus on your business.",
+		"TeraRush is a web and application development agency dedicated to delivering high-quality solutions. From custom websites to mobile apps, backend services, bug fixes, and ongoing support—we're your complete development partner.",
 
 	// Our Story Section
 	story: {
 		title: "Our Story",
 		paragraphs: [
-			"Founded in 2024, TeraRush was born from the need for digital infrastructure that truly empowers organizations. Frustrated by limited, complex solutions, our founders set out to build a platform that's simple, robust, and future-proof.",
-			"Today, we serve clients in over 60 countries, providing everything from blazing-fast website hosting to secure cloud storage and enterprise-grade microservice solutions—all from one dashboard.",
+			"Founded in 2024, TeraRush emerged with a clear mission: to provide top-tier web and app development services to businesses worldwide. We recognized the need for reliable, experienced developers who understand modern technologies and deliver real results.",
+			"Today, we work with startups, agencies, and enterprises across 60+ countries, building custom solutions, fixing critical bugs, and providing ongoing technical support. We're committed to helping your business thrive through cutting-edge development.",
 		],
 		quote: {
-			text: "We're not just building infrastructure, we're building the digital backbone for tomorrow's leaders.",
+			text: "We don't just write code—we build digital solutions that drive business growth and solve real problems.",
 			author: "Ahmad Rafi'i, Founder",
 		},
 		image: {
@@ -31,35 +31,35 @@ export const aboutContent = {
 	values: {
 		title: "Our Values",
 		subtitle:
-			"Our core values shape every product, partnership, and decision at TeraRush.",
+			"The principles that guide our work and relationships with clients.",
 		items: [
 			{
 				icon: "users",
 				title: "Client Success",
 				description:
-					"We put our clients at the center of everything, building long-term partnerships and digital solutions that scale.",
+					"Your success is our success. We're committed to delivering solutions that exceed expectations and drive measurable results.",
 				color: "bg-primary/90",
 			},
 			{
 				icon: "target",
-				title: "Reliability",
+				title: "Code Quality",
 
 				description:
-					"We focus on uptime, performance, and robust infrastructure. Your business is always online with TeraRush.",
+					"We follow best practices, write clean code, and ensure every project is maintainable and scalable for the future.",
 				color: "bg-chart-2/90",
 			},
 			{
 				icon: "zap",
 				title: "Innovation",
 				description:
-					"We continuously adopt new technologies in web, microservices, and cloud to keep you ahead.",
+					"We stay current with the latest technologies and frameworks to build modern, efficient solutions.",
 				color: "bg-chart-3/90",
 			},
 			{
 				icon: "heart",
-				title: "Integrity",
+				title: "Transparency",
 				description:
-					"We're passionate about delivering transparent, honest, and high-quality service to every customer.",
+					"Clear communication, honest timelines, and transparent pricing. No surprises, just great results.",
 				color: "bg-primary/80",
 			},
 		],
@@ -69,12 +69,12 @@ export const aboutContent = {
 	team: {
 		title: "Meet Our Team",
 		subtitle:
-			"The minds behind TeraRush dedicated, diverse, and driven to accelerate digital transformation for our clients.",
+			"Experienced developers and creators dedicated to delivering exceptional digital solutions.",
 		members: [
 			{
 				name: "Ahmad Rafi'i",
 				role: "CEO & Founder",
-				bio: "Visionary leader with 2 years in cloud & web. Driven by empowering businesses with scalable tech.",
+				bio: "Full-stack developer with 2+ years building web and mobile applications. Passionate about clean code and scalable architecture.",
 				avatar: "https://avatars.githubusercontent.com/u/70046808?v=4",
 				initials: "AH",
 				social: {
@@ -85,7 +85,7 @@ export const aboutContent = {
 			{
 				name: "Rakha Adi",
 				role: "Co-founder",
-				bio: "Cloud-native architect passionate about secure, high-performance infrastructure and microservices.",
+				bio: "Backend specialist with expertise in Go, Node.js, and microservices architecture. Focused on performance and scalability.",
 				avatar: "assets/team/rakha_adi.jpg",
 				initials: "RA",
 				social: {
@@ -96,7 +96,7 @@ export const aboutContent = {
 			{
 				name: "Bintang Adi Alvaro",
 				role: "Graphics Designer",
-				bio: "Creative designer with a passion for crafting stunning visuals that enhance user experience and brand identity.",
+				bio: "Creative designer crafting beautiful user interfaces and experiences that users love.",
 				avatar: "https://avatars.githubusercontent.com/u/143677312?v=4",
 				initials: "BA",
 				social: {
@@ -109,8 +109,8 @@ export const aboutContent = {
 
 	// CTA
 	cta: {
-		title: "Ready to Grow with TeraRush?",
+		title: "Let's Build Something Amazing Together",
 		description:
-			"We're always looking for talented people who want to shape the future of digital infrastructure.",
+			"Have a project in mind? Let's discuss how we can help you achieve your goals with expert development.",
 	},
 };
