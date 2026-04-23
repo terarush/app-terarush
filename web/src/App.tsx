@@ -8,12 +8,9 @@ import Register from "./pages/Auth/Register";
 import GitHubCallback from "./pages/Auth/GitHubCallback";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Dashboard/Profile";
-import Nodes from "./pages/Dashboard/Nodes";
 import { DashboardLayout } from "./pages/Dashboard/Layout";
-import { ProductList } from "./pages/Products/ProductList";
-import { ProductDetail } from "./pages/Products/ProductDetail";
-import { MyTransactions } from "./pages/Dashboard/MyTransactions";
-import { Products } from "./pages/Dashboard/Products";
+import { BlogList } from "./pages/Blog/BlogList";
+import { BlogDetail } from "./pages/Blog/BlogDetail";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -33,14 +30,11 @@ function AppContent() {
 					<Route path="login" element={<Login />} />
 					<Route path="register" element={<Register />} />
 					<Route path="auth/github/callback" element={<GitHubCallback />} />
-					<Route path="products" element={<ProductList />} />
-					<Route path="products/:id" element={<ProductDetail />} />
+					<Route path="blog" element={<BlogList />} />
+					<Route path="blog/:slug" element={<BlogDetail />} />
 					<Route path="dashboard" element={<DashboardLayout />}>
 						<Route index element={<Dashboard />} />
 						<Route path="profile" element={<Profile />} />
-						<Route path="nodes" element={<Nodes />} />
-						<Route path="transactions" element={<MyTransactions />} />
-						<Route path="products" element={<Products />} />
 						<Route path="settings" element={<Settings />} />
 					</Route>
 					<Route path="*" element={<NotFound />} />

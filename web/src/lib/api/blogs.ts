@@ -1,0 +1,111 @@
+import { apiClient } from "./client";
+
+export interface Blog {
+	id: number;
+	title: string;
+	slug: string;
+	content: string;
+	excerpt: string;
+	author: string;
+	category: string;
+	tags: string;
+	image: string;
+	is_published: boolean;
+	view_count: number;
+	created_at: string;
+	updated_at: string;
+	published_at: string | null;
+}
+
+export interface BlogListResponse {
+	blogs?: Blog[];
+	total?: number;
+	page?: number;
+	page_size?: number;
+}
+
+export interface CreateBlogRequest {
+	title: string;
+	slug: string;
+	content: string;
+	excerpt: string;
+	author: string;
+	category?: string;
+	tags?: string;
+	image?: string;
+	is_published?: boolean;
+}
+
+export interface UpdateBlogRequest extends Partial<CreateBlogRequest> {}
+
+// Get all published blogs (public endpoint)
+export const getBlogs = async (params?: {
+	page?: number;
+	page_size?: number;
+}): Promise<BlogListResponse> => {
+	const response = await apiClient.get("/blogs", { params });
+
+	// Handle both array response and paginated response
+	if (Array.isArray(response.data)) {
+		return {
+			blogs: response.data,
+			total: response.data.length,
+			page: 1,
+			page_size: response.data.length,
+		};
+	}
+
+	return response.data;
+};
+
+// Get blog by slug (public endpoint)
+export const getBlogBySlug = async (slug: string): Promise<Blog> => {
+	const response = await apiClient.get(`/blogs/${slug}`);
+	return response.data;
+};
+
+// Get all blogs (admin only)
+export const getAllBlogs = async (params?: {
+	page?: number;
+	page_size?: number;
+}): Promise<BlogListResponse> => {
+	const response = await apiClient.get("/admin/blogs", { params });
+
+	// Handle both array response and paginated response
+	if (Array.isArray(response.data)) {
+		return {
+			blogs: response.data,
+			total: response.data.length,
+			page: 1,
+			page_size: response.data.length,
+		};
+	}
+
+	return response.data;
+};
+
+// Get blog by ID (admin only)
+export const getBlogById = async (id: number): Promise<Blog> => {
+	const response = await apiClient.get(`/admin/blogs/${id}`);
+	return response.data;
+};
+
+// Create blog (admin only)
+export const createBlog = async (data: CreateBlogRequest): Promise<Blog> => {
+	const response = await apiClient.post("/admin/blogs", data);
+	return response.data;
+};
+
+// Update blog (admin only)
+export const updateBlog = async (
+	id: number,
+	data: UpdateBlogRequest,
+): Promise<Blog> => {
+	const response = await apiClient.put(`/admin/blogs/${id}`, data);
+	return response.data;
+};
+
+// Delete blog (admin only)
+export const deleteBlog = async (id: number): Promise<void> => {
+	await apiClient.delete(`/admin/blogs/${id}`);
+};

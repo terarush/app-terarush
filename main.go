@@ -7,9 +7,7 @@ import (
 	"go-modular/internal/pkg/logger"
 	"go-modular/internal/pkg/middleware"
 	"go-modular/modules/auth"
-	"go-modular/modules/nodes"
-	"go-modular/modules/products"
-	"go-modular/modules/transactions"
+	"go-modular/modules/blogs"
 	user "go-modular/modules/users"
 	"log"
 	"os"
@@ -48,9 +46,7 @@ func main() {
 	// register modules
 	app.RegisterModule(user.NewModule())
 	app.RegisterModule(auth.NewModule())
-	app.RegisterModule(nodes.NewModule())
-	app.RegisterModule(products.NewModule())
-	app.RegisterModule(transactions.NewModule())
+	app.RegisterModule(blogs.NewModule())
 
 	// initialize the application
 	if err := app.Initialize(); err != nil {
