@@ -15,18 +15,8 @@ export default function Dashboard() {
 
 			<div className="space-y-8">
 				{isAdmin && (
-					<div className="border border-primary rounded-lg p-6 bg-primary/5">
-						<div className="flex items-center gap-3">
-							<div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-								<Settings className="h-6 w-6 text-primary" />
-							</div>
-							<div>
-								<h3 className="font-semibold">Admin Access</h3>
-								<p className="text-sm text-muted-foreground">
-									You have administrator privileges
-								</p>
-							</div>
-						</div>
+					<div>
+						hello world
 					</div>
 				)}
 			</div>

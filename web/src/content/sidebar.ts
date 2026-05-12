@@ -1,6 +1,7 @@
 import {
 	LayoutDashboard,
 	Settings,
+	BookOpen,
 	type LucideIcon,
 } from "lucide-react";
 
@@ -17,6 +18,12 @@ export const sidebarNavItems: SidebarNavItem[] = [
 		name: "Dashboard",
 		link: "/dashboard",
 		icon: LayoutDashboard,
+	},
+	{
+		name: "Blog Management",
+		link: "/dashboard/blogs",
+		icon: BookOpen,
+		adminOnly: true,
 	},
 	{
 		name: "Settings",

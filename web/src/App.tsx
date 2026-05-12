@@ -8,6 +8,7 @@ import Register from "./pages/Auth/Register";
 import GitHubCallback from "./pages/Auth/GitHubCallback";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Dashboard/Profile";
+import { BlogManagement } from "./pages/Dashboard/BlogManagement";
 import { DashboardLayout } from "./pages/Dashboard/Layout";
 import { BlogList } from "./pages/Blog/BlogList";
 import { BlogDetail } from "./pages/Blog/BlogDetail";
@@ -56,6 +57,7 @@ function AppContent() {
 					<Route path="dashboard" element={<DashboardLayout />}>
 						<Route index element={<Dashboard />} />
 						<Route path="profile" element={<Profile />} />
+						<Route path="blogs" element={<BlogManagement />} />
 						<Route path="settings" element={<Settings />} />
 					</Route>
 					<Route path="*" element={<NotFound />} />
