@@ -20,6 +20,27 @@ import { useSmoothScroll } from "./hooks/useSmoothScroll";
 
 function AppContent() {
 	useSmoothScroll();
+	if (import.meta.env.VITE_NODE_ENV === "development") {
+		return (
+			<div className="flex items-center justify-center h-screen">
+				<div className="text-center">
+					<h1 className="text-4xl font-bold mb-4">Development Mode</h1>
+					<p className="text-lg text-gray-600">The application is running in development mode.</p>
+				</div>
+			</div>
+		)
+	}
+
+	if (import.meta.env.VITE_NODE_ENV === "maintenance") {
+		return (
+			<div className="flex items-center justify-center h-screen">
+				<div className="text-center">
+					<h1 className="text-4xl font-bold mb-4">Maintenance Mode</h1>
+					<p className="text-lg text-gray-600">The application is currently under maintenance. Please check back later.</p>
+				</div>
+			</div>
+		)
+	}
 
 	return (
 		<BrowserRouter>
