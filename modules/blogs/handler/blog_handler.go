@@ -223,4 +223,5 @@ func (h *BlogHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	admin.POST("", h.CreateBlog)
 	admin.PUT("/:id", h.UpdateBlog)
 	admin.DELETE("/:id", h.DeleteBlog)
+	admin.POST("/upload/image", h.UploadBlogImage)
 }

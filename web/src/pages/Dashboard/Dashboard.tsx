@@ -1,5 +1,4 @@
 import { useUser, useIsAdmin } from "@/hooks";
-import { Settings } from "lucide-react";
 
 export default function Dashboard() {
 	const user = useUser();

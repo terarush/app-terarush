@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
 	createBlog,
 	updateBlog,
+	uploadBlogImage,
 	type Blog,
 	type CreateBlogRequest,
 } from "@/lib/api/blogs";
@@ -26,8 +27,9 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, X } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BlogFormProps {
 	blog?: Blog;
@@ -36,6 +38,8 @@ interface BlogFormProps {
 
 export function BlogForm({ blog, onClose }: BlogFormProps) {
 	const [loading, setLoading] = useState(false);
+	const [uploading, setUploading] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState<string>(blog?.image || "");
 	const form = useForm<CreateBlogRequest>({
 		defaultValues: blog
 			? {
@@ -94,6 +98,36 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 		if (!blog) {
 			form.setValue("slug", generateSlug(title));
 		}
+	};
+
+	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		try {
+			setUploading(true);
+			const response = await uploadBlogImage(file);
+			const imageUrl = response.url;
+
+			form.setValue("image", imageUrl);
+			setPreviewUrl(imageUrl);
+			toast.success("Image uploaded successfully");
+		} catch (error) {
+			console.error("Error uploading image:", error);
+			toast.error("Failed to upload image");
+		} finally {
+			setUploading(false);
+		}
+	};
+
+	const handleUrlInput = (url: string) => {
+		form.setValue("image", url);
+		setPreviewUrl(url);
+	};
+
+	const clearImage = () => {
+		form.setValue("image", "");
+		setPreviewUrl("");
 	};
 
 	return (
@@ -311,13 +345,67 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 							}}
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Featured Image URL</FormLabel>
-									<FormControl>
-										<Input
-											placeholder="https://example.com/image.jpg"
-											{...field}
-										/>
-									</FormControl>
+									<FormLabel>Featured Image</FormLabel>
+									<Tabs defaultValue="url" className="w-full">
+										<TabsList className="grid w-full grid-cols-2">
+											<TabsTrigger value="url">From URL</TabsTrigger>
+											<TabsTrigger value="upload">Upload</TabsTrigger>
+										</TabsList>
+										<TabsContent value="url" className="space-y-3">
+											<FormControl>
+												<Input
+													placeholder="https://example.com/image.jpg"
+													value={field.value}
+													onChange={(e) => {
+														handleUrlInput(e.target.value);
+													}}
+												/>
+											</FormControl>
+											<FormDescription>
+												Enter the URL of your featured image
+											</FormDescription>
+										</TabsContent>
+										<TabsContent value="upload" className="space-y-3">
+											<div className="relative">
+												<label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 p-6">
+													<div className="flex flex-col items-center justify-center">
+														<Upload className="h-8 w-8 text-gray-400 mb-2" />
+														<p className="text-sm text-gray-500">
+															{uploading
+																? "Uploading..."
+																: "Click to upload or drag and drop"}
+														</p>
+														<p className="text-xs text-gray-400">
+															PNG, JPG, GIF, WebP up to 5MB
+														</p>
+													</div>
+													<input
+														type="file"
+														className="hidden"
+														accept="image/*"
+														onChange={handleImageUpload}
+														disabled={uploading}
+													/>
+												</label>
+											</div>
+										</TabsContent>
+									</Tabs>
+									{previewUrl && (
+										<div className="relative mt-4">
+											<img
+												src={previewUrl}
+												alt="Preview"
+												className="w-full h-48 object-cover rounded-lg"
+											/>
+											<button
+												type="button"
+												onClick={clearImage}
+												className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+											>
+												<X className="h-4 w-4" />
+											</button>
+										</div>
+									)}
 									<FormMessage />
 								</FormItem>
 							)}

@@ -109,3 +109,22 @@ export const updateBlog = async (
 export const deleteBlog = async (id: number): Promise<void> => {
 	await apiClient.delete(`/admin/blogs/${id}`);
 };
+
+// Upload blog image (admin only)
+export interface UploadImageResponse {
+	url: string;
+	path: string;
+}
+
+export const uploadBlogImage = async (file: File): Promise<UploadImageResponse> => {
+	const formData = new FormData();
+	formData.append("image", file);
+
+	const response = await apiClient.post("/admin/blogs/upload/image", formData, {
+		headers: {
+			"Content-Type": "multipart/form-data",
+		},
+	});
+
+	return response.data;
+};

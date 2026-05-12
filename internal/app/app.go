@@ -69,7 +69,18 @@ func (a *App) Initialize() error {
 	a.r = a.SetRouter()
 	a.r.Use(middleware.Logger())
 	a.r.Use(middleware.Recover())
-	a.r.Use(middleware.CORS())
+
+	// Setup CORS
+	corsOrigins := config.GetString("CORS_ORIGINS")
+	if corsOrigins == "" {
+		corsOrigins = "*"
+	}
+	a.r.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{corsOrigins},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.PATCH, echo.OPTIONS},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		MaxAge:       3600,
+	}))
 
 	// validate request
 	a.r.Validator = _validator.NewCustomValidator()
