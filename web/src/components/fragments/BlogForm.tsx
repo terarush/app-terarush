@@ -444,16 +444,16 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 							)}
 						/>
 
-						<div className="flex justify-end gap-2 pt-4">
+						<div className="flex justify-end gap-2 pt-4 sticky bottom-0 bg-background border-t">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={() => onClose()}
-								disabled={loading}
+								disabled={loading || uploading}
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={loading}>
+							<Button type="submit" disabled={loading || uploading}>
 								{loading && (
 									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
 								)}
