@@ -1,12 +1,11 @@
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
 import {
   Controller,
-  ControllerProps,
   FieldPath,
   FieldValues,
   FormProvider,
   useFormContext,
+  UseControllerProps,
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
@@ -29,7 +28,7 @@ const FormField = <
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 >({
   ...props
-}: ControllerProps<TFieldValues, TName>) => (
+}: UseControllerProps<TFieldValues, TName>) => (
   <FormFieldContext.Provider value={{ name: props.name }}>
     <Controller {...props} />
   </FormFieldContext.Provider>
@@ -102,13 +101,15 @@ const FormLabel = React.forwardRef<
 FormLabel.displayName = "FormLabel"
 
 const FormControl = React.forwardRef<
-  React.ElementRef<typeof Slot>,
-  React.ComponentPropsWithoutRef<typeof Slot>
->(({ ...props }, ref) => {
+  React.ElementRef<"div">,
+  React.HTMLAttributes<HTMLDivElement> & {
+    children: React.ReactNode
+  }
+>(({ children, ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
   return (
-    <Slot
+    <div
       ref={ref}
       id={formItemId}
       aria-describedby={
@@ -118,7 +119,9 @@ const FormControl = React.forwardRef<
       }
       aria-invalid={!!error}
       {...props}
-    />
+    >
+      {children}
+    </div>
   )
 })
 FormControl.displayName = "FormControl"
