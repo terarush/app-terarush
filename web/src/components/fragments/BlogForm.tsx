@@ -132,7 +132,7 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 
 	return (
 		<Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>
 						{blog ? "Edit Blog Post" : "Create New Blog Post"}
