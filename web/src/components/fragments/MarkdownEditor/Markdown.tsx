@@ -11,7 +11,6 @@ interface MarkdownEditorProps {
 
 export function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
 	const { theme } = useTheme();
-	// Jika theme adalah 'system', kita perlu tahu apakah sistemnya dark atau light
 	const currentTheme = theme === 'system' 
 		? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 		: theme;
