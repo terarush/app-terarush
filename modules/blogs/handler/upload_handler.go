@@ -75,11 +75,40 @@ func (h *BlogHandler) UploadBlogImage(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
 	}
 
-	// Return URL relative to public directory
-	url := fmt.Sprintf("/uploads/blogs/%s", filename)
+	// Return URL with image ID (just the filename)
+	url := fmt.Sprintf("/images/%s", filename)
 
 	return c.JSON(http.StatusOK, UploadImageResponse{
 		URL:  url,
 		Path: filepath,
 	})
+}
+
+// GetBlogImage serves a blog image
+func (h *BlogHandler) GetBlogImage(c echo.Context) error {
+	filename := c.Param("filename")
+	if filename == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Filename is required"})
+	}
+
+	// Security: prevent directory traversal attacks
+	if filepath.Base(filename) != filename {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid filename"})
+	}
+
+	filepath := filepath.Join("public/uploads/blogs", filename)
+
+	// Check if file exists
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "Image not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to read image"})
+	}
+
+	// Set cache headers
+	c.Response().Header().Set("Cache-Control", "public, max-age=604800") // 7 days
+
+	// Serve the file
+	return c.File(filepath)
 }

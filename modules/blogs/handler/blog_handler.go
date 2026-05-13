@@ -216,6 +216,10 @@ func (h *BlogHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	public.GET("", h.GetPublishedBlogs)
 	public.GET("/:slug", h.GetBlogBySlug)
 
+	// Public image route
+	images := e.Group("/images")
+	images.GET("/:filename", h.GetBlogImage)
+
 	// Admin routes
 	admin := e.Group(basePath+"/admin/blogs", middleware.Auth, middleware.AdminOnly)
 	admin.GET("", h.GetAllBlogs)

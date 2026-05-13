@@ -112,6 +112,7 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 
 			form.setValue("image", imageUrl);
 			setPreviewUrl(imageUrl);
+			setImageError(false);
 			toast.success("Image uploaded successfully");
 		} catch (error) {
 			console.error("Error uploading image:", error);
