@@ -129,12 +129,16 @@
 		scroll-behavior: auto;
 	}
 
-	/* Hide scrollbar while maintaining scroll functionality */
 	.scrollbar-hide {
-		-ms-overflow-style: none; /* IE and Edge */
-		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none; 
+		scrollbar-width: none; 
+		overflow-y: auto !important;
 	}
 	.scrollbar-hide::-webkit-scrollbar {
-		display: none; /* Chrome, Safari and Opera */
+		display: none; 
+	}
+
+	[data-radix-dialog-content] {
+		touch-action: auto !important;
 	}
 }
