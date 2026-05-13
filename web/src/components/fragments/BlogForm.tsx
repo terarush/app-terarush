@@ -132,23 +132,26 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 
 	return (
 		<Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-2xl">
-				<DialogHeader>
-					<DialogTitle>
-						{blog ? "Edit Blog Post" : "Create New Blog Post"}
-					</DialogTitle>
-					<DialogDescription>
-						{blog
-							? "Update your blog post details"
-							: "Fill in the form to create a new blog post"}
-					</DialogDescription>
-				</DialogHeader>
+			<DialogContent className="max-w-2xl p-0 flex flex-col max-h-[90vh]">
+				<div className="px-6 pt-6 pb-0 flex-shrink-0">
+					<DialogHeader>
+						<DialogTitle>
+							{blog ? "Edit Blog Post" : "Create New Blog Post"}
+						</DialogTitle>
+						<DialogDescription>
+							{blog
+								? "Update your blog post details"
+								: "Fill in the form to create a new blog post"}
+						</DialogDescription>
+					</DialogHeader>
+				</div>
 
 				<Form {...form}>
-					<form
-						onSubmit={form.handleSubmit(onSubmit)}
-						className="space-y-4"
-					>
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className="flex flex-col flex-1 min-h-0"
+				>
+					<div className="overflow-y-auto scrollbar-hide flex-1 px-6 py-4 space-y-4 min-h-0">
 						<FormField
 							control={form.control}
 							name="title"
@@ -444,25 +447,27 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 							)}
 						/>
 
-						<div className="flex justify-end gap-2 pt-4 sticky bottom-0 bg-background border-t">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => onClose()}
-								disabled={loading || uploading}
-							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={loading || uploading}>
-								{loading && (
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-								)}
-								{blog ? "Update" : "Create"} Blog Post
-							</Button>
-						</div>
-					</form>
-				</Form>
-			</DialogContent>
-		</Dialog>
+					</div>
+
+					<div className="flex justify-end gap-2 p-6 border-t bg-background flex-shrink-0">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onClose()}
+							disabled={loading || uploading}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={loading || uploading}>
+							{loading && (
+								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+							)}
+							{blog ? "Update" : "Create"} Blog Post
+						</Button>
+					</div>
+				</form>
+			</Form>
+		</DialogContent>
+	</Dialog>
 	);
 }
