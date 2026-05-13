@@ -40,6 +40,7 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 	const [loading, setLoading] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [previewUrl, setPreviewUrl] = useState<string>(blog?.image || "");
+	const [imageError, setImageError] = useState(false);
 	const form = useForm<CreateBlogRequest>({
 		defaultValues: blog
 			? {
@@ -123,11 +124,13 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 	const handleUrlInput = (url: string) => {
 		form.setValue("image", url);
 		setPreviewUrl(url);
+		setImageError(false);
 	};
 
 	const clearImage = () => {
 		form.setValue("image", "");
 		setPreviewUrl("");
+		setImageError(false);
 	};
 
 	return (
@@ -389,12 +392,14 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 												</div>
 											</TabsContent>
 										</Tabs>
-										{previewUrl && (
+										{previewUrl && !imageError && (
 											<div className="relative mt-4">
 												<img
 													src={previewUrl}
 													alt="Preview"
 													className="w-full h-48 object-cover rounded-lg"
+													onError={() => setImageError(true)}
+													onLoad={() => setImageError(false)}
 												/>
 												<button
 													type="button"
@@ -402,6 +407,18 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 													className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
 												>
 													<X className="h-4 w-4" />
+												</button>
+											</div>
+										)}
+										{imageError && previewUrl && (
+											<div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+												<p>Failed to load image. Please check the URL and try again.</p>
+												<button
+													type="button"
+													onClick={clearImage}
+													className="mt-2 text-red-600 hover:text-red-800 underline"
+												>
+													Clear
 												</button>
 											</div>
 										)}
