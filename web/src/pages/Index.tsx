@@ -7,8 +7,10 @@ import About from "@/components/about";
 import WhyUs from "@/components/whyus";
 import Contact from "@/components/contact";
 import Footer from "@/components/footer";
+import { useSmoothScroll } from "@/hooks/useSmoothScroll";
 
 export default function Index() {
+	useSmoothScroll();
 	return (
 		<>
 			<Navbar />

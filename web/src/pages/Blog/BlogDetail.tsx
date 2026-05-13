@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getBlogBySlug, type Blog } from "@/lib/api/blogs";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Calendar, User, Eye } from "lucide-react";
+import { MarkdownRenderer } from "@/components/fragments/MarkdownRenderer";
 
 export function BlogDetail() {
 	const { slug } = useParams<{ slug: string }>();
@@ -137,18 +138,10 @@ export function BlogDetail() {
 						</p>
 					)}
 
-					{/* Content */}
-					<div className="prose prose-sm md:prose-base max-w-none dark:prose-invert mb-8">
-						<div
-							className="leading-7 text-foreground whitespace-pre-wrap break-words"
-							dangerouslySetInnerHTML={{
-								__html: blog.content
-									.replace(/</g, "&lt;")
-									.replace(/>/g, "&gt;")
-									.replace(/\n/g, "<br />"),
-							}}
-						/>
-					</div>
+				{/* Content */}
+				<div className="mb-8">
+					<MarkdownRenderer content={blog.content} />
+				</div>
 
 					{/* Footer */}
 					<div className="border-t pt-8 mt-12">

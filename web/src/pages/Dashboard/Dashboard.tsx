@@ -14,7 +14,7 @@ export default function Dashboard() {
 
 			<div className="space-y-8">
 				{isAdmin && (
-					<div>
+					<div className="h-[300vh]">
 						hello world
 					</div>
 				)}

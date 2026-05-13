@@ -17,10 +17,10 @@ import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "sonner";
 import Settings from "./pages/Dashboard/Settings";
-import { useSmoothScroll } from "./hooks/useSmoothScroll";
+
 
 function AppContent() {
-	useSmoothScroll();
+	// useSmoothScroll moved to specific pages where needed
 	if (import.meta.env.VITE_NODE_ENV === "development") {
 		return (
 			<div className="flex items-center justify-center h-screen">
