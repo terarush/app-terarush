@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,6 +31,26 @@ func NewBlogHandler(log *logger.Logger, event *bus.EventBus, blogService *servic
 		log:         log,
 		event:       event,
 	}
+}
+
+// getUserIDAndNameFromContext extracts user ID and name from JWT claims in context
+func getUserIDAndNameFromContext(c echo.Context) (uint, string, error) {
+	claims, ok := c.Get("user").(map[string]interface{})
+	if !ok {
+		return 0, "", fmt.Errorf("user not found in context")
+	}
+
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return 0, "", fmt.Errorf("invalid user ID in token")
+	}
+
+	userName, ok := claims["name"].(string)
+	if !ok {
+		return 0, "", fmt.Errorf("invalid user name in token")
+	}
+
+	return uint(userIDFloat), userName, nil
 }
 
 // GetAllBlogs gets all blogs (admin only)
@@ -85,7 +106,7 @@ func (h *BlogHandler) GetBlogBySlug(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Slug is required"})
 	}
 
-	blog, err := h.blogService.GetBlogBySlug(ctx, slug)
+	blog, user, err := h.blogService.GetBlogBySlugWithUser(ctx, slug)
 	if err != nil {
 		if err == service.ErrBlogNotFound {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "Blog not found"})
@@ -93,12 +114,18 @@ func (h *BlogHandler) GetBlogBySlug(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntity(blog))
+	return c.JSON(http.StatusOK, response.FromEntityWithUser(blog, user))
 }
 
 // CreateBlog creates a new blog (admin only)
 func (h *BlogHandler) CreateBlog(c echo.Context) error {
 	ctx := c.Request().Context()
+
+	// Get user ID and name from auth context
+	userID, userName, err := getUserIDAndNameFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+	}
 
 	req := new(request.CreateBlogRequest)
 	if err := c.Bind(req); err != nil {
@@ -109,24 +136,25 @@ func (h *BlogHandler) CreateBlog(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	blog := &entity.Blog{
-		Title:       req.Title,
-		Slug:        req.Slug,
-		Content:     req.Content,
-		Excerpt:     req.Excerpt,
-		Author:      req.Author,
-		Category:    req.Category,
-		Tags:        req.Tags,
-		Image:       req.Image,
-		IsPublished: req.IsPublished,
-	}
+	blog := entity.NewBlog(
+		req.Title,
+		req.Slug,
+		req.Content,
+		req.Excerpt,
+		userName, // Set author from authenticated user
+		userID,   // Set user ID from authenticated user
+		req.Category,
+		req.Tags,
+		req.Image,
+	)
 
+	blog.IsPublished = req.IsPublished
 	if req.IsPublished {
 		now := time.Now()
 		blog.PublishedAt = &now
 	}
 
-	err := h.blogService.CreateBlog(ctx, blog)
+	err = h.blogService.CreateBlog(ctx, blog)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -166,7 +194,7 @@ func (h *BlogHandler) UpdateBlog(c echo.Context) error {
 	blog.Slug = req.Slug
 	blog.Content = req.Content
 	blog.Excerpt = req.Excerpt
-	blog.Author = req.Author
+	// Do NOT update Author - it's tied to the original creator via UserID
 	blog.Category = req.Category
 	blog.Tags = req.Tags
 	blog.Image = req.Image

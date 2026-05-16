@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go-modular/internal/pkg/database"
 	"go-modular/modules/blogs/domain/entity"
+	userEntity "go-modular/modules/users/domain/entity"
 )
 
 var (
@@ -56,6 +57,36 @@ func (r BlogRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*entit
 	return &blog, nil
 }
 
+// FindBySlugWithUser finds a blog by slug and joins with user data
+func (r BlogRepositoryImpl) FindBySlugWithUser(ctx context.Context, slug string) (*entity.Blog, *userEntity.User, error) {
+	var blog entity.Blog
+	var user userEntity.User
+
+	result := database.DB.WithContext(ctx).
+		Where("slug = ?", slug).
+		Joins("LEFT JOIN users ON blogs.user_id = users.id").
+		Select("blogs.*").
+		First(&blog)
+
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			return nil, nil, ERR_RECORD_NOT_FOUND
+		}
+		return nil, nil, result.Error
+	}
+
+	// Fetch user if user_id is set
+	var userPtr *userEntity.User
+	if blog.UserID > 0 {
+		userResult := database.DB.WithContext(ctx).First(&user, blog.UserID)
+		if userResult.Error == nil {
+			userPtr = &user
+		}
+	}
+
+	return &blog, userPtr, nil
+}
+
 // FindPublished finds all published blogs
 func (r BlogRepositoryImpl) FindPublished(ctx context.Context) ([]*entity.Blog, error) {
 	var blogs []*entity.Blog
@@ -73,7 +104,7 @@ func (r BlogRepositoryImpl) Update(ctx context.Context, blog *entity.Blog) error
 
 // IncrementViewCount increments the view count for a blog
 func (r BlogRepositoryImpl) IncrementViewCount(ctx context.Context, id uint) error {
-	return database.DB.WithContext(ctx).Model(&entity.Blog{}).Where("id = ?", id).Update("view_count", "view_count + 1").Error
+	return database.DB.WithContext(ctx).Model(&entity.Blog{}).Where("id = ?", id).Update("view_count", database.DB.Raw("view_count + 1")).Error
 }
 
 func NewBlogRepositoryImpl() BlogRepository {

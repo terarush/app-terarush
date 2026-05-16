@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go-modular/modules/blogs/domain/entity"
 	"go-modular/modules/blogs/domain/repository"
+	userEntity "go-modular/modules/users/domain/entity"
 )
 
 // Errors
@@ -60,6 +61,25 @@ func (s *BlogService) GetBlogBySlug(ctx context.Context, slug string) (*entity.B
 	return blog, nil
 }
 
+// GetBlogBySlugWithUser gets a blog by slug with user data and increments view count
+func (s *BlogService) GetBlogBySlugWithUser(ctx context.Context, slug string) (*entity.Blog, *userEntity.User, error) {
+	blog, user, err := s.blogRepo.FindBySlugWithUser(ctx, slug)
+	if err != nil {
+		if err == repository.ERR_RECORD_NOT_FOUND {
+			return nil, nil, ErrBlogNotFound
+		}
+		return nil, nil, err
+	}
+	if blog == nil {
+		return nil, nil, ErrBlogNotFound
+	}
+
+	// Increment view count
+	s.blogRepo.IncrementViewCount(ctx, blog.ID)
+
+	return blog, user, nil
+}
+
 // GetPublishedBlogs gets all published blogs
 func (s *BlogService) GetPublishedBlogs(ctx context.Context) ([]*entity.Blog, error) {
 	return s.blogRepo.FindPublished(ctx)
@@ -94,4 +114,9 @@ func (s *BlogService) DeleteBlog(ctx context.Context, id uint) error {
 	}
 
 	return s.blogRepo.Delete(ctx, id)
+}
+
+// IncrementViewCount increments the view count for a blog
+func (s *BlogService) IncrementViewCount(ctx context.Context, id uint) error {
+	return s.blogRepo.IncrementViewCount(ctx, id)
 }
