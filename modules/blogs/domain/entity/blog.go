@@ -10,6 +10,7 @@ type Blog struct {
 	Content     string     `gorm:"type:longtext;charset:utf8mb4;collation:utf8mb4_unicode_ci;not null" json:"content"`
 	Excerpt     string     `gorm:"type:text;charset:utf8mb4;collation:utf8mb4_unicode_ci" json:"excerpt"`
 	Author      string     `gorm:"type:varchar(100);charset:utf8mb4;collation:utf8mb4_unicode_ci;not null" json:"author"`
+	UserID      uint       `gorm:"index" json:"user_id"` // Foreign key to User
 	Category    string     `gorm:"type:varchar(100);charset:utf8mb4;collation:utf8mb4_unicode_ci" json:"category"`
 	Tags        string     `gorm:"type:varchar(255);charset:utf8mb4;collation:utf8mb4_unicode_ci" json:"tags"` // Comma-separated
 	Image       string     `gorm:"type:varchar(255);charset:utf8mb4;collation:utf8mb4_unicode_ci" json:"image"`
@@ -23,4 +24,23 @@ type Blog struct {
 // TableName specifies the table name
 func (Blog) TableName() string {
 	return "blogs"
+}
+
+func NewBlog(title, slug, content, excerpt, author string, userID uint, category, tags, image string) *Blog {
+	now := time.Now()
+	return &Blog{
+		Title:       title,
+		Slug:        slug,
+		Content:     content,
+		Excerpt:     excerpt,
+		Author:      author,
+		UserID:      userID,
+		Category:    category,
+		Tags:        tags,
+		Image:       image,
+		IsPublished: false,
+		ViewCount:   0,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
 }

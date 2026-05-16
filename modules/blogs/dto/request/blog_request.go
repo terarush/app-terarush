@@ -6,7 +6,6 @@ type CreateBlogRequest struct {
 	Slug        string `json:"slug" validate:"required,max=255"`
 	Content     string `json:"content" validate:"required"`
 	Excerpt     string `json:"excerpt" validate:"max=500"`
-	Author      string `json:"author" validate:"required,max=100"`
 	Category    string `json:"category" validate:"max=100"`
 	Tags        string `json:"tags" validate:"max=255"`
 	Image       string `json:"image" validate:"max=255"`
@@ -19,7 +18,6 @@ type UpdateBlogRequest struct {
 	Slug        string `json:"slug" validate:"required,max=255"`
 	Content     string `json:"content" validate:"required"`
 	Excerpt     string `json:"excerpt" validate:"max=500"`
-	Author      string `json:"author" validate:"required,max=100"`
 	Category    string `json:"category" validate:"max=100"`
 	Tags        string `json:"tags" validate:"max=255"`
 	Image       string `json:"image" validate:"max=255"`

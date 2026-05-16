@@ -5,7 +5,11 @@ export interface User {
   name: string;
   email: string;
   avatar: string;
+  bio?: string;
+  banner?: string;
   role: string;
+  is_banned?: boolean;
+  provider?: string;
   created_at: string;
   updated_at: string;
 }
@@ -13,6 +17,8 @@ export interface User {
 export interface UpdateProfileData {
   name: string;
   avatar?: string;
+  bio?: string;
+  banner?: string;
 }
 
 export const profileApi = {
@@ -34,6 +40,19 @@ export const profileApi = {
     formData.append("avatar", file);
 
     const response = await apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  // Upload banner
+  uploadBanner: async (file: File): Promise<{ banner_url: string; message: string }> => {
+    const formData = new FormData();
+    formData.append("banner", file);
+
+    const response = await apiClient.post("/profile/banner", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

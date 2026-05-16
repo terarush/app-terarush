@@ -14,6 +14,10 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 	Avatar    string    `json:"avatar"`
 	Role      string    `json:"role"`
+	Bio       string    `json:"bio,omitempty"`
+	Banner    string    `json:"banner,omitempty"`
+	IsBanned  bool      `json:"is_banned"`
+	Provider  string    `json:"provider"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -35,6 +39,10 @@ func FromEntity(user *entity.User) *UserResponse {
 		Email:     user.Email,
 		Avatar:    user.Avatar,
 		Role:      user.Role,
+		Bio:       user.Bio,
+		Banner:    user.Banner,
+		IsBanned:  user.IsBanned,
+		Provider:  user.Provider,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}

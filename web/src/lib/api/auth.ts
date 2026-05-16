@@ -39,7 +39,11 @@ export interface UserResponse {
   name: string;
   email: string;
   avatar: string;
+  bio?: string;
+  banner?: string;
   role: string;
+  is_banned?: boolean;
+  provider?: string;
   created_at: string;
   updated_at: string;
 }

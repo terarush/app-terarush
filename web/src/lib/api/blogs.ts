@@ -1,5 +1,33 @@
 import { apiClient } from "./client";
 
+// Utility function to get absolute image URL
+export const getImageUrl = (imagePath: string): string => {
+	if (!imagePath) return "";
+	
+	// If it already starts with http, return as-is
+	if (imagePath.startsWith("http")) {
+		return imagePath;
+	}
+	
+	// If it starts with /, it's a relative path - prepend API base
+	if (imagePath.startsWith("/")) {
+		const apiUrl = import.meta.env.VITE_API_URL || "";
+		return `${apiUrl}${imagePath}`;
+	}
+	
+	// Default: prepend /public/
+	const apiUrl = import.meta.env.VITE_API_URL || "";
+	return `${apiUrl}/${imagePath}`;
+};
+
+export interface UserInfo {
+	id: number;
+	name: string;
+	email: string;
+	avatar: string;
+	bio: string;
+}
+
 export interface Blog {
 	id: number;
 	title: string;
@@ -7,6 +35,8 @@ export interface Blog {
 	content: string;
 	excerpt: string;
 	author: string;
+	user_id: number;
+	user?: UserInfo;
 	category: string;
 	tags: string;
 	image: string;
@@ -29,7 +59,6 @@ export interface CreateBlogRequest {
 	slug: string;
 	content: string;
 	excerpt: string;
-	author: string;
 	category?: string;
 	tags?: string;
 	image?: string;

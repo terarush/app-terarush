@@ -230,6 +230,12 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	if req.Avatar != "" {
 		user.Avatar = req.Avatar
 	}
+	if req.Bio != "" {
+		user.Bio = req.Bio
+	}
+	if req.Banner != "" {
+		user.Banner = req.Banner
+	}
 
 	err = h.userService.UpdateUser(ctx, user)
 	if err != nil {
@@ -237,6 +243,69 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response.FromEntity(user))
+}
+
+// UploadBanner handles banner file upload
+func (h *UserHandler) UploadBanner(c echo.Context) error {
+	// Get user ID from context
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+	}
+
+	// Get file from form
+	file, err := c.FormFile("banner")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No file uploaded"})
+	}
+
+	// Validate file type
+	if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File must be an image"})
+	}
+
+	// Validate file size (max 10MB)
+	if file.Size > 10*1024*1024 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File size must be less than 10MB"})
+	}
+
+	// Open uploaded file
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to open file"})
+	}
+	defer src.Close()
+
+	// Create uploads directory if not exists
+	uploadDir := "./public/uploads/banners"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create upload directory"})
+	}
+
+	// Generate unique filename
+	ext := filepath.Ext(file.Filename)
+	filename := fmt.Sprintf("%d_%d%s", userID, time.Now().Unix(), ext)
+	filePath := filepath.Join(uploadDir, filename)
+
+	// Create destination file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create file"})
+	}
+	defer dst.Close()
+
+	// Copy file
+	if _, err := io.Copy(dst, src); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
+	}
+
+	// Return the URL path
+	bannerURL := fmt.Sprintf("/public/uploads/banners/%s", filename)
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"banner_url": bannerURL,
+		"message":    "Banner uploaded successfully",
+	})
 }
 
 // UploadAvatar handles avatar file upload
@@ -322,4 +391,5 @@ func (h *UserHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	profile.GET("", h.GetCurrentUser)
 	profile.PUT("", h.UpdateProfile)
 	profile.POST("/avatar", h.UploadAvatar)
+	profile.POST("/banner", h.UploadBanner)
 }

@@ -11,6 +11,9 @@ type User struct {
 	Email     string    `json:"email"`
 	Avatar    string    `json:"avatar"`
 	Role      string    `json:"role" gorm:"type:enum('admin', 'user');default:'user'"`
+	Bio       string    `json:"bio,omitempty"`
+	Banner    string    `json:"banner,omitempty"`
+	IsBanned  bool      `json:"is_banned" gorm:"default:false"`
 	Password  string    `json:"-"`
 	Provider  string    `json:"provider" gorm:"type:enum('local', 'github');default:'local'"`
 	GithubID  string    `json:"github_id,omitempty" gorm:"column:github_id"`

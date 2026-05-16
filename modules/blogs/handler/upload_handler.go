@@ -76,7 +76,8 @@ func (h *BlogHandler) UploadBlogImage(c echo.Context) error {
 	}
 
 	// Return URL with image ID (just the filename)
-	url := fmt.Sprintf("/images/%s", filename)
+	// Use the public static file path
+	url := fmt.Sprintf("/public/uploads/blogs/%s", filename)
 
 	return c.JSON(http.StatusOK, UploadImageResponse{
 		URL:  url,

@@ -49,4 +49,6 @@ type RefreshTokenRequest struct {
 type UpdateProfileRequest struct {
 	Name   string `json:"name" validate:"required"`
 	Avatar string `json:"avatar" validate:"omitempty"`
+	Bio    string `json:"bio" validate:"omitempty,max=500"`
+	Banner string `json:"banner" validate:"omitempty"`
 }
