@@ -53,28 +53,70 @@ func getUserIDAndNameFromContext(c echo.Context) (uint, string, error) {
 	return uint(userIDFloat), userName, nil
 }
 
-// GetAllBlogs gets all blogs (admin only)
+// GetAllBlogs gets all blogs (admin only) with pagination support
 func (h *BlogHandler) GetAllBlogs(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	blogs, err := h.blogService.GetAllBlogs(ctx)
+	// Get pagination parameters
+	page := 1
+	pageSize := 10
+	
+	if p := c.QueryParam("page"); p != "" {
+		if parsedPage, err := strconv.Atoi(p); err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+	
+	if ps := c.QueryParam("page_size"); ps != "" {
+		if parsedSize, err := strconv.Atoi(ps); err == nil && parsedSize > 0 && parsedSize <= 100 {
+			pageSize = parsedSize
+		}
+	}
+
+	blogs, total, err := h.blogService.GetAllBlogsWithPagination(ctx, page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntities(blogs))
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"blogs":     response.FromEntities(blogs),
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
+	})
 }
 
-// GetPublishedBlogs gets all published blogs (public)
+// GetPublishedBlogs gets all published blogs (public) with pagination support
 func (h *BlogHandler) GetPublishedBlogs(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	blogs, err := h.blogService.GetPublishedBlogs(ctx)
+	// Get pagination parameters
+	page := 1
+	pageSize := 10
+	
+	if p := c.QueryParam("page"); p != "" {
+		if parsedPage, err := strconv.Atoi(p); err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+	
+	if ps := c.QueryParam("page_size"); ps != "" {
+		if parsedSize, err := strconv.Atoi(ps); err == nil && parsedSize > 0 {
+			pageSize = parsedSize
+		}
+	}
+
+	blogs, total, err := h.blogService.GetPublishedBlogsWithPagination(ctx, page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntities(blogs))
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"blogs":     response.FromEntities(blogs),
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
+	})
 }
 
 // GetBlogByID gets a blog by ID (admin only)

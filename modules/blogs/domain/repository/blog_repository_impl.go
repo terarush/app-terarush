@@ -34,6 +34,33 @@ func (r BlogRepositoryImpl) FindAll(ctx context.Context) ([]*entity.Blog, error)
 	return blogs, nil
 }
 
+// FindAllWithPagination finds all blogs with pagination
+func (r BlogRepositoryImpl) FindAllWithPagination(ctx context.Context, page, pageSize int) ([]*entity.Blog, int64, error) {
+	var blogs []*entity.Blog
+	var total int64
+
+	// Get total count
+	if err := database.DB.WithContext(ctx).Model(&entity.Blog{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get paginated results
+	result := database.DB.WithContext(ctx).
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&blogs)
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return blogs, total, nil
+}
+
 // FindByID implements BlogRepository.
 func (r BlogRepositoryImpl) FindByID(ctx context.Context, id uint) (*entity.Blog, error) {
 	var blog entity.Blog
@@ -95,6 +122,34 @@ func (r BlogRepositoryImpl) FindPublished(ctx context.Context) ([]*entity.Blog, 
 		return nil, result.Error
 	}
 	return blogs, nil
+}
+
+// FindPublishedWithPagination finds published blogs with pagination
+func (r BlogRepositoryImpl) FindPublishedWithPagination(ctx context.Context, page, pageSize int) ([]*entity.Blog, int64, error) {
+	var blogs []*entity.Blog
+	var total int64
+
+	// Get total count of published blogs
+	if err := database.DB.WithContext(ctx).Model(&entity.Blog{}).Where("is_published = ?", true).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get paginated results
+	result := database.DB.WithContext(ctx).
+		Where("is_published = ?", true).
+		Order("published_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&blogs)
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return blogs, total, nil
 }
 
 // Update implements BlogRepository.

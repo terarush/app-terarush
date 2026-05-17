@@ -76,7 +76,8 @@ export function BlogList() {
 		blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
 	);
 
-	const hasMore = blogs.length < total;
+	// Only show load more if not searching, and there are more blogs to load
+	const hasMore = !searchQuery && blogs.length < total;
 
 	if (loading && blogs.length === 0) {
 		return (

@@ -30,6 +30,11 @@ func (s *BlogService) GetAllBlogs(ctx context.Context) ([]*entity.Blog, error) {
 	return s.blogRepo.FindAll(ctx)
 }
 
+// GetAllBlogsWithPagination gets all blogs with pagination
+func (s *BlogService) GetAllBlogsWithPagination(ctx context.Context, page, pageSize int) ([]*entity.Blog, int64, error) {
+	return s.blogRepo.FindAllWithPagination(ctx, page, pageSize)
+}
+
 // GetBlogByID gets a blog by ID
 func (s *BlogService) GetBlogByID(ctx context.Context, id uint) (*entity.Blog, error) {
 	blog, err := s.blogRepo.FindByID(ctx, id)
@@ -83,6 +88,11 @@ func (s *BlogService) GetBlogBySlugWithUser(ctx context.Context, slug string) (*
 // GetPublishedBlogs gets all published blogs
 func (s *BlogService) GetPublishedBlogs(ctx context.Context) ([]*entity.Blog, error) {
 	return s.blogRepo.FindPublished(ctx)
+}
+
+// GetPublishedBlogsWithPagination gets published blogs with pagination support
+func (s *BlogService) GetPublishedBlogsWithPagination(ctx context.Context, page, pageSize int) ([]*entity.Blog, int64, error) {
+	return s.blogRepo.FindPublishedWithPagination(ctx, page, pageSize)
 }
 
 // CreateBlog creates a new blog

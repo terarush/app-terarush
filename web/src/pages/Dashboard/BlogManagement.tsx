@@ -30,6 +30,7 @@ import { BlogForm } from "@/components/fragments/BlogForm";
 export function BlogManagement() {
 	const [blogs, setBlogs] = useState<Blog[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [loadingMore, setLoadingMore] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);
@@ -37,18 +38,23 @@ export function BlogManagement() {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
+	const [total, setTotal] = useState(0);
 	const itemsPerPage = 10;
 
 	useEffect(() => {
 		loadBlogs();
-	}, []);
+	}, [currentPage]);
 
 	const loadBlogs = async () => {
 		try {
 			setLoading(true);
 			setError(null);
-			const response = await getAllBlogs();
+			const response = await getAllBlogs({
+				page: currentPage,
+				page_size: itemsPerPage,
+			});
 			setBlogs(response.blogs || []);
+			setTotal(response.total || 0);
 		} catch (err) {
 			console.error("Error loading blogs:", err);
 			setError("Failed to load blogs");
@@ -58,7 +64,10 @@ export function BlogManagement() {
 		}
 	};
 
-	// Filter blogs based on search query
+	// Pagination logic
+	const totalPages = Math.ceil(total / itemsPerPage);
+
+	// Filter blogs based on search query (client-side filtering)
 	const filteredBlogs = blogs.filter((blog) => {
 		const searchLower = searchQuery.toLowerCase();
 		return (
@@ -68,12 +77,6 @@ export function BlogManagement() {
 			blog.author.toLowerCase().includes(searchLower)
 		);
 	});
-
-	// Pagination logic
-	const totalPages = Math.ceil(filteredBlogs.length / itemsPerPage);
-	const startIndex = (currentPage - 1) * itemsPerPage;
-	const endIndex = startIndex + itemsPerPage;
-	const paginatedBlogs = filteredBlogs.slice(startIndex, endIndex);
 
 	// Reset to first page when search query changes
 	useEffect(() => {
@@ -187,164 +190,172 @@ export function BlogManagement() {
 						)}
 					</div>
 
-					{/* Results info */}
-					<div className="mb-4 text-sm text-muted-foreground">
-						Showing {paginatedBlogs.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredBlogs.length)} of {filteredBlogs.length} {filteredBlogs.length === 1 ? 'post' : 'posts'}
-						{searchQuery && <span> (filtered from {blogs.length} total)</span>}
-					</div>
+				{/* Results info */}
+				<div className="mb-4 text-sm text-muted-foreground">
+					Showing {blogs.length === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, total)} of {total} {total === 1 ? 'post' : 'posts'}
+					{searchQuery && <span> (filtered)</span>}
+				</div>
 
-					{paginatedBlogs.length === 0 ? (
-						<div className="text-center py-12 border rounded-lg">
-							<p className="text-muted-foreground">
-								No blog posts found matching your search criteria.
-							</p>
-						</div>
-					) : (
-						<>
-							<div className="border border-border/50 rounded-xl overflow-hidden bg-card shadow-sm">
-								<Table>
-									<TableHeader className="bg-muted/50 border-b border-border/50">
-										<TableRow className="hover:bg-transparent">
-											<TableHead className="font-semibold text-foreground w-1/4">Article</TableHead>
-											<TableHead className="font-semibold text-foreground">Category</TableHead>
-											<TableHead className="font-semibold text-foreground">Author</TableHead>
-											<TableHead className="font-semibold text-foreground">Stats</TableHead>
-											<TableHead className="font-semibold text-foreground">Status</TableHead>
-											<TableHead className="font-semibold text-foreground">Date</TableHead>
-											<TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{paginatedBlogs.map((blog) => (
-											<TableRow key={blog.id} className="border-border/50 hover:bg-muted/40">
-												<TableCell className="py-4">
-													<div className="space-y-2">
-														<p className="font-semibold text-sm leading-snug line-clamp-2 hover:text-primary transition-colors cursor-pointer">
-															{blog.title}
-														</p>
-														<p className="text-xs text-muted-foreground line-clamp-2">
-															{blog.excerpt || "No excerpt provided"}
-														</p>
-													</div>
-												</TableCell>
-												<TableCell className="py-4">
-													<div className="flex items-center gap-1">
-														<Tag className="h-3.5 w-3.5 text-muted-foreground" />
-														<span className="text-sm font-medium">
-															{blog.category || <span className="text-muted-foreground">-</span>}
+				{filteredBlogs.length === 0 ? (
+					<div className="text-center py-12 border rounded-lg">
+						<p className="text-muted-foreground">
+							{searchQuery ? "No blog posts found matching your search criteria." : "No blog posts available."}
+						</p>
+					</div>
+				) : (
+					<>
+						<div className="border border-border/50 rounded-xl overflow-hidden bg-card shadow-sm">
+							<Table>
+								<TableHeader className="bg-muted/50 border-b border-border/50">
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="font-semibold text-foreground w-1/4">Article</TableHead>
+										<TableHead className="font-semibold text-foreground">Category</TableHead>
+										<TableHead className="font-semibold text-foreground">Author</TableHead>
+										<TableHead className="font-semibold text-foreground">Stats</TableHead>
+										<TableHead className="font-semibold text-foreground">Status</TableHead>
+										<TableHead className="font-semibold text-foreground">Date</TableHead>
+										<TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{filteredBlogs.map((blog) => (
+										<TableRow key={blog.id} className="border-border/50 hover:bg-muted/40">
+											<TableCell className="py-4">
+												<div className="space-y-2">
+													<p className="font-semibold text-sm leading-snug line-clamp-2 hover:text-primary transition-colors cursor-pointer">
+														{blog.title}
+													</p>
+													<p className="text-xs text-muted-foreground line-clamp-2">
+														{blog.excerpt || "No excerpt provided"}
+													</p>
+												</div>
+											</TableCell>
+											<TableCell className="py-4">
+												<div className="flex items-center gap-1">
+													<Tag className="h-3.5 w-3.5 text-muted-foreground" />
+													<span className="text-sm font-medium">
+														{blog.category || <span className="text-muted-foreground">-</span>}
+													</span>
+												</div>
+											</TableCell>
+											<TableCell className="py-4">
+												<div className="flex items-center gap-2">
+													<div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+														<span className="text-xs font-bold text-primary">
+															{blog.author.charAt(0).toUpperCase()}
 														</span>
 													</div>
-												</TableCell>
-												<TableCell className="py-4">
-													<div className="flex items-center gap-2">
-														<div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-															<span className="text-xs font-bold text-primary">
-																{blog.author.charAt(0).toUpperCase()}
-															</span>
-														</div>
-														<span className="text-sm">{blog.author}</span>
-													</div>
-												</TableCell>
-												<TableCell className="py-4">
-													<div className="space-y-1.5">
-														<div className="flex items-center gap-2 text-sm">
-															<Eye className="h-3.5 w-3.5 text-amber-500" />
-															<span className="font-medium">{blog.view_count}</span>
-															<span className="text-xs text-muted-foreground">views</span>
-														</div>
-													</div>
-												</TableCell>
-												<TableCell className="py-4">
-													<Badge
-														variant={
-															blog.is_published ? "default" : "secondary"
-														}
-														className="font-medium"
-													>
-														{blog.is_published ? "Published" : "Draft"}
-													</Badge>
-												</TableCell>
-												<TableCell className="py-4">
+													<span className="text-sm">{blog.author}</span>
+												</div>
+											</TableCell>
+											<TableCell className="py-4">
+												<div className="space-y-1.5">
 													<div className="flex items-center gap-2 text-sm">
-														<Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-														<span>{new Date(blog.created_at).toLocaleDateString('en-US', {
-															month: 'short',
-															day: 'numeric',
-															year: 'numeric'
-														})}</span>
+														<Eye className="h-3.5 w-3.5 text-amber-500" />
+														<span className="font-medium">{blog.view_count}</span>
+														<span className="text-xs text-muted-foreground">views</span>
 													</div>
-												</TableCell>
-												<TableCell className="text-right py-4">
-													<div className="flex items-center justify-end gap-1">
-														<Button
-															size="sm"
-															variant="ghost"
-															className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
-															onClick={() => handleEdit(blog)}
-															title="Edit blog"
-														>
-															<Edit2 className="h-4 w-4" />
-														</Button>
-														<Button
-															size="sm"
-															variant="ghost"
-															className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-															onClick={() => setDeleteId(blog.id)}
-															title="Delete blog"
-														>
-															<Trash2 className="h-4 w-4" />
-														</Button>
-													</div>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</div>
-
-							{/* Pagination */}
-							{totalPages > 1 && (
-								<div className="mt-6 flex items-center justify-between">
-									<div className="text-sm text-muted-foreground">
-										Page {currentPage} of {totalPages}
-									</div>
-									<div className="flex items-center gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-											disabled={currentPage === 1}
-											className="gap-1"
-										>
-											<ChevronLeft className="h-4 w-4" />
-											Previous
-										</Button>
-										<div className="flex gap-1">
-											{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-												<Button
-													key={page}
-													variant={currentPage === page ? "default" : "outline"}
-													size="sm"
-													onClick={() => setCurrentPage(page)}
-													className="h-8 w-8 p-0"
+												</div>
+											</TableCell>
+											<TableCell className="py-4">
+												<Badge
+													variant={
+														blog.is_published ? "default" : "secondary"
+													}
+													className="font-medium"
 												>
-													{page}
-												</Button>
-											))}
-										</div>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-											disabled={currentPage === totalPages}
-											className="gap-1"
-										>
-											Next
-											<ChevronRight className="h-4 w-4" />
-										</Button>
-									</div>
+													{blog.is_published ? "Published" : "Draft"}
+												</Badge>
+											</TableCell>
+											<TableCell className="py-4">
+												<div className="flex items-center gap-2 text-sm">
+													<Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+													<span>{new Date(blog.created_at).toLocaleDateString('en-US', {
+														month: 'short',
+														day: 'numeric',
+														year: 'numeric'
+													})}</span>
+												</div>
+											</TableCell>
+											<TableCell className="text-right py-4">
+												<div className="flex items-center justify-end gap-1">
+													<Button
+														size="sm"
+														variant="ghost"
+														className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+														onClick={() => handleEdit(blog)}
+														title="Edit blog"
+													>
+														<Edit2 className="h-4 w-4" />
+													</Button>
+													<Button
+														size="sm"
+														variant="ghost"
+														className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+														onClick={() => setDeleteId(blog.id)}
+														title="Delete blog"
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+
+						{/* Pagination */}
+						{totalPages > 1 && (
+							<div className="mt-6 flex items-center justify-between">
+								<div className="text-sm text-muted-foreground">
+									Page {currentPage} of {totalPages}
 								</div>
-							)}
+								<div className="flex items-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+										disabled={currentPage === 1 || loading}
+										className="gap-1"
+									>
+										<ChevronLeft className="h-4 w-4" />
+										Previous
+									</Button>
+									<div className="flex gap-1">
+										{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+											// Show pages around current page
+											const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+											if (pageNum <= totalPages) {
+												return (
+													<Button
+														key={pageNum}
+														variant={currentPage === pageNum ? "default" : "outline"}
+														size="sm"
+														onClick={() => setCurrentPage(pageNum)}
+														disabled={loading}
+														className="h-8 w-8 p-0"
+													>
+														{pageNum}
+													</Button>
+												);
+											}
+											return null;
+										})}
+									</div>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+										disabled={currentPage === totalPages || loading}
+										className="gap-1"
+									>
+										Next
+										<ChevronRight className="h-4 w-4" />
+									</Button>
+								</div>
+							</div>
+						)}
 						</>
 					)}
 				</>
