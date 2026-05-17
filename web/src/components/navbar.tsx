@@ -60,6 +60,9 @@ export default function Navbar() {
 			if (target) {
 				target.scrollIntoView({ behavior: "smooth" });
 			}
+		} else if (href.startsWith("#") && location.pathname !== "/") {
+			// If not on home page, navigate to home with hash
+			navigate("/" + href);
 		}
 	};
 
