@@ -30,7 +30,6 @@ import { BlogForm } from "@/components/fragments/BlogForm";
 export function BlogManagement() {
 	const [blogs, setBlogs] = useState<Blog[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [loadingMore, setLoadingMore] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);

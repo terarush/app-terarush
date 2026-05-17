@@ -152,6 +152,74 @@ func (r BlogRepositoryImpl) FindPublishedWithPagination(ctx context.Context, pag
 	return blogs, total, nil
 }
 
+// FindAllWithPaginationAndSearch finds all blogs with pagination and search
+func (r BlogRepositoryImpl) FindAllWithPaginationAndSearch(ctx context.Context, page, pageSize int, search string) ([]*entity.Blog, int64, error) {
+	var blogs []*entity.Blog
+	var total int64
+
+	query := database.DB.WithContext(ctx)
+	
+	// Apply search filter if provided
+	if search != "" {
+		query = query.Where("title LIKE ? OR excerpt LIKE ? OR content LIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+	}
+
+	// Get total count
+	if err := query.Model(&entity.Blog{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get paginated results
+	result := query.
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&blogs)
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return blogs, total, nil
+}
+
+// FindPublishedWithPaginationAndSearch finds published blogs with pagination and search
+func (r BlogRepositoryImpl) FindPublishedWithPaginationAndSearch(ctx context.Context, page, pageSize int, search string) ([]*entity.Blog, int64, error) {
+	var blogs []*entity.Blog
+	var total int64
+
+	query := database.DB.WithContext(ctx).Where("is_published = ?", true)
+	
+	// Apply search filter if provided
+	if search != "" {
+		query = query.Where("title LIKE ? OR excerpt LIKE ? OR content LIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+	}
+
+	// Get total count of published blogs matching search
+	if err := query.Model(&entity.Blog{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get paginated results
+	result := query.
+		Order("published_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&blogs)
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return blogs, total, nil
+}
+
 // Update implements BlogRepository.
 func (r BlogRepositoryImpl) Update(ctx context.Context, blog *entity.Blog) error {
 	return database.DB.WithContext(ctx).Save(blog).Error

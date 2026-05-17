@@ -42,14 +42,19 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 }
 
 // Migrations returns the migrations for the assets module
-func (m *Module) Migrations() []interface{} {
+func (m *Module) Migrations() error {
 	// No migrations needed for assets module - using file storage
-	return []interface{}{}
+	return nil
 }
 
 // Name returns the name of the module
 func (m *Module) Name() string {
 	return "assets"
+}
+
+// Logger returns the module's logger
+func (m *Module) Logger() *logger.Logger {
+	return m.log
 }
 
 // NewModule creates a new assets module
