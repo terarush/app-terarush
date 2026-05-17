@@ -6,7 +6,7 @@ import Footer from "@/components/footer";
 import { LoadingSpinner } from "@/components/elements/loading-spinner";
 import { ErrorMessage } from "@/components/elements/error-message";
 import { SearchInput } from "@/components/elements/search-input";
-import { Pagination } from "@/components/elements/pagination";
+import { LoadMoreButton } from "@/components/elements/load-more-button";
 import { BlogCard } from "@/components/fragments/blog-card";
 import {
 	PageLayout,
@@ -18,15 +18,20 @@ import {
 export function BlogList() {
 	const [blogs, setBlogs] = useState<Blog[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [loadingMore, setLoadingMore] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
 	const [total, setTotal] = useState(0);
 	const [searchQuery, setSearchQuery] = useState("");
 	const navigate = useNavigate();
-	const pageSize = 6;
+	const pageSize = 10;
 
 	useEffect(() => {
-		loadBlogs();
+		if (page === 1) {
+			loadBlogs();
+		} else {
+			loadMoreBlogs();
+		}
 	}, [page]);
 
 	const loadBlogs = async () => {
@@ -34,11 +39,12 @@ export function BlogList() {
 			setLoading(true);
 			setError(null);
 			const response = await getBlogs({
-				page,
+				page: 1,
 				page_size: pageSize,
 			});
 			setBlogs(response.blogs || []);
 			setTotal(response.total || 0);
+			setPage(1);
 		} catch (err) {
 			console.error("Error loading blogs:", err);
 			setError("Failed to load blogs. Please try again later.");
@@ -47,12 +53,30 @@ export function BlogList() {
 		}
 	};
 
+	const loadMoreBlogs = async () => {
+		try {
+			setLoadingMore(true);
+			setError(null);
+			const response = await getBlogs({
+				page,
+				page_size: pageSize,
+			});
+			setBlogs((prevBlogs) => [...prevBlogs, ...(response.blogs || [])]);
+			setTotal(response.total || 0);
+		} catch (err) {
+			console.error("Error loading more blogs:", err);
+			setError("Failed to load more blogs. Please try again later.");
+		} finally {
+			setLoadingMore(false);
+		}
+	};
+
 	const filteredBlogs = blogs.filter((blog) =>
 		blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
 	);
 
-	const totalPages = Math.ceil(total / pageSize);
+	const hasMore = blogs.length < total;
 
 	if (loading && blogs.length === 0) {
 		return (
@@ -120,17 +144,14 @@ export function BlogList() {
 								))}
 							</div>
 
-							{/* Pagination */}
-							{totalPages > 1 && (
-								<div className="flex justify-center pt-8 border-t border-border/50">
-									<Pagination
-										currentPage={page}
-										totalPages={totalPages}
-										onPageChange={setPage}
-										isLoading={loading}
-									/>
-								</div>
-							)}
+							{/* Load More Button */}
+							<LoadMoreButton
+								onClick={() => setPage((prev) => prev + 1)}
+								isLoading={loadingMore}
+								hasMore={hasMore}
+								itemCount={blogs.length}
+								pageSize={pageSize}
+							/>
 						</>
 					)}
 				</ContentSection>
