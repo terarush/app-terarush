@@ -44,11 +44,6 @@ export default function Navbar() {
 	const mobileMenuRef = useRef<HTMLDivElement>(null);
 	const mobileBackdropRef = useRef<HTMLDivElement>(null);
 
-	const handleLogout = async () => {
-		await logout();
-		navigate("/");
-	};
-
 	const getInitials = (name: string) => {
 		return name
 			.split(" ")
@@ -56,6 +51,21 @@ export default function Navbar() {
 			.join("")
 			.toUpperCase()
 			.slice(0, 2);
+	};
+
+	const handleNavClick = (href: string) => {
+		// If it's a hash link and we're on home page, scroll to section
+		if (href.startsWith("#") && location.pathname === "/") {
+			const target = document.querySelector(href);
+			if (target) {
+				target.scrollIntoView({ behavior: "smooth" });
+			}
+		}
+	};
+
+	const handleLogout = async () => {
+		await logout();
+		navigate("/");
 	};
 
 	useEffect(() => {
@@ -184,6 +194,7 @@ export default function Navbar() {
 										<a
 											key={item.href}
 											href={item.href}
+											onClick={() => handleNavClick(item.href)}
 											className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 font-medium"
 										>
 											{item.label}
@@ -408,9 +419,11 @@ export default function Navbar() {
 												key={item.href}
 												href={item.href}
 												className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-												onClick={() =>
-													setIsMobileMenuOpen(false)
-												}
+												onClick={(e) => {
+													e.preventDefault();
+													setIsMobileMenuOpen(false);
+													handleNavClick(item.href);
+												}}
 											>
 												<span className="font-medium text-gray-900 dark:text-white">
 													{item.label}

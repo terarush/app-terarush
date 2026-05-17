@@ -27,11 +27,11 @@ export const siteConfig = {
 
 export const navConfig = {
 	mainNav: [
-		{ label: "Home", href: "#home" },
+		{ label: "Home", href: "/" },
 		{ label: "Blog", href: "/blog" },
-		{ label: "Services", href: "#services" },
-		{ label: "About", href: "#about" },
-		{ label: "Why Us", href: "#why" },
-		{ label: "Contact", href: "#contact" },
+		{ label: "Services", href: "/#services" },
+		{ label: "About", href: "/#about" },
+		{ label: "Why Us", href: "/#why" },
+		{ label: "Contact", href: "/#contact" },
 	],
 };

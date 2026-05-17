@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
 import { getProducts, type Product } from "@/lib/api/products";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+import { LoadingSpinner } from "@/components/elements/loading-spinner";
+import { ErrorMessage } from "@/components/elements/error-message";
+import { Pagination } from "@/components/elements/pagination";
 import { ProductCard } from "@/components/fragments/ProductCard";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import {
+	PageLayout,
+	PageContent,
+	HeroSection,
+	ContentSection,
+} from "@/components/layouts/page-layout";
 
 export function ProductList() {
 	const [products, setProducts] = useState<Product[]>([]);
@@ -39,71 +48,72 @@ export function ProductList() {
 
 	if (loading && products.length === 0) {
 		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="flex items-center justify-center min-h-[400px]">
-					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-				</div>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="text-center py-12">
-					<p className="text-destructive mb-4">{error}</p>
-					<Button onClick={loadProducts}>Try Again</Button>
-				</div>
-			</div>
+			<PageLayout>
+				<Navbar />
+				<PageContent className="flex items-center justify-center">
+					<LoadingSpinner size="lg" text="Loading products..." />
+				</PageContent>
+				<Footer />
+			</PageLayout>
 		);
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-8">
-			<div className="mb-8">
-				<h1 className="text-4xl font-bold mb-2">Our Products</h1>
-				<p className="text-muted-foreground text-lg">
-					Choose the perfect container plan for your needs
-				</p>
-			</div>
+		<PageLayout>
+			<Navbar />
 
-			{products.length === 0 ? (
-				<div className="text-center py-12">
-					<p className="text-muted-foreground text-lg">
-						No products available at the moment.
-					</p>
-				</div>
-			) : (
-				<>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{products.map((product) => (
-							<ProductCard key={product.id} product={product} />
-						))}
+			<PageContent>
+				{/* Hero Section */}
+				<HeroSection>
+					<div className="max-w-3xl mx-auto text-center">
+						<h1 className="text-4xl md:text-5xl font-bold mb-4">
+							Our Products
+						</h1>
+						<p className="text-lg text-muted-foreground leading-relaxed">
+							Choose the perfect container plan for your needs
+						</p>
 					</div>
+				</HeroSection>
 
-					{totalPages > 1 && (
-						<div className="flex items-center justify-center gap-2 mt-8">
-							<Button
-								variant="outline"
-								onClick={() => setPage((p) => Math.max(1, p - 1))}
-								disabled={page === 1 || loading}
-							>
-								Previous
-							</Button>
-							<span className="text-sm text-muted-foreground px-4">
-								Page {page} of {totalPages}
-							</span>
-							<Button
-								variant="outline"
-								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-								disabled={page === totalPages || loading}
-							>
-								Next
-							</Button>
+				{/* Products Grid */}
+				<ContentSection>
+					{error && (
+						<div className="mb-8">
+							<ErrorMessage message={error} onRetry={loadProducts} />
 						</div>
 					)}
-				</>
-			)}
-		</div>
+
+					{products.length === 0 ? (
+						<div className="text-center py-16">
+							<p className="text-muted-foreground text-lg">
+								No products available at the moment.
+							</p>
+						</div>
+					) : (
+						<>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+								{products.map((product) => (
+									<ProductCard key={product.id} product={product} />
+								))}
+							</div>
+
+							{/* Pagination */}
+							{totalPages > 1 && (
+								<div className="flex justify-center pt-8 border-t border-border/50">
+									<Pagination
+										currentPage={page}
+										totalPages={totalPages}
+										onPageChange={setPage}
+										isLoading={loading}
+									/>
+								</div>
+							)}
+						</>
+					)}
+				</ContentSection>
+			</PageContent>
+
+			<Footer />
+		</PageLayout>
 	);
 }

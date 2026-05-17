@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getProductById, type Product } from "@/lib/api/products";
 import { checkout } from "@/lib/api/transactions";
 import { useAuth } from "@/hooks/useAuth";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+import { LoadingSpinner } from "@/components/elements/loading-spinner";
 import {
 	Card,
 	CardContent,
@@ -21,6 +24,10 @@ import {
 	Gauge,
 	Network,
 } from "lucide-react";
+import {
+	PageLayout,
+	PageContent,
+} from "@/components/layouts/page-layout";
 
 export function ProductDetail() {
 	const { id } = useParams<{ id: string }>();
@@ -114,26 +121,32 @@ export function ProductDetail() {
 
 	if (loading) {
 		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="flex items-center justify-center min-h-[400px]">
-					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-				</div>
-			</div>
+			<PageLayout>
+				<Navbar />
+				<PageContent className="flex items-center justify-center">
+					<LoadingSpinner size="lg" text="Loading product details..." />
+				</PageContent>
+				<Footer />
+			</PageLayout>
 		);
 	}
 
 	if (error || !product) {
 		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="text-center py-12">
-					<p className="text-destructive mb-4">
-						{error || "Product not found"}
-					</p>
-					<Button onClick={() => navigate("/products")}>
-						Back to Products
-					</Button>
-				</div>
-			</div>
+			<PageLayout>
+				<Navbar />
+				<PageContent className="flex items-center justify-center">
+					<div className="text-center py-12">
+						<p className="text-destructive mb-4">
+							{error || "Product not found"}
+						</p>
+						<Button onClick={() => navigate("/products")}>
+							Back to Products
+						</Button>
+					</div>
+				</PageContent>
+				<Footer />
+			</PageLayout>
 		);
 	}
 
@@ -141,17 +154,21 @@ export function ProductDetail() {
 	const isOutOfStock = product.stock !== -1 && product.stock < quantity;
 
 	return (
-		<div className="container mx-auto px-4 py-8">
-			<Button
-				variant="ghost"
-				onClick={() => navigate("/products")}
-				className="mb-6"
-			>
-				<ArrowLeft className="mr-2 h-4 w-4" />
-				Back to Products
-			</Button>
+		<PageLayout>
+			<Navbar />
 
-			<div className="grid md:grid-cols-2 gap-8">
+			<PageContent className="py-8">
+				<div className="max-w-6xl mx-auto">
+					<Button
+						variant="ghost"
+						onClick={() => navigate("/products")}
+						className="mb-6"
+					>
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Back to Products
+					</Button>
+
+					<div className="grid md:grid-cols-2 gap-8">
 				<Card>
 					<CardHeader>
 						<div className="flex items-start justify-between">
@@ -412,7 +429,11 @@ export function ProductDetail() {
 						</Button>
 					</CardFooter>
 				</Card>
-			</div>
-		</div>
+					</div>
+				</div>
+			</PageContent>
+
+			<Footer />
+		</PageLayout>
 	);
 }

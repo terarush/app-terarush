@@ -1,7 +1,6 @@
 import Navbar from "@/components/navbar";
 import Hero from "@/components/hero";
 import Services from "@/components/services";
-import Products from "@/components/products";
 import OpenSource from "@/components/opensource";
 import About from "@/components/about";
 import WhyUs from "@/components/whyus";
@@ -16,7 +15,6 @@ export default function Index() {
 			<Navbar />
 			<Hero />
 			<Services />
-			<Products />
 			<OpenSource />
 			<About />
 			<WhyUs />
