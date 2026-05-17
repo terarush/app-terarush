@@ -34,6 +34,12 @@ export function BlogList() {
 		}
 	}, [page]);
 
+	// Reset to first page and clear blogs when search query changes
+	useEffect(() => {
+		setPage(1);
+		setBlogs([]);
+	}, [searchQuery]);
+
 	const loadBlogs = async () => {
 		try {
 			setLoading(true);
@@ -71,10 +77,12 @@ export function BlogList() {
 		}
 	};
 
-	const filteredBlogs = blogs.filter((blog) =>
-		blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-	);
+	const filteredBlogs = searchQuery
+		? blogs.filter((blog) =>
+			blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+		)
+		: blogs;
 
 	// Only show load more if not searching, and there are more blogs to load
 	const hasMore = !searchQuery && blogs.length < total;
