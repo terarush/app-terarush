@@ -9,6 +9,11 @@ run:
 install:
 	make build
 	mv bin/app /usr/local/bin/app
+	cp .env /usr/local/bin
+	cp config.service /etc/systemd/system/app.service
+	systemctl daemon-reload
+	systemctl enable app.service
+	systemctl start app.service
 
 install-docker:
 	docker compose up --build -d
