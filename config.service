@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/app
+WorkingDirectory=/root/index
 Restart=always
 RestartSec=5
 
