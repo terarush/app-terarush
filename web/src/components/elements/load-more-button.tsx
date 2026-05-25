@@ -14,7 +14,6 @@ export function LoadMoreButton({
 	isLoading = false,
 	hasMore,
 	itemCount,
-	pageSize,
 }: LoadMoreButtonProps) {
 	if (!hasMore) {
 		return null;
