@@ -38,10 +38,16 @@ type GitHubOAuthService struct {
 
 // NewGitHubOAuthService creates a new GitHub OAuth service
 func NewGitHubOAuthService() *GitHubOAuthService {
+	// Get redirect URI from environment, fallback to localhost for development
+	redirectURI := config.GetString("GITHUB_REDIRECT_URI")
+	if redirectURI == "" {
+		redirectURI = "http://localhost:5173/auth/github/callback"
+	}
+	
 	return &GitHubOAuthService{
 		clientID:     config.GetString("GITHUB_CLIENT"),
 		clientSecret: config.GetString("GITHUB_SECRET"),
-		redirectURI:  "http://localhost:5173/auth/github/callback",
+		redirectURI:  redirectURI,
 	}
 }
 
