@@ -17,11 +17,12 @@ import (
 
 // App represents the application
 type App struct {
-	db      *gorm.DB
-	server  *server.ServerContext
-	modules []Module
-	r       *echo.Echo
-	logger  *logger.Logger
+	db        *gorm.DB
+	server    *server.ServerContext
+	modules   []Module
+	r         *echo.Echo
+	logger    *logger.Logger
+	startTime time.Time
 }
 
 // NewApp creates a new application
@@ -117,6 +118,20 @@ func (a *App) Initialize() error {
 	// Serve static files from public directory
 	a.r.Static("/public", "./public")
 	a.logger.Info("Static file serving enabled for /public")
+
+	// Capture application start time
+	a.startTime = time.Now()
+
+	a.r.GET("/", func(c echo.Context) error {
+		uptime := time.Since(a.startTime).String()
+		return c.JSON(200, map[string]interface{}{
+			"message": "Welcome to the API",
+			"version": config.GetString("API_VERSION"),
+			"status":  "running",
+			"time":    time.Now().Format(time.RFC3339),
+			"uptime":  uptime,
+		})
+	})
 
 	// Register routes for all modules
 	for _, module := range a.modules {

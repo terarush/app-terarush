@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"context"
+	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,6 +19,10 @@ func CompareHashAndPassword(hashedPassword, password string) bool {
 	return err == nil
 }
 
-func RJson() {
-
+func GetUserIDFromContext(ctx context.Context) (uint, error) {
+	userId, ok := ctx.Value("userId").(uint)
+	if !ok {
+		return 0, fmt.Errorf("user ID not found in context")
+	}
+	return userId, nil
 }

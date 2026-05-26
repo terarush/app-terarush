@@ -9,6 +9,7 @@ import (
 	"go-modular/modules/assets"
 	"go-modular/modules/auth"
 	"go-modular/modules/blogs"
+	"go-modular/modules/comments"
 	user "go-modular/modules/users"
 	"log"
 	"os"
@@ -49,6 +50,7 @@ func main() {
 	app.RegisterModule(auth.NewModule())
 	app.RegisterModule(blogs.NewModule())
 	app.RegisterModule(assets.NewModule())
+	app.RegisterModule(comments.NewModule())
 
 	// initialize the application
 	if err := app.Initialize(); err != nil {
