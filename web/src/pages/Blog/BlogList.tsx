@@ -35,19 +35,23 @@ export function BlogList() {
 	}, [page]);
 
 	// Reset to first page and clear blogs when search query changes
-	useEffect(() => {
-		setPage(1);
-		setBlogs([]);
-	}, [searchQuery]);
+    useEffect(() => {
+        // When search changes, reset to first page and reload from server
+        setPage(1);
+        setBlogs([]);
+        // trigger load for page 1 with new search
+        // loadBlogs will be invoked by the page effect when page === 1
+    }, [searchQuery]);
 
 	const loadBlogs = async () => {
 		try {
 			setLoading(true);
 			setError(null);
-			const response = await getBlogs({
-				page: 1,
-				page_size: pageSize,
-			});
+            const response = await getBlogs({
+                page: 1,
+                page_size: pageSize,
+                search: searchQuery || undefined,
+            });
 			setBlogs(response.blogs || []);
 			setTotal(response.total || 0);
 			setPage(1);
@@ -63,10 +67,11 @@ export function BlogList() {
 		try {
 			setLoadingMore(true);
 			setError(null);
-			const response = await getBlogs({
-				page,
-				page_size: pageSize,
-			});
+            const response = await getBlogs({
+                page,
+                page_size: pageSize,
+                search: searchQuery || undefined,
+            });
 			setBlogs((prevBlogs) => [...prevBlogs, ...(response.blogs || [])]);
 			setTotal(response.total || 0);
 		} catch (err) {
@@ -77,15 +82,12 @@ export function BlogList() {
 		}
 	};
 
-	const filteredBlogs = searchQuery
-		? blogs.filter((blog) =>
-			blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-		)
-		: blogs;
+    // Server-side search is used. Keep client-side list as-is for rendering.
+    const filteredBlogs = blogs;
 
-	// Only show load more if not searching, and there are more blogs to load
-	const hasMore = !searchQuery && blogs.length < total;
+    // Only show load more if there are more blogs to load
+    // Backend handles search scoping, so hasMore is based on counts from server
+    const hasMore = blogs.length < total;
 
 	if (loading && blogs.length === 0) {
 		return (

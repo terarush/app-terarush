@@ -69,10 +69,11 @@ export interface UpdateBlogRequest extends Partial<CreateBlogRequest> {}
 
 // Get all published blogs (public endpoint)
 export const getBlogs = async (params?: {
-	page?: number;
-	page_size?: number;
+    page?: number;
+    page_size?: number;
+    search?: string;
 }): Promise<BlogListResponse> => {
-	const response = await apiClient.get("/blogs", { params });
+    const response = await apiClient.get("/blogs", { params });
 
 	// Handle both array response and paginated response
 	if (Array.isArray(response.data)) {
@@ -95,10 +96,11 @@ export const getBlogBySlug = async (slug: string): Promise<Blog> => {
 
 // Get all blogs (admin only)
 export const getAllBlogs = async (params?: {
-	page?: number;
-	page_size?: number;
+    page?: number;
+    page_size?: number;
+    search?: string;
 }): Promise<BlogListResponse> => {
-	const response = await apiClient.get("/admin/blogs", { params });
+    const response = await apiClient.get("/admin/blogs", { params });
 
 	// Handle both array response and paginated response
 	if (Array.isArray(response.data)) {
