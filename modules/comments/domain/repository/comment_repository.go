@@ -7,6 +7,6 @@ import (
 
 type CommentRepository interface {
 	Create(ctx context.Context, comment *entity.Comment) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id uint) error
 	Update(ctx context.Context, comment *entity.Comment) error
 }

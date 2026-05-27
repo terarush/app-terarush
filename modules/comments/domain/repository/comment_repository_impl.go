@@ -12,18 +12,18 @@ var (
 
 type CommentRepositoryImpl struct{}
 
-func (r CommentRepositoryImpl) Create(ctx context.Context, comment *entity.Comment) error {
+func (r *CommentRepositoryImpl) Create(ctx context.Context, comment *entity.Comment) error {
 	return database.DB.WithContext(ctx).Create(comment).Error
 }
 
-func (r CommentRepositoryImpl) Delete(ctx context.Context, id string) error {
+func (r *CommentRepositoryImpl) Delete(ctx context.Context, id uint) error {
 	return database.DB.WithContext(ctx).Delete(&entity.Comment{}, "id = ?", id).Error
 }
 
-func (r CommentRepositoryImpl) Update(ctx context.Context, comment *entity.Comment) error {
+func (r *CommentRepositoryImpl) Update(ctx context.Context, comment *entity.Comment) error {
 	return database.DB.WithContext(ctx).Save(comment).Error
 }
 
 func NewCommentRepository() CommentRepository {
-	return CommentRepositoryImpl{}
+	return &CommentRepositoryImpl{}
 }

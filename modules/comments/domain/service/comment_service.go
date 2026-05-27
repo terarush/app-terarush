@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrCommentNotFound = "comment not found"
+	ERR_COMMENT_NOT_FOUND = "comment not found"
 )
 
 type CommentService struct {
@@ -25,7 +25,7 @@ func (s *CommentService) CreateComment(ctx context.Context, comment *entity.Comm
 	return s.commentRepo.Create(ctx, comment)
 }
 
-func (s *CommentService) DeleteComment(ctx context.Context, id string) error {
+func (s *CommentService) DeleteComment(ctx context.Context, id uint) error {
 	return s.commentRepo.Delete(ctx, id)
 }
 

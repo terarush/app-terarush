@@ -1,3 +1,5 @@
+// modules/comments/handler/comment_handler.go
+
 package handler
 
 import (
@@ -8,6 +10,7 @@ import (
 	"go-modular/modules/comments/domain/entity"
 	"go-modular/modules/comments/domain/service"
 	"go-modular/modules/comments/dto/request"
+	"strconv"
 
 	"github.com/labstack/echo"
 )
@@ -63,9 +66,14 @@ func (h *CommentHandler) CreateComment(c echo.Context) error {
 
 func (h *CommentHandler) DeleteComment(c echo.Context) error {
 	ctx := c.Request().Context()
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.log.Error("Error parsing comment id", err)
+		h.r.BadRequestResponse(c, "Invalid comment id")
+		return nil
+	}
 
-	if err := h.commentService.DeleteComment(ctx, id); err != nil {
+	if err := h.commentService.DeleteComment(ctx, uint(id)); err != nil {
 		h.log.Error("Error deleting comment", err)
 		h.r.InternalServerErrorResponse(c, "Failed to delete comment")
 		return nil
