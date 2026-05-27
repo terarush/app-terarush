@@ -1,5 +1,4 @@
-## APP_NAME must match the service name used in config.service (ExecStart path and service file)
-APP_NAME := app
+APP_NAME := $(shell basename $(CURDIR))
 # VERSION: prefer git describe tags, fallback to timestamp
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || date +%Y%m%d%H%M%S)
 
@@ -17,7 +16,16 @@ run:
 install-local:
     make build
     @sudo mv bin/app /usr/local/bin/$(APP_NAME)
-    @sudo cp config.service /etc/systemd/system/$(APP_NAME).service
+
+	@printf "[Unit]\n" | sudo tee /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "Description=%s Service\n" "$(APP_NAME)" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "After=network.target\n\n" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "[Service]\n" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "ExecStart=/usr/local/bin/%s\n" "$(APP_NAME)" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "WorkingDirectory=%s\n" "$(CURDIR)" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "Restart=always\n" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "RestartSec=5\n\n" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
+	@printf "[Install]\nWantedBy=multi-user.target\n" | sudo tee -a /etc/systemd/system/$(APP_NAME).service > /dev/null
     @sudo systemctl daemon-reload
     @sudo systemctl enable $(APP_NAME).service
     @sudo systemctl start $(APP_NAME).service
