@@ -1,37 +1,24 @@
-# AI Agent Guidelines & Context
+# AI Agent Guidelines & Project Docs
 
-This document provides essential context and instructions for AI agents working on the TeraRush project.
+This file provides a concise reference for AI agents working on the TeraRush repository. The canonical and detailed documentation lives under the `docs/` directory — prefer that as the source of truth and keep this file synced with `docs/`.
 
-## 🧠 Project Core Identity
-TeraRush is a modular full-stack application.
-- **Backend**: Go (Golang) with Echo framework.
-- **Frontend**: React (TypeScript) with Vite and Tailwind CSS v4.
-- **Database**: PostgreSQL with GORM.
+Short summary (canonical docs are in `docs/`):
+- Project: TeraRush — a modular full-stack blogging platform.
+- Backend: Go (Echo) with GORM and PostgreSQL.
+- Frontend: React + TypeScript, Vite, Tailwind CSS v4, Shadcn UI primitives.
 
-## 🛠 Critical Conventions for Agents
+Key conventions (high level):
+- Styling: use Tailwind v4 with CSS variables defined in `web/src/assets/globals.css`; avoid hardcoded hex colors — prefer theme variables (e.g. `hsl(var(--primary))`).
+- UI primitives: check `web/src/components/ui` before creating new primitives; use `lucide-react` for icons.
+- Markdown: use `@uiw/react-md-editor` and the repository's `MarkdownRenderer.tsx` (uses `marked`). Ensure editor is wrapped with `data-color-mode` to follow theme.
+- Backend: follow the modular-monolith layout under `/modules`; add new features as new module folders. Use DTOs for request/response and `go-playground/validator` struct tags for validation.
 
-### 1. Styling & UI
-- **Tailwind v4**: Use modern CSS variables (e.g., `oklch` colors) found in `web/src/assets/globals.css`.
-- **Shadcn UI**: Always check `web/src/components/ui` for existing primitives before building new UI.
-- **Icons**: Exclusively use `lucide-react`.
+Where to look in `docs/`:
+- `docs/PRD.md` — product requirements and roadmap (MVP, features, data models).
+- `docs/structure/` — architecture and module layout.
+- `docs/api/` — API endpoint definitions and contracts.
+- `docs/conventions/` — coding conventions and style guides.
 
-### 2. Editor & Content
-- **Markdown Editor**: Use `@uiw/react-md-editor`.
-- **Markdown Renderer**: Use the custom `MarkdownRenderer.tsx` which uses `marked`.
-- **Theme Sync**: Ensure any new UI component supports the `dark` class and syncs with `ThemeProvider`.
+If you make changes to conventions or architecture, update `docs/` first and then sync this file.
 
-### 3. Backend Logic
-- **Modular Monolith**: New features should be added as new folders in `/modules`.
-- **DTOs**: Always use Data Transfer Objects for API requests/responses.
-- **Validation**: Use struct tags with `go-playground/validator`.
-
-## 📂 Documentation Navigation
-When exploring the project, refer to these subdirectories:
-- `docs/structure/`: Architecture details.
-- `docs/api/`: Endpoint definitions.
-- `docs/conventions/`: Coding standards.
-
-## ⚠️ Common Pitfalls to Avoid
-- **Duplicate Styles**: Do not use hardcoded hex colors; use Shadcn variables (e.g., `hsl(var(--primary))`).
-- **Markdown Issues**: Ensure the `@uiw/react-md-editor` is wrapped with `data-color-mode` to match the current theme.
-- **Package Management**: Use `npm` for frontend and `go mod` for backend.
+Last sync: see `docs/PRD.md` and `docs/conventions/` for the authoritative content.

@@ -3,8 +3,8 @@ Description=Terarush Api Service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/app
-WorkingDirectory=/root/index
+ExecStart=/usr/local/bin/terarush
+WorkingDirectory=/root/terarush
 Restart=always
 RestartSec=5
 
