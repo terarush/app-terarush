@@ -3,39 +3,42 @@
 package handler
 
 import (
-	"fmt"
-	"go-modular/internal/pkg/bus"
-	"go-modular/internal/pkg/logger"
-	"go-modular/internal/pkg/middleware"
-	"go-modular/modules/users/domain/entity"
-	"go-modular/modules/users/domain/service"
-	"go-modular/modules/users/dto/request"
-	"go-modular/modules/users/dto/response"
-	"io"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"time"
+    "fmt"
+    "go-modular/internal/pkg/bus"
+    "go-modular/internal/pkg/logger"
+    "go-modular/internal/pkg/middleware"
+    "go-modular/internal/pkg/utils"
+    "go-modular/modules/users/domain/entity"
+    "go-modular/modules/users/domain/service"
+    "go-modular/modules/users/dto/request"
+    "go-modular/modules/users/dto/response"
+    "io"
+    "net/http"
+    "os"
+    "path/filepath"
+    "strconv"
+    "strings"
+    "time"
 
-	"github.com/labstack/echo"
+    "github.com/labstack/echo"
 )
 
 // UserHandler handles HTTP requests for users
 type UserHandler struct {
-	userService *service.UserService
-	log         *logger.Logger
-	event       *bus.EventBus
+    userService *service.UserService
+    log         *logger.Logger
+    event       *bus.EventBus
+    r           *utils.Response
 }
 
 // NewUserHandler creates a new user handler
 func NewUserHandler(log *logger.Logger, event *bus.EventBus, userService *service.UserService) *UserHandler {
-	return &UserHandler{
-		userService: userService,
-		log:         log,
-		event:       event,
-	}
+    return &UserHandler{
+        userService: userService,
+        log:         log,
+        event:       event,
+        r:           &utils.Response{},
+    }
 }
 
 // Event Bus Event user created
@@ -62,12 +65,12 @@ func getUserIDFromContext(c echo.Context) (uint, error) {
 func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	users, err := h.userService.GetAllUsers(ctx)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    users, err := h.userService.GetAllUsers(ctx)
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	return c.JSON(http.StatusOK, response.FromEntities(users))
+    return h.r.SuccessResponse(c, response.FromEntities(users), "")
 }
 
 // GetUser gets a user by ID
@@ -75,19 +78,19 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
-	}
+    if err != nil {
+        return h.r.BadRequestResponse(c, "Invalid user ID")
+    }
 
-	user, err := h.userService.GetUserByID(ctx, uint(id))
-	if err != nil {
-		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    user, err := h.userService.GetUserByID(ctx, uint(id))
+    if err != nil {
+        if err == service.ErrUserNotFound {
+            return h.r.NotFoundResponse(c, "User not found")
+        }
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+    return h.r.SuccessResponse(c, response.FromEntity(user), "")
 }
 
 // CreateUser creates a new user
@@ -95,54 +98,54 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	req := new(request.CreateUserRequest)
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Bind(req); err != nil {
+        return h.r.BadRequestResponse(c, err.Error())
+    }
 
-	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Validate(req); err != nil {
+        return h.r.ValidationErrorResponse(c, err.Error())
+    }
 
 	user := entity.NewUser(req.Name, req.Email, req.Password)
-	err := h.userService.CreateUser(ctx, user)
-	if err != nil {
-		if err == service.ErrEmailAlreadyUsed {
-			return c.JSON(http.StatusConflict, map[string]string{"error": "Email already in use"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    err := h.userService.CreateUser(ctx, user)
+    if err != nil {
+        if err == service.ErrEmailAlreadyUsed {
+            return h.r.ConflictResponse(c, "Email already in use")
+        }
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	// event bus publish
-	h.event.Publish(bus.Event{Type: "user.created", Payload: user})
+    // event bus publish
+    h.event.Publish(bus.Event{Type: "user.created", Payload: user})
 
-	return c.JSON(http.StatusCreated, response.FromEntity(user))
+    return h.r.CreatedResponse(c, response.FromEntity(user), "")
 }
 
 // UpdateUser updates a user
 func (h *UserHandler) UpdateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
-	}
+    id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    if err != nil {
+        return h.r.BadRequestResponse(c, "Invalid user ID")
+    }
 
 	req := new(request.UpdateUserRequest)
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Bind(req); err != nil {
+        return h.r.BadRequestResponse(c, err.Error())
+    }
 
-	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Validate(req); err != nil {
+        return h.r.ValidationErrorResponse(c, err.Error())
+    }
 
-	user, err := h.userService.GetUserByID(ctx, uint(id))
-	if err != nil {
-		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    user, err := h.userService.GetUserByID(ctx, uint(id))
+    if err != nil {
+        if err == service.ErrUserNotFound {
+            return h.r.NotFoundResponse(c, "User not found")
+        }
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
 	user.Name = req.Name
 	user.Email = req.Email
@@ -150,53 +153,53 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 		user.Role = req.Role
 	}
 
-	err = h.userService.UpdateUser(ctx, user)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    err = h.userService.UpdateUser(ctx, user)
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+    return h.r.SuccessResponse(c, response.FromEntity(user), "")
 }
 
 // DeleteUser deletes a user
 func (h *UserHandler) DeleteUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
-	}
+    id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    if err != nil {
+        return h.r.BadRequestResponse(c, "Invalid user ID")
+    }
 
-	err = h.userService.DeleteUser(ctx, uint(id))
-	if err != nil {
-		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    err = h.userService.DeleteUser(ctx, uint(id))
+    if err != nil {
+        if err == service.ErrUserNotFound {
+            return h.r.NotFoundResponse(c, "User not found")
+        }
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	return c.NoContent(http.StatusNoContent)
+    return h.r.NoContentResponse(c)
 }
 
 // GetCurrentUser gets the current authenticated user
 func (h *UserHandler) GetCurrentUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// Get user ID from context
-	userID, err := getUserIDFromContext(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
-	}
+    // Get user ID from context
+    userID, err := getUserIDFromContext(c)
+    if err != nil {
+        return h.r.UnauthorizedResponse(c, err.Error())
+    }
 
-	user, err := h.userService.GetUserByID(ctx, userID)
-	if err != nil {
-		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    user, err := h.userService.GetUserByID(ctx, userID)
+    if err != nil {
+        if err == service.ErrUserNotFound {
+            return h.r.NotFoundResponse(c, "User not found")
+        }
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+    return h.r.SuccessResponse(c, response.FromEntity(user), "")
 }
 
 // UpdateProfile updates the current user's profile
@@ -205,26 +208,26 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 
 	// Get user ID from context
 	userID, err := getUserIDFromContext(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
-	}
+    if err != nil {
+        return h.r.UnauthorizedResponse(c, err.Error())
+    }
 
 	req := new(request.UpdateProfileRequest)
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Bind(req); err != nil {
+        return h.r.BadRequestResponse(c, err.Error())
+    }
 
-	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Validate(req); err != nil {
+        return h.r.ValidationErrorResponse(c, err.Error())
+    }
 
-	user, err := h.userService.GetUserByID(ctx, userID)
-	if err != nil {
-		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    user, err := h.userService.GetUserByID(ctx, userID)
+    if err != nil {
+        if err == service.ErrUserNotFound {
+            return h.r.NotFoundResponse(c, "User not found")
+        }
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
 	user.Name = req.Name
 	if req.Avatar != "" {
@@ -237,50 +240,50 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 		user.Banner = req.Banner
 	}
 
-	err = h.userService.UpdateUser(ctx, user)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+    err = h.userService.UpdateUser(ctx, user)
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, err.Error())
+    }
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+    return h.r.SuccessResponse(c, response.FromEntity(user), "")
 }
 
 // UploadBanner handles banner file upload
 func (h *UserHandler) UploadBanner(c echo.Context) error {
 	// Get user ID from context
 	userID, err := getUserIDFromContext(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
-	}
+    if err != nil {
+        return h.r.UnauthorizedResponse(c, err.Error())
+    }
 
 	// Get file from form
 	file, err := c.FormFile("banner")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No file uploaded"})
-	}
+    if err != nil {
+        return h.r.BadRequestResponse(c, "No file uploaded")
+    }
 
 	// Validate file type
-	if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File must be an image"})
-	}
+    if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
+        return h.r.BadRequestResponse(c, "File must be an image")
+    }
 
 	// Validate file size (max 10MB)
-	if file.Size > 10*1024*1024 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File size must be less than 10MB"})
-	}
+    if file.Size > 10*1024*1024 {
+        return h.r.BadRequestResponse(c, "File size must be less than 10MB")
+    }
 
 	// Open uploaded file
 	src, err := file.Open()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to open file"})
-	}
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to open file")
+    }
 	defer src.Close()
 
 	// Create uploads directory if not exists
 	uploadDir := "./public/uploads/banners"
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create upload directory"})
-	}
+    if err := os.MkdirAll(uploadDir, 0755); err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to create upload directory")
+    }
 
 	// Generate unique filename
 	ext := filepath.Ext(file.Filename)
@@ -289,23 +292,23 @@ func (h *UserHandler) UploadBanner(c echo.Context) error {
 
 	// Create destination file
 	dst, err := os.Create(filePath)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create file"})
-	}
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to create file")
+    }
 	defer dst.Close()
 
 	// Copy file
-	if _, err := io.Copy(dst, src); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
-	}
+    if _, err := io.Copy(dst, src); err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to save file")
+    }
 
 	// Return the URL path
 	bannerURL := fmt.Sprintf("/public/uploads/banners/%s", filename)
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"banner_url": bannerURL,
-		"message":    "Banner uploaded successfully",
-	})
+    return h.r.SuccessResponse(c, map[string]string{
+        "banner_url": bannerURL,
+        "message":    "Banner uploaded successfully",
+    }, "")
 }
 
 // UploadAvatar handles avatar file upload
@@ -318,32 +321,32 @@ func (h *UserHandler) UploadAvatar(c echo.Context) error {
 
 	// Get file from form
 	file, err := c.FormFile("avatar")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No file uploaded"})
-	}
+    if err != nil {
+        return h.r.BadRequestResponse(c, "No file uploaded")
+    }
 
 	// Validate file type
-	if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File must be an image"})
-	}
+    if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
+        return h.r.BadRequestResponse(c, "File must be an image")
+    }
 
 	// Validate file size (max 5MB)
-	if file.Size > 5*1024*1024 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "File size must be less than 5MB"})
-	}
+    if file.Size > 5*1024*1024 {
+        return h.r.BadRequestResponse(c, "File size must be less than 5MB")
+    }
 
 	// Open uploaded file
 	src, err := file.Open()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to open file"})
-	}
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to open file")
+    }
 	defer src.Close()
 
 	// Create uploads directory if not exists
 	uploadDir := "./public/uploads/avatars"
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create upload directory"})
-	}
+    if err := os.MkdirAll(uploadDir, 0755); err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to create upload directory")
+    }
 
 	// Generate unique filename
 	ext := filepath.Ext(file.Filename)
@@ -352,23 +355,23 @@ func (h *UserHandler) UploadAvatar(c echo.Context) error {
 
 	// Create destination file
 	dst, err := os.Create(filePath)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create file"})
-	}
+    if err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to create file")
+    }
 	defer dst.Close()
 
 	// Copy file
-	if _, err := io.Copy(dst, src); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
-	}
+    if _, err := io.Copy(dst, src); err != nil {
+        return h.r.InternalServerErrorResponse(c, "Failed to save file")
+    }
 
 	// Return the URL path
 	avatarURL := fmt.Sprintf("/public/uploads/avatars/%s", filename)
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"avatar_url": avatarURL,
-		"message":    "Avatar uploaded successfully",
-	})
+    return h.r.SuccessResponse(c, map[string]string{
+        "avatar_url": avatarURL,
+        "message":    "Avatar uploaded successfully",
+    }, "")
 }
 
 // RegisterRoutes registers the user routes
