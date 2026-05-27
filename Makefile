@@ -1,4 +1,5 @@
-APP_NAME := $(shell basename $(CURDIR))
+## APP_NAME must match the service name used in config.service (ExecStart path and service file)
+APP_NAME := app
 # VERSION: prefer git describe tags, fallback to timestamp
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || date +%Y%m%d%H%M%S)
 
@@ -14,12 +15,12 @@ run:
 	@npm run dev --prefix web
 
 install-local:
-	make build
-	@sudo mv bin/app /usr/local/bin/$(APP_NAME)
-	@sudo cp config.service /etc/systemd/system/$(APP_NAME).service
-	@sudo systemctl daemon-reload
-	@sudo systemctl enable $(APP_NAME).service
-	@sudo systemctl start $(APP_NAME).service
+    make build
+    @sudo mv bin/app /usr/local/bin/$(APP_NAME)
+    @sudo cp config.service /etc/systemd/system/$(APP_NAME).service
+    @sudo systemctl daemon-reload
+    @sudo systemctl enable $(APP_NAME).service
+    @sudo systemctl start $(APP_NAME).service
 
 ## Build web static assets and image
 web-build:
