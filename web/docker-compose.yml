@@ -1,11 +1,10 @@
 version: "3.8"
 
 services:
-  web:
-    build: .
-    ports:
-      - "3000:80"
-    env_file:
-      - .env
-    # Run in production - do not mount source code into container
-    restart: unless-stopped
+    web:
+        build: .
+        ports:
+            - "3000:80"
+        env_file:
+            - .env
+        restart: unless-stopped

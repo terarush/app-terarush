@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine as builder
+FROM golang:1.24-alpine as builder
 
 WORKDIR /app
 
@@ -20,6 +20,6 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/main .
 
-COPY config-prod.toml .
+COPY .env .
 
-CMD ["./main", "-c", "config-prod.toml"]
+CMD ["./main", "-c", ".env"]
