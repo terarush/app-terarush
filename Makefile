@@ -13,12 +13,12 @@ run:
 	@npm run dev --prefix web
 
 install-local:
-    make build
-    @sudo mv bin/app /usr/local/bin/$(APP_NAME)
-    @sudo cp config.service /etc/systemd/system/$(APP_NAME).service
-    @sudo systemctl daemon-reload
-    @sudo systemctl enable $(APP_NAME).service
-    @sudo systemctl start $(APP_NAME).service
+	make build
+	@sudo mv bin/app /usr/local/bin/$(APP_NAME)
+	@sudo cp config.service /etc/systemd/system/$(APP_NAME).service
+	@sudo systemctl daemon-reload
+	@sudo systemctl enable $(APP_NAME).service
+	@sudo systemctl start $(APP_NAME).service
 
 ## Build web static assets and image
 web-build:
@@ -56,7 +56,7 @@ help:
 	@echo "  make web-build        - build web assets and docker image"
 	@echo "  make docker-build     - build backend docker image"
 	@echo "  make docker-up        - start containers with docker compose"
-	@echo "  make full-install     - build everything and deploy (writes /etc/$(APP_NAME)_version)"
+	@echo "  make full-install     - build everything and deploy (writes /etc/\$(APP_NAME)_version)"
 
 clean:
 	rm -rf bin dist
