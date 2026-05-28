@@ -55,6 +55,11 @@ func (s *AssetService) GetAssetByURL(ctx context.Context, url string) (*entity.A
 	return asset, nil
 }
 
+// GetAllAssets gets all assets with pagination
+func (s *AssetService) GetAllAssets(ctx context.Context, page, pageSize int) ([]*entity.Asset, int64, error) {
+	return s.assetRepo.FindAll(ctx, page, pageSize)
+}
+
 // DeleteAsset deletes an asset
 func (s *AssetService) DeleteAsset(ctx context.Context, id uint) error {
 	asset, err := s.assetRepo.FindByID(ctx, id)

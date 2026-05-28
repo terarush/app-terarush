@@ -2,6 +2,7 @@ import {
 	LayoutDashboard,
 	Settings,
 	BookOpen,
+	ImageIcon,
 	type LucideIcon,
 } from "lucide-react";
 
@@ -23,6 +24,12 @@ export const sidebarNavItems: SidebarNavItem[] = [
 		name: "Blog Management",
 		link: "/dashboard/blogs",
 		icon: BookOpen,
+		adminOnly: true,
+	},
+	{
+		name: "Assets",
+		link: "/dashboard/assets",
+		icon: ImageIcon,
 		adminOnly: true,
 	},
 	{

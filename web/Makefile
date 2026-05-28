@@ -59,4 +59,12 @@ install: build
 	@sudo cp -r dist/* /var/www/terarush/
 	@printf "%s\n" "$(VERSION)" | sudo tee /etc/terarush_web_version >/dev/null
 
+vercel:
+	@echo "Deploying to Vercel"
+	@vercel deploy --prod
+
+vercel-dev:
+	@echo "Deploying to Vercel dev environment"
+	@vercel deploy --prod --environment dev
+
 full-install: install

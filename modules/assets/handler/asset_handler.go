@@ -125,6 +125,9 @@ func (h *AssetHandler) UploadAsset(c echo.Context) error {
 
 	// Create asset record in database
 	asset := entity.NewAsset(assetURL)
+	asset.FileName = file.Filename
+	asset.FileSize = file.Size
+	asset.MimeType = mimeType
 	ctx := c.Request().Context()
 	if err := h.assetService.CreateAsset(ctx, asset); err != nil {
 		h.log.Error("Error creating asset record", err)
@@ -135,6 +138,54 @@ func (h *AssetHandler) UploadAsset(c echo.Context) error {
 		ID:   asset.ID,
 		URL:  assetURL,
 		Path: filePath,
+	})
+}
+
+// GetAssets retrieves all assets with pagination
+// @Summary Get all assets
+// @Description Get all assets with pagination (admin only)
+// @Tags Assets
+// @Produce json
+// @Param page query int false "Page number (default: 1)"
+// @Param page_size query int false "Page size (default: 20)"
+// @Success 200 {object} response.ListAssetsResponse "Assets retrieved successfully"
+// @Failure 500 {object} map[string]string "Failed to retrieve assets"
+// @Router /api/v1/admin/assets [get]
+// @Security Bearer
+func (h *AssetHandler) GetAssets(c echo.Context) error {
+	page := 1
+	pageSize := 20
+
+	// Get query parameters
+	if p := c.QueryParam("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	if ps := c.QueryParam("page_size"); ps != "" {
+		if parsed, err := strconv.Atoi(ps); err == nil && parsed > 0 && parsed <= 100 {
+			pageSize = parsed
+		}
+	}
+
+	ctx := c.Request().Context()
+	assets, total, err := h.assetService.GetAllAssets(ctx, page, pageSize)
+	if err != nil {
+		h.log.Error("Error retrieving assets", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve assets"})
+	}
+
+	// Convert to response objects
+	assetResponses := make([]response.AssetResponse, len(assets))
+	for i, asset := range assets {
+		assetResponses[i] = response.FromEntity(asset)
+	}
+
+	return c.JSON(http.StatusOK, response.ListAssetsResponse{
+		Assets:   assetResponses,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
 	})
 }
 
@@ -224,8 +275,9 @@ func (h *AssetHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	public := e.Group(basePath + "/assets")
 	public.GET("/:filename", h.GetAsset)
 
-	// Admin routes - upload and delete
+	// Admin routes - upload, delete, and list
 	admin := e.Group(basePath + "/admin/assets")
+	admin.GET("", h.GetAssets)
 	admin.POST("/upload", h.UploadAsset)
 	admin.DELETE("/:id", h.DeleteAsset)
 }

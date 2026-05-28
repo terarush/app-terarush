@@ -9,7 +9,11 @@ import (
 type AssetResponse struct {
 	ID        uint      `json:"id"`
 	URL       string    `json:"url"`
+	Path      string    `json:"path"`
+	FileName  string    `json:"file_name"`
+	MimeType  string    `json:"mime_type"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // FromEntity converts asset entity to response
@@ -17,7 +21,11 @@ func FromEntity(asset *entity.Asset) AssetResponse {
 	return AssetResponse{
 		ID:        asset.ID,
 		URL:       asset.URL,
+		Path:      asset.URL,
+		FileName:  asset.FileName,
+		MimeType:  asset.MimeType,
 		CreatedAt: asset.CreatedAt,
+		UpdatedAt: asset.UpdatedAt,
 	}
 }
 
@@ -35,4 +43,12 @@ type UploadAssetResponse struct {
 	ID   uint   `json:"id"`
 	URL  string `json:"url"`
 	Path string `json:"path"`
+}
+
+// ListAssetsResponse is the response for listing assets
+type ListAssetsResponse struct {
+	Assets   []AssetResponse `json:"assets"`
+	Total    int64           `json:"total"`
+	Page     int             `json:"page"`
+	PageSize int             `json:"page_size"`
 }

@@ -6,6 +6,7 @@ type Asset struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	URL       string    `json:"url"`
 	Path      string    `json:"path,omitempty"`
+	FileName  string    `json:"file_name"`
 	FileSize  int64     `json:"file_size"`
 	MimeType  string    `json:"mime_type"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`

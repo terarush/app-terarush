@@ -41,6 +41,36 @@ func (r AssetRepositoryImpl) FindByURL(ctx context.Context, url string) (*entity
 	return &asset, nil
 }
 
+// FindAll finds all assets with pagination
+func (r AssetRepositoryImpl) FindAll(ctx context.Context, page, pageSize int) ([]*entity.Asset, int64, error) {
+	var assets []*entity.Asset
+	var total int64
+
+	// Get total count
+	if err := database.DB.WithContext(ctx).Model(&entity.Asset{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+	if offset < 0 {
+		offset = 0
+	}
+
+	// Get paginated results ordered by created_at descending (newest first)
+	result := database.DB.WithContext(ctx).
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&assets)
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return assets, total, nil
+}
+
 // Delete deletes an asset
 func (r AssetRepositoryImpl) Delete(ctx context.Context, id uint) error {
 	return database.DB.WithContext(ctx).Delete(&entity.Asset{}, id).Error
