@@ -8,7 +8,7 @@ import (
 	"go-modular/modules/blogs/domain/service"
 	"go-modular/modules/blogs/handler"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 

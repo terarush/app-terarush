@@ -12,7 +12,7 @@ import (
 	"go-modular/modules/comments/dto/request"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type CommentHandler struct {

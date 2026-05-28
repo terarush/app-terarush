@@ -14,7 +14,7 @@ import (
 	"go-modular/modules/assets/domain/service"
 	"go-modular/modules/assets/dto/response"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // AssetHandler handles HTTP requests for assets

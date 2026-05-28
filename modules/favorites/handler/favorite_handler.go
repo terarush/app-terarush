@@ -7,22 +7,22 @@ import (
 	"go-modular/internal/pkg/utils"
 	"go-modular/modules/favorites/domain/service"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type FavoriteHandler struct {
-	favoriteService *service.FavoriteService
+	favoriteService service.FavoriteService
 	log             *logger.Logger
 	event           *bus.EventBus
-	r               utils.Response
+	r               *utils.Response
 }
 
-func NewFavoriteHandler(favoriteService *service.FavoriteService, log *logger.Logger, event *bus.EventBus, r utils.Response) *FavoriteHandler {
+func NewFavoriteHandler(log *logger.Logger, event *bus.EventBus, favoriteService service.FavoriteService) *FavoriteHandler {
 	return &FavoriteHandler{
 		favoriteService: favoriteService,
 		log:             log,
 		event:           event,
-		r:               r,
+		r:               nil,
 	}
 }
 

@@ -10,8 +10,11 @@ import (
 	_validator "go-modular/internal/pkg/validator"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	_ "go-modular/docs"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"gorm.io/gorm"
 )
 
@@ -118,6 +121,8 @@ func (a *App) Initialize() error {
 	// Serve static files from public directory
 	a.r.Static("/public", "./public")
 	a.logger.Info("Static file serving enabled for /public")
+
+	a.r.GET("/api/docs/*", echoSwagger.WrapHandler)
 
 	// Capture application start time
 	a.startTime = time.Now()

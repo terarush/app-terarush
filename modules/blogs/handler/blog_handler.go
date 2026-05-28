@@ -14,7 +14,7 @@ import (
 	"go-modular/modules/blogs/dto/request"
 	"go-modular/modules/blogs/dto/response"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // BlogHandler handles HTTP requests for blogs

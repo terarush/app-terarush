@@ -13,7 +13,7 @@ import (
 	"go-modular/modules/users/dto/response"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // AuthHandler struct handles HTTP request for auth.

@@ -7,7 +7,7 @@ import (
 	"go-modular/modules/assets/domain/service"
 	"go-modular/modules/assets/handler"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
