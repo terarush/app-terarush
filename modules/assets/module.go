@@ -3,6 +3,7 @@ package assets
 import (
 	"go-modular/internal/pkg/bus"
 	"go-modular/internal/pkg/logger"
+	"go-modular/modules/assets/domain/entity"
 	"go-modular/modules/assets/domain/repository"
 	"go-modular/modules/assets/domain/service"
 	"go-modular/modules/assets/handler"
@@ -13,12 +14,14 @@ import (
 
 // Module is the assets module
 type Module struct {
+	db      *gorm.DB
 	handler *handler.AssetHandler
 	log     *logger.Logger
 }
 
 // Initialize initializes the assets module
 func (m *Module) Initialize(db *gorm.DB, log *logger.Logger, event *bus.EventBus) error {
+	m.db = db
 	m.log = log
 	m.log.Info("Initializing assets module")
 
@@ -43,8 +46,7 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 
 // Migrations returns the migrations for the assets module
 func (m *Module) Migrations() error {
-	// No migrations needed for assets module - using file storage
-	return nil
+	return m.db.AutoMigrate(&entity.Asset{})
 }
 
 // Name returns the name of the module

@@ -73,19 +73,19 @@ func (h *AssetHandler) UploadAsset(c echo.Context) error {
 
 	// Allowed MIME types: images, documents, videos, etc.
 	allowedTypes := map[string]bool{
-		"image/jpeg":  true,
-		"image/png":   true,
-		"image/gif":   true,
-		"image/webp":  true,
-		"image/svg+xml": true,
-		"application/pdf": true,
-		"text/plain":  true,
+		"image/jpeg":         true,
+		"image/png":          true,
+		"image/gif":          true,
+		"image/webp":         true,
+		"image/svg+xml":      true,
+		"application/pdf":    true,
+		"text/plain":         true,
 		"application/msword": true,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true,
 		"application/vnd.ms-excel": true,
 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": true,
-		"video/mp4":   true,
-		"video/webm":  true,
+		"video/mp4":  true,
+		"video/webm": true,
 	}
 
 	if !allowedTypes[mimeType] {

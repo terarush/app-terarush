@@ -18,7 +18,7 @@ install-local:
 	@sudo cp config.service /etc/systemd/system/$(APP_NAME).service
 	@sudo systemctl daemon-reload
 	@sudo systemctl enable $(APP_NAME).service
-	@sudo systemctl start $(APP_NAME).service
+	@sudo systemctl restart $(APP_NAME).service
 
 ## Build web static assets and image
 web-build:
