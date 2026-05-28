@@ -139,16 +139,24 @@ func (a *App) Initialize() error {
 	})
 
 	// Add metadata endpoint with API configuration
+	// @Summary Get API Metadata
+	// @Description Returns API configuration, version, base URL, endpoints, and available features
+	// @Tags System
+	// @Produce json
+	// @Success 200 {object} map[string]interface{} "API metadata"
+	// @Router /api/meta [get]
 	a.r.GET("/api/meta", func(c echo.Context) error {
 		return c.JSON(200, map[string]interface{}{
-			"appName":     config.GetString("APP_NAME"),
-			"baseUrl":     fmt.Sprintf("http://%s", c.Request().Host),
-			"apiVersion":  config.GetString("API_VERSION"),
-			"apiPath":     version,
-			"environment": config.GetString("SERVER_MODE"),
-			"status":      "running",
-			"timestamp":   time.Now().Format(time.RFC3339),
-			"uptime":      time.Since(a.startTime).String(),
+			"appName":       config.GetString("APP_NAME"),
+			"baseUrl":       fmt.Sprintf("http://%s", c.Request().Host),
+			"apiVersion":    config.GetString("API_VERSION"),
+			"apiPath":       version,
+			"environment":   config.GetString("SERVER_MODE"),
+			"status":        "running",
+			"timestamp":     time.Now().Format(time.RFC3339),
+			"uptime":        time.Since(a.startTime).String(),
+			"accessToken":   "Bearer <JWT_TOKEN>",
+			"tokenLocation": "Authorization header",
 			"features": map[string]bool{
 				"auth":      true,
 				"users":     true,
@@ -159,13 +167,36 @@ func (a *App) Initialize() error {
 			},
 			"endpoints": map[string]interface{}{
 				"docs":     "/api/docs",
+				"meta":     "/api/meta",
 				"static":   "/public",
-				"upload":   fmt.Sprintf("%s/admin/assets/upload", version),
 				"auth":     fmt.Sprintf("%s/auth", version),
 				"users":    fmt.Sprintf("%s/users", version),
 				"blogs":    fmt.Sprintf("%s/blogs", version),
 				"comments": fmt.Sprintf("%s/comments", version),
 				"assets":   fmt.Sprintf("%s/assets", version),
+			},
+			"defines": map[string]interface{}{
+				"apiDefinition": map[string]string{
+					"name":        "TeraRush API",
+					"description": "A modular blogging platform",
+					"version":     config.GetString("API_VERSION"),
+					"environment": config.GetString("SERVER_MODE"),
+				},
+				"authentication": map[string]string{
+					"type":   "Bearer Token",
+					"scheme": "JWT",
+					"header": "Authorization",
+					"format": "Bearer <token>",
+				},
+				"rateLimit": map[string]interface{}{
+					"enabled":  true,
+					"requests": 1000,
+					"window":   "1 hour",
+				},
+				"pagination": map[string]interface{}{
+					"enabled": true,
+					"maxSize": 100,
+				},
 			},
 		})
 	})
