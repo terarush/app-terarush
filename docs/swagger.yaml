@@ -1,4 +1,87 @@
 definitions:
+  entity.Comment:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: integer
+      id:
+        type: string
+      post_id:
+        type: integer
+      updated_at:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  handler.UploadImageResponse:
+    properties:
+      path:
+        type: string
+      url:
+        type: string
+    type: object
+  request.ChangePasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      new_password:
+        minLength: 8
+        type: string
+      old_password:
+        minLength: 6
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - old_password
+    type: object
+  request.CreateBlogRequest:
+    properties:
+      category:
+        maxLength: 100
+        type: string
+      content:
+        type: string
+      excerpt:
+        maxLength: 500
+        type: string
+      image:
+        maxLength: 255
+        type: string
+      is_published:
+        type: boolean
+      slug:
+        maxLength: 255
+        type: string
+      tags:
+        maxLength: 255
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - slug
+    - title
+    type: object
+  request.CreateCommentRequest:
+    properties:
+      content:
+        type: string
+      post_id:
+        type: integer
+    required:
+    - content
+    - post_id
+    type: object
+  request.CreateFavoriteRequest:
+    properties:
+      post_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
   request.CreateUserRequest:
     properties:
       email:
@@ -18,6 +101,63 @@ definitions:
     - name
     - password
     type: object
+  request.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  request.UpdateBlogRequest:
+    properties:
+      category:
+        maxLength: 100
+        type: string
+      content:
+        type: string
+      excerpt:
+        maxLength: 500
+        type: string
+      image:
+        maxLength: 255
+        type: string
+      is_published:
+        type: boolean
+      slug:
+        maxLength: 255
+        type: string
+      tags:
+        maxLength: 255
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - slug
+    - title
+    type: object
+  request.UpdateCommentRequest:
+    properties:
+      content:
+        type: string
+      post_id:
+        type: integer
+    required:
+    - content
+    - post_id
+    type: object
   request.UpdateUserRequest:
     properties:
       email:
@@ -32,6 +172,50 @@ definitions:
     required:
     - email
     - name
+    type: object
+  response.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/response.UserResponse'
+    type: object
+  response.BlogResponse:
+    properties:
+      author:
+        type: string
+      category:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      excerpt:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      is_published:
+        type: boolean
+      published_at:
+        type: string
+      slug:
+        type: string
+      tags:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      view_count:
+        type: integer
     type: object
   response.UserResponse:
     properties:
@@ -61,6 +245,841 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/admin/blogs:
+    get:
+      description: Retrieve a list of all blogs with pagination and optional search
+      parameters:
+      - default: 1
+        description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 'Page size (default: 10, max: 100)'
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of blogs with pagination info
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get all blogs (admin only)
+      tags:
+      - Blogs
+    post:
+      consumes:
+      - application/json
+      description: Create a new blog post (admin only)
+      parameters:
+      - description: Blog creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateBlogRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Blog created successfully
+          schema:
+            $ref: '#/definitions/response.BlogResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a new blog
+      tags:
+      - Blogs
+  /api/v1/admin/blogs/{id}:
+    delete:
+      description: Delete a blog post (admin only)
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Blog deleted successfully
+        "400":
+          description: Invalid blog ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Blog not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete a blog
+      tags:
+      - Blogs
+    get:
+      description: Retrieve a specific blog by its ID
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Blog details
+          schema:
+            $ref: '#/definitions/response.BlogResponse'
+        "400":
+          description: Invalid blog ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Blog not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get blog by ID (admin only)
+      tags:
+      - Blogs
+    put:
+      consumes:
+      - application/json
+      description: Update an existing blog post (admin only)
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Blog update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateBlogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Blog updated successfully
+          schema:
+            $ref: '#/definitions/response.BlogResponse'
+        "400":
+          description: Invalid request or blog ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Blog not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Update a blog
+      tags:
+      - Blogs
+  /api/v1/admin/blogs/upload/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Upload an image file for a blog post (admin only). Maximum file
+        size: 5MB. Supported formats: JPEG, PNG, GIF, WebP'
+      parameters:
+      - description: Image file to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Image uploaded successfully
+          schema:
+            $ref: '#/definitions/handler.UploadImageResponse'
+        "400":
+          description: Invalid file or file too large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to upload file
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Upload blog image
+      tags:
+      - Blogs
+  /api/v1/auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change the authenticated user's password
+      parameters:
+      - description: Password change request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body or old password
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Change user password
+      tags:
+      - Auth
+  /api/v1/auth/github/callback:
+    post:
+      consumes:
+      - application/json
+      description: Handle GitHub OAuth callback and authenticate user
+      parameters:
+      - description: GitHub authorization code
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: GitHub login successful
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "400":
+          description: Invalid request or missing code
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: GitHub OAuth callback
+      tags:
+      - Auth
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password, returns access and refresh
+        tokens
+      parameters:
+      - description: User login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid email or password
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User login
+      tags:
+      - Auth
+  /api/v1/auth/logout:
+    post:
+      description: Logout the authenticated user (client-side token removal)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logged out successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: User logout
+      tags:
+      - Auth
+  /api/v1/auth/profile:
+    get:
+      description: Retrieve the authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get user profile
+      tags:
+      - Auth
+    put:
+      consumes:
+      - application/json
+      description: Update the authenticated user's profile information
+      parameters:
+      - description: Profile update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email already in use
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Update user profile
+      tags:
+      - Auth
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Get a new access token using a valid refresh token
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token refreshed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid refresh token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh access token
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email and password
+      parameters:
+      - description: User registration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email already in use
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
+      tags:
+      - Auth
+  /api/v1/blogs:
+    get:
+      description: Retrieve a list of all published blogs with pagination and optional
+        search
+      parameters:
+      - default: 1
+        description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 'Page size (default: 10)'
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of published blogs with pagination info
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all published blogs
+      tags:
+      - Blogs
+  /api/v1/blogs/{slug}:
+    get:
+      description: Retrieve a specific blog by its slug (public endpoint)
+      parameters:
+      - description: Blog slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Blog details with author information
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid slug
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Blog not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get blog by slug
+      tags:
+      - Blogs
+  /api/v1/comments:
+    post:
+      consumes:
+      - application/json
+      description: Add a comment to a blog post
+      parameters:
+      - description: Comment creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Comment created successfully
+          schema:
+            $ref: '#/definitions/entity.Comment'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a new comment
+      tags:
+      - Comments
+  /api/v1/comments/{id}:
+    delete:
+      description: Remove a comment from a blog post
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid comment ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete a comment
+      tags:
+      - Comments
+    put:
+      consumes:
+      - application/json
+      description: Update an existing comment on a blog post
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Comment update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment updated successfully
+          schema:
+            $ref: '#/definitions/entity.Comment'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Update a comment
+      tags:
+      - Comments
+  /api/v1/favorite:
+    post:
+      consumes:
+      - application/json
+      description: Add a blog to the user's favorites
+      parameters:
+      - description: Favorite creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateFavoriteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Favorite created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a new favorite
+      tags:
+      - Favorites
+  /api/v1/favorite/{favoriteId}:
+    delete:
+      description: Remove a blog from the user's favorites
+      parameters:
+      - description: Favorite ID
+        in: path
+        name: favoriteId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Favorite deleted successfully
+        "400":
+          description: Invalid favorite ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Favorite not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete a favorite
+      tags:
+      - Favorites
+  /api/v1/favorite/{userId}:
+    get:
+      description: Retrieve all favorite blogs for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's favorite blogs
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get user's favorites
+      tags:
+      - Favorites
   /api/v1/users:
     get:
       description: Retrieve a list of all users
@@ -363,4 +1382,42 @@ paths:
       summary: Update current user profile
       tags:
       - Users
+  /images/{filename}:
+    get:
+      description: Retrieve a blog image by filename (public endpoint)
+      parameters:
+      - description: Image filename
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+      responses:
+        "200":
+          description: Image file
+        "400":
+          description: Invalid filename
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Image not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve image
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get blog image
+      tags:
+      - Blogs
 swagger: "2.0"

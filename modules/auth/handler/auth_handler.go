@@ -44,6 +44,17 @@ func (h *AuthHandler) Handle(event bus.Event) {
 }
 
 // Register handles user registration.
+// @Summary Register a new user
+// @Description Create a new user account with email and password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body request.CreateUserRequest true "User registration request"
+// @Success 200 {object} response.AuthResponse "User registered successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 409 {object} map[string]interface{} "Email already in use"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	h.log.Info("Handling register request")
 
@@ -102,6 +113,17 @@ func (h *AuthHandler) Register(c echo.Context) error {
 }
 
 // Login handles user login.
+// @Summary User login
+// @Description Authenticate user with email and password, returns access and refresh tokens
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body request.LoginRequest true "User login request"
+// @Success 200 {object} response.AuthResponse "Login successful"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Invalid email or password"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	h.log.Info("Handling login request")
 
@@ -149,6 +171,16 @@ func (h *AuthHandler) Login(c echo.Context) error {
 }
 
 // GetProfile retrieves the authenticated user's profile.
+// @Summary Get user profile
+// @Description Retrieve the authenticated user's profile information
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} response.UserResponse "User profile"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/profile [get]
+// @Security Bearer
 func (h *AuthHandler) GetProfile(c echo.Context) error {
 	h.log.Info("Handling get profile request")
 
@@ -175,6 +207,20 @@ func (h *AuthHandler) GetProfile(c echo.Context) error {
 }
 
 // UpdateProfile updates the authenticated user's profile.
+// @Summary Update user profile
+// @Description Update the authenticated user's profile information
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body request.UpdateUserRequest true "Profile update request"
+// @Success 200 {object} response.UserResponse "Profile updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 409 {object} map[string]interface{} "Email already in use"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/profile [put]
+// @Security Bearer
 func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 	h.log.Info("Handling update profile request")
 
@@ -216,6 +262,19 @@ func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 }
 
 // ChangePassword handles password change request.
+// @Summary Change user password
+// @Description Change the authenticated user's password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body request.ChangePasswordRequest true "Password change request"
+// @Success 200 {object} map[string]interface{} "Password changed successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body or old password"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/change-password [post]
+// @Security Bearer
 func (h *AuthHandler) ChangePassword(c echo.Context) error {
 	h.log.Info("Handling change password request")
 
@@ -257,6 +316,17 @@ func (h *AuthHandler) ChangePassword(c echo.Context) error {
 }
 
 // RefreshToken handles refresh token request.
+// @Summary Refresh access token
+// @Description Get a new access token using a valid refresh token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body request.RefreshTokenRequest true "Refresh token request"
+// @Success 200 {object} map[string]interface{} "Token refreshed successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Invalid refresh token"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	h.log.Info("Handling refresh token request")
 
@@ -289,6 +359,15 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 }
 
 // Logout handles user logout (invalidate token on client side).
+// @Summary User logout
+// @Description Logout the authenticated user (client-side token removal)
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Logged out successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/logout [post]
+// @Security Bearer
 func (h *AuthHandler) Logout(c echo.Context) error {
 	h.log.Info("Handling logout request")
 
@@ -298,6 +377,16 @@ func (h *AuthHandler) Logout(c echo.Context) error {
 }
 
 // GitHubCallback handles the GitHub OAuth callback
+// @Summary GitHub OAuth callback
+// @Description Handle GitHub OAuth callback and authenticate user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body map[string]string true "GitHub authorization code"
+// @Success 200 {object} response.AuthResponse "GitHub login successful"
+// @Failure 400 {object} map[string]interface{} "Invalid request or missing code"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/auth/github/callback [post]
 func (h *AuthHandler) GitHubCallback(c echo.Context) error {
 	h.log.Info("Handling GitHub OAuth callback")
 

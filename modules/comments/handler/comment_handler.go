@@ -31,6 +31,19 @@ func NewCommentHandler(log *logger.Logger, event *bus.EventBus, commentService s
 	}
 }
 
+// CreateComment creates a new comment
+// @Summary Create a new comment
+// @Description Add a comment to a blog post
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param request body request.CreateCommentRequest true "Comment creation request"
+// @Success 201 {object} entity.Comment "Comment created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/comments [post]
+// @Security Bearer
 func (h *CommentHandler) CreateComment(c echo.Context) error {
 	ctx := c.Request().Context()
 	userId, err := utils.GetUserIDFromContext(ctx)
@@ -64,6 +77,18 @@ func (h *CommentHandler) CreateComment(c echo.Context) error {
 	return nil
 }
 
+// DeleteComment deletes a comment
+// @Summary Delete a comment
+// @Description Remove a comment from a blog post
+// @Tags Comments
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Success 200 {object} map[string]interface{} "Comment deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid comment ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/comments/{id} [delete]
+// @Security Bearer
 func (h *CommentHandler) DeleteComment(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -83,6 +108,20 @@ func (h *CommentHandler) DeleteComment(c echo.Context) error {
 	return nil
 }
 
+// UpdateComment updates a comment
+// @Summary Update a comment
+// @Description Update an existing comment on a blog post
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path string true "Comment ID"
+// @Param request body request.UpdateCommentRequest true "Comment update request"
+// @Success 200 {object} entity.Comment "Comment updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/comments/{id} [put]
+// @Security Bearer
 func (h *CommentHandler) UpdateComment(c echo.Context) error {
 	ctx := c.Request().Context()
 	id := c.Param("id")

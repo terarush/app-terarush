@@ -56,6 +56,17 @@ func getUserIDAndNameFromContext(c echo.Context) (uint, string, error) {
 }
 
 // GetAllBlogs gets all blogs (admin only) with pagination support
+// @Summary Get all blogs (admin only)
+// @Description Retrieve a list of all blogs with pagination and optional search
+// @Tags Blogs
+// @Produce json
+// @Param page query int false "Page number (default: 1)" default(1)
+// @Param page_size query int false "Page size (default: 10, max: 100)" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} map[string]interface{} "List of blogs with pagination info"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/admin/blogs [get]
+// @Security Bearer
 func (h *BlogHandler) GetAllBlogs(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -92,6 +103,16 @@ func (h *BlogHandler) GetAllBlogs(c echo.Context) error {
 }
 
 // GetPublishedBlogs gets all published blogs (public) with pagination support
+// @Summary Get all published blogs
+// @Description Retrieve a list of all published blogs with pagination and optional search
+// @Tags Blogs
+// @Produce json
+// @Param page query int false "Page number (default: 1)" default(1)
+// @Param page_size query int false "Page size (default: 10)" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} map[string]interface{} "List of published blogs with pagination info"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/blogs [get]
 func (h *BlogHandler) GetPublishedBlogs(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -128,6 +149,17 @@ func (h *BlogHandler) GetPublishedBlogs(c echo.Context) error {
 }
 
 // GetBlogByID gets a blog by ID (admin only)
+// @Summary Get blog by ID (admin only)
+// @Description Retrieve a specific blog by its ID
+// @Tags Blogs
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Success 200 {object} response.BlogResponse "Blog details"
+// @Failure 400 {object} map[string]interface{} "Invalid blog ID"
+// @Failure 404 {object} map[string]interface{} "Blog not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/admin/blogs/{id} [get]
+// @Security Bearer
 func (h *BlogHandler) GetBlogByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -148,6 +180,16 @@ func (h *BlogHandler) GetBlogByID(c echo.Context) error {
 }
 
 // GetBlogBySlug gets a blog by slug (public)
+// @Summary Get blog by slug
+// @Description Retrieve a specific blog by its slug (public endpoint)
+// @Tags Blogs
+// @Produce json
+// @Param slug path string true "Blog slug"
+// @Success 200 {object} map[string]interface{} "Blog details with author information"
+// @Failure 400 {object} map[string]interface{} "Invalid slug"
+// @Failure 404 {object} map[string]interface{} "Blog not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/blogs/{slug} [get]
 func (h *BlogHandler) GetBlogBySlug(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -168,6 +210,18 @@ func (h *BlogHandler) GetBlogBySlug(c echo.Context) error {
 }
 
 // CreateBlog creates a new blog (admin only)
+// @Summary Create a new blog
+// @Description Create a new blog post (admin only)
+// @Tags Blogs
+// @Accept json
+// @Produce json
+// @Param request body request.CreateBlogRequest true "Blog creation request"
+// @Success 201 {object} response.BlogResponse "Blog created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/admin/blogs [post]
+// @Security Bearer
 func (h *BlogHandler) CreateBlog(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -215,6 +269,20 @@ func (h *BlogHandler) CreateBlog(c echo.Context) error {
 }
 
 // UpdateBlog updates a blog (admin only)
+// @Summary Update a blog
+// @Description Update an existing blog post (admin only)
+// @Tags Blogs
+// @Accept json
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Param request body request.UpdateBlogRequest true "Blog update request"
+// @Success 200 {object} response.BlogResponse "Blog updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request or blog ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Blog not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/admin/blogs/{id} [put]
+// @Security Bearer
 func (h *BlogHandler) UpdateBlog(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -266,6 +334,18 @@ func (h *BlogHandler) UpdateBlog(c echo.Context) error {
 }
 
 // DeleteBlog deletes a blog (admin only)
+// @Summary Delete a blog
+// @Description Delete a blog post (admin only)
+// @Tags Blogs
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Success 204 "Blog deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid blog ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Blog not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/admin/blogs/{id} [delete]
+// @Security Bearer
 func (h *BlogHandler) DeleteBlog(c echo.Context) error {
 	ctx := c.Request().Context()
 

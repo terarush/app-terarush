@@ -19,6 +19,17 @@ type UploadImageResponse struct {
 }
 
 // UploadBlogImage uploads an image for blog post
+// @Summary Upload blog image
+// @Description Upload an image file for a blog post (admin only). Maximum file size: 5MB. Supported formats: JPEG, PNG, GIF, WebP
+// @Tags Blogs
+// @Accept multipart/form-data
+// @Produce json
+// @Param image formData file true "Image file to upload"
+// @Success 200 {object} UploadImageResponse "Image uploaded successfully"
+// @Failure 400 {object} map[string]string "Invalid file or file too large"
+// @Failure 500 {object} map[string]string "Failed to upload file"
+// @Router /api/v1/admin/blogs/upload/image [post]
+// @Security Bearer
 func (h *BlogHandler) UploadBlogImage(c echo.Context) error {
 	// Get file from multipart form
 	file, err := c.FormFile("image")
@@ -86,6 +97,16 @@ func (h *BlogHandler) UploadBlogImage(c echo.Context) error {
 }
 
 // GetBlogImage serves a blog image
+// @Summary Get blog image
+// @Description Retrieve a blog image by filename (public endpoint)
+// @Tags Blogs
+// @Produce image/jpeg,image/png,image/gif,image/webp
+// @Param filename path string true "Image filename"
+// @Success 200 "Image file"
+// @Failure 400 {object} map[string]string "Invalid filename"
+// @Failure 404 {object} map[string]string "Image not found"
+// @Failure 500 {object} map[string]string "Failed to retrieve image"
+// @Router /images/{filename} [get]
 func (h *BlogHandler) GetBlogImage(c echo.Context) error {
 	filename := c.Param("filename")
 	if filename == "" {

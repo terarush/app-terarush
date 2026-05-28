@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"go-modular/docs"
 	"go-modular/internal/pkg/bus"
 	"go-modular/internal/pkg/config"
 	"go-modular/internal/pkg/database"
@@ -55,13 +54,6 @@ func (a *App) RegisterModule(module Module) {
 // Initialize initializes the application
 func (a *App) Initialize() error {
 	a.logger.Info("Initializing application...")
-
-	// Setup Swagger with dynamic values
-	docs.SetupSwaggerInfo(
-		config.GetString("APP_NAME"),
-		config.GetString("API_VERSION"),
-		config.GetString("SERVER_PORT"),
-	)
 
 	// Initialize database
 	var err *error
