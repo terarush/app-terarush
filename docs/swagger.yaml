@@ -217,6 +217,15 @@ definitions:
       view_count:
         type: integer
     type: object
+  response.UploadAssetResponse:
+    properties:
+      id:
+        type: integer
+      path:
+        type: string
+      url:
+        type: string
+    type: object
   response.UserResponse:
     properties:
       avatar:
@@ -245,6 +254,80 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/admin/assets/{id}:
+    delete:
+      description: Delete an asset by ID (admin only)
+      parameters:
+      - description: Asset ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Asset deleted successfully
+        "400":
+          description: Invalid asset ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Asset not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to delete asset
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete an asset
+      tags:
+      - Assets
+  /api/v1/admin/assets/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Upload a file (image, document, or video) and get a URL. Maximum
+        file size: 10MB. Allowed types: images, PDFs, documents, and videos (admin
+        only)'
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: File uploaded successfully
+          schema:
+            $ref: '#/definitions/response.UploadAssetResponse'
+        "400":
+          description: Invalid file or file too large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to upload file
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Upload an asset file
+      tags:
+      - Assets
   /api/v1/admin/blogs:
     get:
       description: Retrieve a list of all blogs with pagination and optional search
@@ -477,6 +560,48 @@ paths:
       summary: Upload blog image
       tags:
       - Blogs
+  /api/v1/assets/{filename}:
+    get:
+      description: Retrieve an asset file by filename (public endpoint)
+      parameters:
+      - description: Asset filename
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+      - image/svg+xml
+      - application/pdf
+      - video/mp4
+      - video/webm
+      responses:
+        "200":
+          description: Asset file
+        "400":
+          description: Invalid filename
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Asset not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve asset
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get asset file
+      tags:
+      - Assets
   /api/v1/auth/change-password:
     post:
       consumes:

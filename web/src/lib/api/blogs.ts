@@ -3,18 +3,18 @@ import { apiClient } from "./client";
 // Utility function to get absolute image URL
 export const getImageUrl = (imagePath: string): string => {
 	if (!imagePath) return "";
-	
+
 	// If it already starts with http, return as-is
 	if (imagePath.startsWith("http")) {
 		return imagePath;
 	}
-	
+
 	// If it starts with /, it's a relative path - prepend API base
 	if (imagePath.startsWith("/")) {
 		const apiUrl = import.meta.env.VITE_API_URL || "";
 		return `${apiUrl}${imagePath}`;
 	}
-	
+
 	// Default: prepend /public/
 	const apiUrl = import.meta.env.VITE_API_URL || "";
 	return `${apiUrl}/${imagePath}`;
@@ -69,11 +69,11 @@ export interface UpdateBlogRequest extends Partial<CreateBlogRequest> {}
 
 // Get all published blogs (public endpoint)
 export const getBlogs = async (params?: {
-    page?: number;
-    page_size?: number;
-    search?: string;
+	page?: number;
+	page_size?: number;
+	search?: string;
 }): Promise<BlogListResponse> => {
-    const response = await apiClient.get("/blogs", { params });
+	const response = await apiClient.get("/blogs", { params });
 
 	// Handle both array response and paginated response
 	if (Array.isArray(response.data)) {
@@ -96,11 +96,11 @@ export const getBlogBySlug = async (slug: string): Promise<Blog> => {
 
 // Get all blogs (admin only)
 export const getAllBlogs = async (params?: {
-    page?: number;
-    page_size?: number;
-    search?: string;
+	page?: number;
+	page_size?: number;
+	search?: string;
 }): Promise<BlogListResponse> => {
-    const response = await apiClient.get("/admin/blogs", { params });
+	const response = await apiClient.get("/admin/blogs", { params });
 
 	// Handle both array response and paginated response
 	if (Array.isArray(response.data)) {
@@ -147,15 +147,21 @@ export interface UploadImageResponse {
 	path: string;
 }
 
-export const uploadBlogImage = async (file: File): Promise<UploadImageResponse> => {
+export const uploadBlogImage = async (
+	file: File,
+): Promise<UploadImageResponse> => {
 	const formData = new FormData();
 	formData.append("image", file);
 
-	const response = await apiClient.post("/admin/blogs/upload/image", formData, {
-		headers: {
-			"Content-Type": "multipart/form-data",
+	const response = await apiClient.post(
+		"/admin/blogs/upload/image",
+		formData,
+		{
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
 		},
-	});
+	);
 
 	return response.data;
 };

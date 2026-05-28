@@ -32,6 +32,17 @@ func NewAssetHandler(log *logger.Logger, assetService *service.AssetService) *As
 }
 
 // UploadAsset uploads a file and returns asset URL
+// @Summary Upload an asset file
+// @Description Upload a file (image, document, or video) and get a URL. Maximum file size: 10MB. Allowed types: images, PDFs, documents, and videos (admin only)
+// @Tags Assets
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to upload"
+// @Success 201 {object} response.UploadAssetResponse "File uploaded successfully"
+// @Failure 400 {object} map[string]string "Invalid file or file too large"
+// @Failure 500 {object} map[string]string "Failed to upload file"
+// @Router /api/v1/admin/assets/upload [post]
+// @Security Bearer
 func (h *AssetHandler) UploadAsset(c echo.Context) error {
 	// Get file from multipart form
 	file, err := c.FormFile("file")
@@ -128,6 +139,17 @@ func (h *AssetHandler) UploadAsset(c echo.Context) error {
 }
 
 // DeleteAsset deletes an asset
+// @Summary Delete an asset
+// @Description Delete an asset by ID (admin only)
+// @Tags Assets
+// @Produce json
+// @Param id path int true "Asset ID"
+// @Success 204 "Asset deleted successfully"
+// @Failure 400 {object} map[string]string "Invalid asset ID"
+// @Failure 404 {object} map[string]string "Asset not found"
+// @Failure 500 {object} map[string]string "Failed to delete asset"
+// @Router /api/v1/admin/assets/{id} [delete]
+// @Security Bearer
 func (h *AssetHandler) DeleteAsset(c echo.Context) error {
 	ctx := c.Request().Context()
 	id := c.Param("id")
@@ -158,6 +180,16 @@ func (h *AssetHandler) DeleteAsset(c echo.Context) error {
 }
 
 // GetAsset serves an asset file
+// @Summary Get asset file
+// @Description Retrieve an asset file by filename (public endpoint)
+// @Tags Assets
+// @Produce image/jpeg,image/png,image/gif,image/webp,image/svg+xml,application/pdf,video/mp4,video/webm
+// @Param filename path string true "Asset filename"
+// @Success 200 "Asset file"
+// @Failure 400 {object} map[string]string "Invalid filename"
+// @Failure 404 {object} map[string]string "Asset not found"
+// @Failure 500 {object} map[string]string "Failed to retrieve asset"
+// @Router /api/v1/assets/{filename} [get]
 func (h *AssetHandler) GetAsset(c echo.Context) error {
 	filename := c.Param("filename")
 	if filename == "" {

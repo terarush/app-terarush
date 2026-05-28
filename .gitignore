@@ -8,3 +8,4 @@ crash.log
 public/uploads/
 migrations/
 bin/*
+test/*
