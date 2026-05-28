@@ -138,6 +138,38 @@ func (a *App) Initialize() error {
 		})
 	})
 
+	// Add metadata endpoint with API configuration
+	a.r.GET("/api/meta", func(c echo.Context) error {
+		return c.JSON(200, map[string]interface{}{
+			"appName":     config.GetString("APP_NAME"),
+			"baseUrl":     fmt.Sprintf("http://%s", c.Request().Host),
+			"apiVersion":  config.GetString("API_VERSION"),
+			"apiPath":     version,
+			"environment": config.GetString("SERVER_MODE"),
+			"status":      "running",
+			"timestamp":   time.Now().Format(time.RFC3339),
+			"uptime":      time.Since(a.startTime).String(),
+			"features": map[string]bool{
+				"auth":      true,
+				"users":     true,
+				"blogs":     true,
+				"comments":  true,
+				"favorites": true,
+				"assets":    true,
+			},
+			"endpoints": map[string]interface{}{
+				"docs":     "/api/docs",
+				"static":   "/public",
+				"upload":   fmt.Sprintf("%s/admin/assets/upload", version),
+				"auth":     fmt.Sprintf("%s/auth", version),
+				"users":    fmt.Sprintf("%s/users", version),
+				"blogs":    fmt.Sprintf("%s/blogs", version),
+				"comments": fmt.Sprintf("%s/comments", version),
+				"assets":   fmt.Sprintf("%s/assets", version),
+			},
+		})
+	})
+
 	// Register routes for all modules
 	for _, module := range a.modules {
 		a.logger.Info("Registering routes for module: %s", module.Name())
