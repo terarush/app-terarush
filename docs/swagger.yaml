@@ -1,4 +1,366 @@
+definitions:
+  request.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      role:
+        enum:
+        - admin
+        - user
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  request.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      role:
+        enum:
+        - admin
+        - user
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  response.UserResponse:
+    properties:
+      avatar:
+        type: string
+      banner:
+        type: string
+      bio:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_banned:
+        type: boolean
+      name:
+        type: string
+      provider:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /api/v1/users:
+    get:
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/response.UserResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email already in use
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new user
+      tags:
+      - Users
+  /api/v1/users/{id}:
+    delete:
+      description: Delete a specific user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User deleted successfully
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a user
+      tags:
+      - Users
+    get:
+      description: Retrieve a specific user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user's information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid request or user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update user information
+      tags:
+      - Users
+  /api/v1/users/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an avatar image for the current user
+      parameters:
+      - description: Avatar image file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar uploaded successfully
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid file
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Upload user avatar
+      tags:
+      - Users
+  /api/v1/users/banner:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a banner image for the current user
+      parameters:
+      - description: Banner image file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Banner uploaded successfully
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid file
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Upload user banner
+      tags:
+      - Users
+  /api/v1/users/me:
+    get:
+      description: Retrieve the current authenticated user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current user profile
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get current user profile
+      tags:
+      - Users
+  /api/v1/users/profile:
+    put:
+      consumes:
+      - application/json
+      description: Update the current authenticated user's profile information
+      parameters:
+      - description: Profile update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Update current user profile
+      tags:
+      - Users
 swagger: "2.0"

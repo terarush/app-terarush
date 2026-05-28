@@ -62,6 +62,13 @@ func getUserIDFromContext(c echo.Context) (uint, error) {
 }
 
 // GetAllUsers gets all users
+// @Summary Get all users
+// @Description Retrieve a list of all users
+// @Tags Users
+// @Produce json
+// @Success 200 {array} response.UserResponse "List of users"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users [get]
 func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -74,6 +81,16 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 }
 
 // GetUser gets a user by ID
+// @Summary Get user by ID
+// @Description Retrieve a specific user by their ID
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} response.UserResponse "User details"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/{id} [get]
 func (h *UserHandler) GetUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -94,6 +111,17 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 }
 
 // CreateUser creates a new user
+// @Summary Create a new user
+// @Description Create a new user account
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body request.CreateUserRequest true "User creation request"
+// @Success 201 {object} response.UserResponse "User created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 409 {object} map[string]interface{} "Email already in use"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users [post]
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -122,6 +150,18 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 }
 
 // UpdateUser updates a user
+// @Summary Update user information
+// @Description Update an existing user's information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body request.UpdateUserRequest true "User update request"
+// @Success 200 {object} response.UserResponse "User updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request or user ID"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/{id} [put]
 func (h *UserHandler) UpdateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -162,6 +202,16 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 }
 
 // DeleteUser deletes a user
+// @Summary Delete a user
+// @Description Delete a specific user by ID
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 204 "User deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/{id} [delete]
 func (h *UserHandler) DeleteUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -182,6 +232,15 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 }
 
 // GetCurrentUser gets the current authenticated user
+// @Summary Get current user profile
+// @Description Retrieve the current authenticated user's profile
+// @Tags Users
+// @Security Bearer
+// @Produce json
+// @Success 200 {object} response.UserResponse "Current user profile"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/me [get]
 func (h *UserHandler) GetCurrentUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -203,6 +262,18 @@ func (h *UserHandler) GetCurrentUser(c echo.Context) error {
 }
 
 // UpdateProfile updates the current user's profile
+// @Summary Update current user profile
+// @Description Update the current authenticated user's profile information
+// @Tags Users
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param request body request.UpdateUserRequest true "Profile update request"
+// @Success 200 {object} response.UserResponse "Profile updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/profile [put]
 func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -249,6 +320,18 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 }
 
 // UploadBanner handles banner file upload
+// @Summary Upload user banner
+// @Description Upload a banner image for the current user
+// @Tags Users
+// @Security Bearer
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Banner image file"
+// @Success 200 {object} response.UserResponse "Banner uploaded successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid file"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/banner [post]
 func (h *UserHandler) UploadBanner(c echo.Context) error {
 	// Get user ID from context
 	userID, err := getUserIDFromContext(c)
@@ -312,6 +395,18 @@ func (h *UserHandler) UploadBanner(c echo.Context) error {
 }
 
 // UploadAvatar handles avatar file upload
+// @Summary Upload user avatar
+// @Description Upload an avatar image for the current user
+// @Tags Users
+// @Security Bearer
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Avatar image file"
+// @Success 200 {object} response.UserResponse "Avatar uploaded successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid file"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /api/v1/users/avatar [post]
 func (h *UserHandler) UploadAvatar(c echo.Context) error {
 	// Get user ID from context
 	userID, err := getUserIDFromContext(c)
