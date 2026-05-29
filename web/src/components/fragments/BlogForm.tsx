@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/AuthContext";
 import {
 	createBlog,
@@ -9,6 +10,7 @@ import {
 	type Blog,
 	type CreateBlogRequest,
 } from "@/lib/api/blogs";
+import { createBlogSchema, type CreateBlogFormData } from "@/validations/blog.validation";
 import {
 	Dialog,
 	DialogContent,
@@ -44,7 +46,8 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 	const [uploading, setUploading] = useState(false);
 	const [previewUrl, setPreviewUrl] = useState<string>(blog?.image ? getImageUrl(blog.image) : "");
 	const [imageError, setImageError] = useState(false);
-	const form = useForm<CreateBlogRequest>({
+	const form = useForm<CreateBlogFormData>({
+		resolver: zodResolver(createBlogSchema),
 		defaultValues: blog
 			? {
 				title: blog.title,
@@ -53,7 +56,7 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 				excerpt: blog.excerpt,
 				category: blog.category,
 				tags: blog.tags,
-				image: blog.image,
+				image: blog.image || "",
 				is_published: blog.is_published,
 			}
 			: {
@@ -174,13 +177,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 								<FormField
 									control={form.control}
 									name="title"
-									rules={{
-										required: "Title is required",
-										maxLength: {
-											value: 255,
-											message: "Title must be less than 255 characters",
-										},
-									}}
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel className="text-base font-semibold">Title</FormLabel>
@@ -203,13 +199,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 								<FormField
 									control={form.control}
 									name="slug"
-									rules={{
-										required: "Slug is required",
-										maxLength: {
-											value: 255,
-											message: "Slug must be less than 255 characters",
-										},
-									}}
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel className="text-base font-semibold">Slug (URL)</FormLabel>
@@ -244,12 +233,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 									<FormField
 										control={form.control}
 										name="category"
-										rules={{
-											maxLength: {
-												value: 100,
-												message: "Category must be less than 100 characters",
-											},
-										}}
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel className="text-base font-semibold">Category</FormLabel>
@@ -272,12 +255,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 								<FormField
 									control={form.control}
 									name="excerpt"
-									rules={{
-										maxLength: {
-											value: 500,
-											message: "Excerpt must be less than 500 characters",
-										},
-									}}
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel className="text-base font-semibold">Excerpt</FormLabel>
@@ -300,12 +277,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 								<FormField
 									control={form.control}
 									name="tags"
-									rules={{
-										maxLength: {
-											value: 255,
-											message: "Tags must be less than 255 characters",
-										},
-									}}
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel className="text-base font-semibold">Tags</FormLabel>
@@ -331,9 +302,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 								<FormField
 									control={form.control}
 									name="content"
-									rules={{
-										required: "Content is required",
-									}}
 									render={({ field }) => (
 										<FormItem>
 											<FormControl>
@@ -357,12 +325,6 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 								<FormField
 									control={form.control}
 									name="image"
-									rules={{
-										maxLength: {
-											value: 255,
-											message: "Image URL must be less than 255 characters",
-										},
-									}}
 									render={({ field }) => (
 										<FormItem>
 											<Tabs

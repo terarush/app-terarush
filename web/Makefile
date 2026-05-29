@@ -18,6 +18,8 @@ help:
 	@printf "  docker-down    docker-compose down\n"
 	@printf "  version        Print derived version string\n"
 	@printf "  install        Copy built assets to /var/www/terarush and record version (sudo)\n"
+	@printf "  vercel         Deploying on vercel\n"
+	@printf "  vercel-dev     Deploying on vercel environment development\n"
 
 build:
 	@echo "Building web assets"

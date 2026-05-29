@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { siteConfig } from "@/content/config";
 import { useLogin, useRedirectIfAuthenticated } from "@/hooks";
-import { loginSchema } from "@/validations/auth";
-import type { LoginFormData } from "@/validations/auth";
+import { loginSchema } from "@/validations/auth.validation";
+import type { LoginFormData } from "@/validations/auth.validation";
 import { authApi } from "@/lib/api/auth";
 
 export default function Login() {
@@ -20,13 +20,13 @@ export default function Login() {
 	const formRef = useRef<HTMLDivElement>(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
-	
+
 	const navigate = useNavigate();
 	const login = useLogin();
-	
+
 	// Redirect if already authenticated
 	useRedirectIfAuthenticated("/dashboard");
-	
+
 	const {
 		register,
 		handleSubmit,
@@ -42,7 +42,7 @@ export default function Login() {
 				gsap.fromTo(
 					logoRef.current,
 					{ y: -30, opacity: 0 },
-					{ y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
+					{ y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
 				);
 			}
 
@@ -58,7 +58,7 @@ export default function Login() {
 						stagger: 0.1,
 						delay: 0.3,
 						ease: "power3.out",
-					}
+					},
 				);
 			}
 		}, containerRef);
@@ -68,14 +68,15 @@ export default function Login() {
 
 	const onSubmit = async (data: LoginFormData) => {
 		setErrorMessage("");
-		
+
 		try {
 			await login(data);
 			navigate("/dashboard");
 		} catch (error: any) {
 			console.error("Login error:", error);
 			setErrorMessage(
-				error.response?.data?.error || "Login failed. Please check your credentials."
+				error.response?.data?.error ||
+					"Login failed. Please check your credentials.",
 			);
 		}
 	};
@@ -124,7 +125,10 @@ export default function Login() {
 				<Card className="border border-border bg-card shadow-xl">
 					<CardContent className="p-8">
 						<div ref={formRef}>
-							<form onSubmit={handleSubmit(onSubmit)} className="space-y-6 opacity-0">
+							<form
+								onSubmit={handleSubmit(onSubmit)}
+								className="space-y-6 opacity-0"
+							>
 								{/* Error Message */}
 								{errorMessage && (
 									<div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
@@ -151,7 +155,9 @@ export default function Login() {
 										/>
 									</div>
 									{errors.email && (
-										<p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+										<p className="mt-1 text-sm text-destructive">
+											{errors.email.message}
+										</p>
 									)}
 								</div>
 
@@ -167,14 +173,20 @@ export default function Login() {
 										<Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
 										<Input
 											id="password"
-											type={showPassword ? "text" : "password"}
+											type={
+												showPassword
+													? "text"
+													: "password"
+											}
 											placeholder="Enter your password"
 											{...register("password")}
 											className="pl-10 pr-10 rounded-xl border-border focus:border-primary h-12"
 										/>
 										<button
 											type="button"
-											onClick={() => setShowPassword(!showPassword)}
+											onClick={() =>
+												setShowPassword(!showPassword)
+											}
 											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 										>
 											{showPassword ? (
@@ -185,7 +197,9 @@ export default function Login() {
 										</button>
 									</div>
 									{errors.password && (
-										<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
+										<p className="mt-1 text-sm text-destructive">
+											{errors.password.message}
+										</p>
 									)}
 								</div>
 

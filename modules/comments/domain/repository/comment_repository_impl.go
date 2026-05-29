@@ -24,6 +24,39 @@ func (r *CommentRepositoryImpl) Update(ctx context.Context, comment *entity.Comm
 	return database.DB.WithContext(ctx).Save(comment).Error
 }
 
+func (r *CommentRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Comment, error) {
+	var comment entity.Comment
+	result := database.DB.WithContext(ctx).Where("id = ?", id).First(&comment)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &comment, nil
+}
+
+func (r *CommentRepositoryImpl) GetByPostID(ctx context.Context, postID uint) ([]*entity.Comment, error) {
+	var comments []*entity.Comment
+	result := database.DB.WithContext(ctx).
+		Where("post_id = ? AND parent_id IS NULL", postID).
+		Order("created_at DESC").
+		Find(&comments)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return comments, nil
+}
+
+func (r *CommentRepositoryImpl) GetRepliesByParentID(ctx context.Context, parentID string) ([]*entity.Comment, error) {
+	var comments []*entity.Comment
+	result := database.DB.WithContext(ctx).
+		Where("parent_id = ?", parentID).
+		Order("created_at ASC").
+		Find(&comments)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return comments, nil
+}
+
 func NewCommentRepository() CommentRepository {
 	return &CommentRepositoryImpl{}
 }

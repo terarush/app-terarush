@@ -66,7 +66,11 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 // Migrations returns the module's migrations
 func (m *Module) Migrations() error {
 	m.logger.Info("Registering comments module migrations")
-	return m.db.AutoMigrate(&entity.Comment{})
+	if err := m.db.AutoMigrate(&entity.Comment{}); err != nil {
+		return err
+	}
+	// Add foreign key constraint with cascade delete
+	return m.db.Migrator().CreateConstraint(&entity.Comment{}, "post_id")
 }
 
 // Logger returns the module's logger

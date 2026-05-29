@@ -19,8 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { siteConfig } from "@/content/config";
 import { useRegister, useRedirectIfAuthenticated } from "@/hooks";
-import { registerSchema } from "@/validations/auth";
-import type { RegisterFormData } from "@/validations/auth";
+import { registerSchema } from "@/validations/auth.validation";
+import type { RegisterFormData } from "@/validations/auth.validation";
 import { authApi } from "@/lib/api/auth";
 
 export default function Register() {
@@ -90,14 +90,15 @@ export default function Register() {
 
 	const onSubmit = async (data: RegisterFormData) => {
 		setErrorMessage("");
-		
+
 		try {
 			await register(data);
 			navigate("/dashboard");
 		} catch (error: any) {
 			console.error("Registration error:", error);
 			setErrorMessage(
-				error.response?.data?.error || "Registration failed. Please try again."
+				error.response?.data?.error ||
+					"Registration failed. Please try again.",
 			);
 		}
 	};

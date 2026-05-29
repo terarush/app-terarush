@@ -146,7 +146,7 @@ export const authApi = {
    * Get GitHub OAuth URL
    */
   getGitHubAuthUrl: (): string => {
-    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || "Ov23cttKASN7Qk5CBwRS";
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || "";
     const redirectUri = `${window.location.origin}/auth/github/callback`;
     const scope = "user:email";
     const state = Math.random().toString(36).substring(7);
