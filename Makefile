@@ -24,6 +24,8 @@ install-local:
 web-build:
 	@echo "Building web assets (version: $(VERSION))"
 	@docker build -t $(APP_NAME)-web:$(VERSION) -f web/Dockerfile web
+	@echo "Starting web container"
+	@docker compose -f web/docker-compose.yml up -d --build
 
 ## Build backend image (optional, if you want a single image)
 docker-build:
