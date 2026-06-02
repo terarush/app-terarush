@@ -18,7 +18,7 @@ services:
     networks:
       - infrastructure
     volumes:
-      - uploads_data:/app/public/uploads
+      - /var/public:/app/public
     depends_on:
       database:
         condition: service_healthy
@@ -47,7 +47,6 @@ services:
 
 volumes:
   mysql_data:
-  uploads_data:
 
 
 networks:
