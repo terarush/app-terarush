@@ -13,13 +13,13 @@ services:
       - .env
     environment:
       # Override DB_HOST to use the Docker service name instead of localhost
-      DB_HOST: db
+      DB_HOST: database
     links:
-      - db
+      - database
     networks:
       - infrastructure
     depends_on:
-      db:
+      database:
         condition: service_healthy
 
   database:
