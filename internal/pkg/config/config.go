@@ -24,8 +24,14 @@ func (c *Config) Initialize() error {
 	err := viper.ReadInConfig()
 
 	if err != nil {
+		// If the config file doesn't exist, fall back to environment variables
+		// (e.g. when running in Docker with env_file in docker-compose.yml)
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return err
+			return nil
+		}
+		// Also handle OS-level "file not found" errors
+		if os.IsNotExist(err) {
+			return nil
 		}
 		return err
 	}

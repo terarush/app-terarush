@@ -20,6 +20,4 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/main .
 
-COPY .env .
-
-CMD ["./main", "-c", ".env"]
+CMD ["./main"]
