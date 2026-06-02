@@ -15,7 +15,7 @@ run:
 install-local:
 	make build
 	@sudo mv bin/app /usr/local/bin/$(APP_NAME)
-	@sudo cp config.service /etc/systemd/system/$(APP_NAME).service
+	@sudo cp systemd/app.service /etc/systemd/system/$(APP_NAME).service
 	@sudo systemctl daemon-reload
 	@sudo systemctl enable $(APP_NAME).service
 	@sudo systemctl restart $(APP_NAME).service
