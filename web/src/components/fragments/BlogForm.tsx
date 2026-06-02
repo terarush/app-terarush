@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -8,7 +8,6 @@ import {
 	uploadBlogImage,
 	getImageUrl,
 	type Blog,
-	type CreateBlogRequest,
 } from "@/lib/api/blogs";
 import { createBlogSchema, type CreateBlogFormData } from "@/validations/blog.validation";
 import {
@@ -47,7 +46,7 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 	const [previewUrl, setPreviewUrl] = useState<string>(blog?.image ? getImageUrl(blog.image) : "");
 	const [imageError, setImageError] = useState(false);
 	const form = useForm<CreateBlogFormData>({
-		resolver: zodResolver(createBlogSchema),
+		resolver: zodResolver(createBlogSchema) as Resolver<CreateBlogFormData>,
 		defaultValues: blog
 			? {
 				title: blog.title,
@@ -71,7 +70,7 @@ export function BlogForm({ blog, onClose }: BlogFormProps) {
 			},
 	});
 
-	const onSubmit = async (data: CreateBlogRequest) => {
+	const onSubmit = async (data: CreateBlogFormData) => {
 		try {
 			setLoading(true);
 			if (blog?.id) {

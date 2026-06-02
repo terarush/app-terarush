@@ -113,7 +113,7 @@ export function BlogDetail() {
 		if (!blog) return;
 		try {
 			setCommentSubmitting(true);
-			const newReply = await createReply({
+			await createReply({
 				content: data.content,
 				post_id: blog.id,
 				parent_id: data.parent_id,
@@ -121,7 +121,6 @@ export function BlogDetail() {
 			// Re-fetch to get nested replies correctly
 			await loadComments(blog.id);
 			toast.success("Reply posted!");
-			return newReply;
 		} catch (err) {
 			console.error("Error posting reply:", err);
 			toast.error("Failed to post reply. Please try again.");

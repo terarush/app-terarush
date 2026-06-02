@@ -20,7 +20,6 @@ export const createBlogSchema = z.object({
   excerpt: z
     .string()
     .max(500, "Excerpt must not exceed 500 characters")
-    .optional()
     .default(""),
   category: z
     .string()
@@ -29,14 +28,11 @@ export const createBlogSchema = z.object({
   tags: z
     .string()
     .max(255, "Tags must not exceed 255 characters")
-    .optional()
     .default(""),
   image: z
     .string()
-    .url("Invalid image URL")
-    .optional()
     .default(""),
-  is_published: z.boolean().optional().default(false),
+  is_published: z.boolean().default(false),
 });
 
 export type CreateBlogFormData = z.infer<typeof createBlogSchema>;
