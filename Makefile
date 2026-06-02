@@ -23,8 +23,6 @@ install-local:
 ## Build web static assets and image
 web-build:
 	@echo "Building web assets (version: $(VERSION))"
-	@npm ci --prefix web
-	@npm run build --prefix web
 	@docker build -t $(APP_NAME)-web:$(VERSION) -f web/Dockerfile web
 
 ## Build backend image (optional, if you want a single image)
