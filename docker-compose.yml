@@ -12,12 +12,13 @@ services:
     env_file:
       - .env
     environment:
-      # Override DB_HOST to use the Docker service name instead of localhost
       DB_HOST: database
     links:
       - database
     networks:
       - infrastructure
+    volumes:
+      - uploads_data:/app/public/uploads
     depends_on:
       database:
         condition: service_healthy
@@ -46,6 +47,7 @@ services:
 
 volumes:
   mysql_data:
+  uploads_data:
 
 
 networks:
