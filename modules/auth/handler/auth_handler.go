@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"strings"
 	"go-modular/internal/pkg/bus"
 	"go-modular/internal/pkg/jwt"
 	"go-modular/internal/pkg/logger"
@@ -411,7 +412,12 @@ func (h *AuthHandler) GitHubCallback(c echo.Context) error {
 	accessToken, err := h.githubService.ExchangeCode(c.Request().Context(), code)
 	if err != nil {
 		h.log.Error("Failed to exchange code:", err)
-		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to exchange authorization code")
+		// Return more descriptive error message (BadRequest for code issues, InternalServerError for other issues)
+		statusCode := http.StatusBadRequest
+		if !strings.Contains(err.Error(), "github oauth error") {
+			statusCode = http.StatusInternalServerError
+		}
+		return h.r.ErrorResponse(c, statusCode, fmt.Sprintf("GitHub authentication failed: %v", err))
 	}
 
 	// Get user info from GitHub

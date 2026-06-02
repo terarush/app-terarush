@@ -98,6 +98,19 @@ func (s *GitHubOAuthService) ExchangeCode(ctx context.Context, code string) (str
 		return "", fmt.Errorf("failed to parse response: %w", err)
 	}
 
+	// Check for error in GitHub response
+	if errMsg, ok := result["error"].(string); ok {
+		errDesc := ""
+		if desc, ok := result["error_description"].(string); ok {
+			errDesc = desc
+		}
+		// Common GitHub OAuth errors:
+		// - bad_verification_code: code expired or already used
+		// - invalid_request: redirect_uri mismatch or missing parameters
+		// - unregistered_uri: redirect_uri not registered in app config
+		return "", fmt.Errorf("github oauth error: %s. Details: %s. This may occur if: 1) code expired (>10min), 2) code already used, 3) redirect_uri mismatch, 4) invalid client_id/secret", errMsg, errDesc)
+	}
+
 	accessToken, ok := result["access_token"].(string)
 	if !ok || accessToken == "" {
 		return "", fmt.Errorf("no access token in response: %v", result)

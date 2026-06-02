@@ -67,10 +67,12 @@ export default function GitHubCallback() {
 				navigate("/dashboard");
 			} catch (err: any) {
 				const errorMessage =
+					err.response?.data?.message ||
 					err.response?.data?.error ||
 					"Failed to authenticate with GitHub";
 				setError(errorMessage);
 				toast.error(errorMessage);
+				console.error("GitHub auth error details:", err.response?.data);
 				setTimeout(() => navigate("/login"), 3000);
 			}
 		};
