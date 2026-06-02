@@ -11,25 +11,25 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      # Override DB_HOST to use the Docker service name instead of localhost
+      DB_HOST: db
     links:
       - db
     networks:
       - infrastructure
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:8.0
     container_name: db
     restart: always
-    env_file:
-      - .env
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
       TZ: "Asia/Jakarta"
     ports:
       - "3307:3306"
@@ -38,10 +38,11 @@ services:
     networks:
       - infrastructure
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${DB_USERNAME} -p${DB_PASSWORD} || exit 1" ]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${DB_PASSWORD} || exit 1" ]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
 volumes:
   mysql_data:
