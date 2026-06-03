@@ -209,12 +209,13 @@ func runMakeFullInstall(repo, branch string) {
 
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Printf("make full-install timed out after 30 minutes")
+		cleanupContainers()
 		sendToDiscord(&discordgo.MessageEmbed{
 			Title:       "⏱️ Deploy Timeout",
 			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
 			Color:       0xED4245,
 			Fields: []*discordgo.MessageEmbedField{
-				{Name: "Error", Value: "Process exceeded 30 minute timeout"},
+				{Name: "Error", Value: "Process exceeded 30 minute timeout\nStopped build containers cleaned up."},
 			},
 			Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
 		})
@@ -223,12 +224,13 @@ func runMakeFullInstall(repo, branch string) {
 
 	if err != nil {
 		log.Printf("make full-install failed: %v\nSTDERR: %s\nSTDOUT: %s", err, stderr.String(), stdout.String())
+		cleanupContainers()
 		sendToDiscord(&discordgo.MessageEmbed{
 			Title:       "❌ Deploy Failed",
 			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
 			Color:       0xED4245,
 			Fields: []*discordgo.MessageEmbedField{
-				{Name: "Error", Value: fmt.Sprintf("```%s```", truncate(stderr.String(), 1000))},
+				{Name: "Error", Value: fmt.Sprintf("```%s```\nStopped build containers cleaned up.", truncate(stderr.String(), 1000))},
 			},
 			Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
 		})
@@ -245,6 +247,26 @@ func runMakeFullInstall(repo, branch string) {
 		},
 		Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
 	})
+}
+
+func cleanupContainers() {
+	log.Printf("Cleaning up stopped containers after failed deployment...")
+
+	// Remove all stopped/exited containers (such as failed build containers)
+	cmdPrune := exec.Command("docker", "container", "prune", "-f")
+	if out, err := cmdPrune.CombinedOutput(); err != nil {
+		log.Printf("Failed to prune stopped containers: %v\n%s", err, string(out))
+	} else {
+		log.Printf("Stopped containers pruned successfully:\n%s", string(out))
+	}
+
+	// Remove dangling images created during the failed/aborted build process
+	cmdImagePrune := exec.Command("docker", "image", "prune", "-f")
+	if out, err := cmdImagePrune.CombinedOutput(); err != nil {
+		log.Printf("Failed to prune dangling images: %v\n%s", err, string(out))
+	} else {
+		log.Printf("Dangling images pruned successfully:\n%s", string(out))
+	}
 }
 
 func truncate(s string, max int) string {
