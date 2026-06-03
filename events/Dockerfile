@@ -1,13 +1,4 @@
-FROM golang:1.24-alpine AS builder
-
-WORKDIR /build
-
-RUN apk add --no-cache git
-
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o events-service .
-
-FROM alpine:3.20
+FROM golang:1.24-alpine
 
 RUN apk add --no-cache \
     ca-certificates \
@@ -19,6 +10,8 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-COPY --from=builder /build/events-service .
+COPY . .
 
-CMD ["./events-service"]
+RUN CGO_ENABLED=0 GOOS=linux go build -o events-service .
+
+CMD ["/app/events-service"]
