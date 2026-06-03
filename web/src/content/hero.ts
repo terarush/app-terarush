@@ -3,7 +3,7 @@ export const heroContent = {
 	badge: {
 		text: "Custom Web & App Development Agency",
 	},
-	title: "Build Your Digital Future with Expert Development",
+	title: "Build Your Digital Future with Expert Development.",
 	description:
 		"Professional web development, mobile app creation, backend solutions, and bug fixes. From concept to deployment, we deliver high-quality code and exceptional results.",
 	email: {
