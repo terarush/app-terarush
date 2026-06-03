@@ -181,9 +181,9 @@ func runMakeDeploy(repo, branch string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
-	// First, git pull
-	log.Printf("Running git pull in %s", projectDir)
-	pullCmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && git pull")
+	// First, checkout target branch and pull latest changes
+	log.Printf("Running git checkout and pull in %s for branch %s", projectDir, branch)
+	pullCmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && git fetch origin && git checkout "+branch+" && git pull")
 	var pullStdout, pullStderr bytes.Buffer
 	pullCmd.Stdout = &pullStdout
 	pullCmd.Stderr = &pullStderr
