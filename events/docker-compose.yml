@@ -15,6 +15,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /root/terarush:/root/terarush
+      - /root/.ssh:/root/.ssh:ro
     working_dir: /app
     logging:
       driver: "json-file"

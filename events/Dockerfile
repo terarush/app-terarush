@@ -6,7 +6,8 @@ RUN apk add --no-cache \
     git \
     bash \
     docker-cli \
-    docker-cli-compose
+    docker-cli-compose \
+    openssh-client
 
 WORKDIR /app
 
