@@ -174,12 +174,37 @@ func runMakeFullInstall(repo, branch string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
+	// First, git pull
+	log.Printf("Running git pull in %s", projectDir)
+	pullCmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && git pull")
+	var pullStdout, pullStderr bytes.Buffer
+	pullCmd.Stdout = &pullStdout
+	pullCmd.Stderr = &pullStderr
+	
+	if err := pullCmd.Run(); err != nil {
+		log.Printf("git pull failed: %v\nSTDERR: %s", err, pullStderr.String())
+		sendToDiscord(&discordgo.MessageEmbed{
+			Title:       "❌ Deploy Failed",
+			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
+			Color:       0xED4245,
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Error", Value: fmt.Sprintf("git pull failed:\n```%s```", truncate(pullStderr.String(), 1000))},
+			},
+			Footer: &discordgo.MessageEmbedFooter{Text: "git pull"},
+		})
+		return
+	}
+	log.Printf("git pull output: %s", pullStdout.String())
+
+	// Then run make full-install
+	log.Printf("Running make full-install in %s", projectDir)
+
 	var stdout, stderr bytes.Buffer
 	cmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && make full-install")
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	log.Printf("Running command: %s in %s", cmd.String(), projectDir)
+	log.Printf("Running command: %s", cmd.String())
 	err := cmd.Run()
 	
 	if ctx.Err() == context.DeadlineExceeded {
