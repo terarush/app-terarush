@@ -18,6 +18,7 @@ jobs:
   build-and-push:
     name: Build & Push (${{ matrix.name }})
     runs-on: ubuntu-latest
+    environment: env
     strategy:
       fail-fast: false
       matrix:
