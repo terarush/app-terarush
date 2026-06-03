@@ -1,0 +1,91 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Custom tag name to push (e.g. latest, dev, v1.0.0)'
+        required: true
+        default: 'manual'
+
+jobs:
+  build-and-push:
+    name: Build & Push (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: backend
+            context: .
+            file: Dockerfile
+            tag_suffix: backend
+          - name: events
+            context: events
+            file: events/Dockerfile
+            tag_suffix: events
+          - name: web
+            context: web
+            file: web/Dockerfile
+            tag_suffix: web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Calculate Docker tags
+        id: meta
+        run: |
+          IMAGE_NAME="rafia9005/terarush"
+
+          TAGS=()
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_VAL="${{ github.event.inputs.tag }}"
+            TAGS+=("${IMAGE_NAME}:${{ matrix.tag_suffix }}-${TAG_VAL}")
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG_VAL="${{ github.ref_name }}"
+            TAGS+=("${IMAGE_NAME}:${{ matrix.tag_suffix }}-${TAG_VAL}")
+            TAGS+=("${IMAGE_NAME}:${{ matrix.tag_suffix }}-latest")
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+            CLEAN_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//-/g')
+            TAGS+=("${IMAGE_NAME}:${{ matrix.tag_suffix }}-${CLEAN_BRANCH}")
+
+            if [ "$BRANCH_NAME" = "main" ]; then
+              TAGS+=("${IMAGE_NAME}:${{ matrix.tag_suffix }}-latest")
+            fi
+          fi
+
+          # Add commit SHA tag for traceability
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          TAGS+=("${IMAGE_NAME}:${{ matrix.tag_suffix }}-sha-${SHORT_SHA}")
+
+          IFS=',' ; TAGS_CSV="${TAGS[*]}"
+          echo "tags=${TAGS_CSV}" >> $GITHUB_OUTPUT
+          echo "Generated tags: ${TAGS_CSV}"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
