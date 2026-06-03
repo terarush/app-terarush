@@ -159,7 +159,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func runMakeFullInstall(repo, branch string) {
-	projectDir := "/project"
+	projectDir := getEnv("PROJECT_DIR", "/app/project")
 
 	log.Printf("Starting make full-install in %s for %s@%s", projectDir, repo, branch)
 	sendToDiscord(&discordgo.MessageEmbed{
