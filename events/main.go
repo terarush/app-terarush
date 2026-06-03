@@ -25,7 +25,8 @@ var (
 )
 
 func init() {
-	loadEnvFile(".env")
+	loadEnvFile("../.env")
+	loadEnvFile("/project/.env")
 
 	secret := getEnv("EVENT_SECRET", "")
 	if secret == "" {
