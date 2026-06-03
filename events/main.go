@@ -152,7 +152,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 			Footer: &discordgo.MessageEmbedFooter{Text: "GitHub Push Event"},
 		})
 
-		go runMakeFullInstall(payload.Repository.FullName, branch)
+		go runMakeDeploy(payload.Repository.FullName, branch)
 
 	default:
 		log.Printf("Event '%s' is not specifically handled.", event)
@@ -167,13 +167,13 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Event received successfully"))
 }
 
-func runMakeFullInstall(repo, branch string) {
+func runMakeDeploy(repo, branch string) {
 	projectDir := getEnv("PROJECT_DIR", "/app/project")
 
-	log.Printf("Starting make full-install in %s for %s@%s", projectDir, repo, branch)
+	log.Printf("Starting make deploy in %s for %s@%s", projectDir, repo, branch)
 	sendToDiscord(&discordgo.MessageEmbed{
 		Title:       "⚙️ Deploy Started",
-		Description: fmt.Sprintf("Running `make full-install` for **%s** on branch `%s`...", repo, branch),
+		Description: fmt.Sprintf("Running `make deploy` for **%s** on branch `%s`...", repo, branch),
 		Color:       0xFEE75C,
 	})
 
@@ -203,11 +203,11 @@ func runMakeFullInstall(repo, branch string) {
 	}
 	log.Printf("git pull output: %s", pullStdout.String())
 
-	// Then run make full-install
-	log.Printf("Running make full-install in %s", projectDir)
+	// Then run make deploy
+	log.Printf("Running make deploy in %s", projectDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && make full-install")
+	cmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && make deploy")
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
@@ -215,7 +215,7 @@ func runMakeFullInstall(repo, branch string) {
 	err := cmd.Run()
 
 	if ctx.Err() == context.DeadlineExceeded {
-		log.Printf("make full-install timed out after 30 minutes")
+		log.Printf("make deploy timed out after 30 minutes")
 		cleanupContainers()
 		sendToDiscord(&discordgo.MessageEmbed{
 			Title:       "⏱️ Deploy Timeout",
@@ -224,13 +224,13 @@ func runMakeFullInstall(repo, branch string) {
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "Error", Value: "Process exceeded 30 minute timeout\nStopped build containers cleaned up."},
 			},
-			Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
+			Footer: &discordgo.MessageEmbedFooter{Text: "make deploy"},
 		})
 		return
 	}
 
 	if err != nil {
-		log.Printf("make full-install failed: %v\nSTDERR: %s\nSTDOUT: %s", err, stderr.String(), stdout.String())
+		log.Printf("make deploy failed: %v\nSTDERR: %s\nSTDOUT: %s", err, stderr.String(), stdout.String())
 		cleanupContainers()
 		sendToDiscord(&discordgo.MessageEmbed{
 			Title:       "❌ Deploy Failed",
@@ -239,12 +239,12 @@ func runMakeFullInstall(repo, branch string) {
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "Error", Value: fmt.Sprintf("```%s```\nStopped build containers cleaned up.", truncate(stderr.String(), 1000))},
 			},
-			Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
+			Footer: &discordgo.MessageEmbedFooter{Text: "make deploy"},
 		})
 		return
 	}
 
-	log.Printf("make full-install succeeded:\n%s", stdout.String())
+	log.Printf("make deploy succeeded:\n%s", stdout.String())
 	sendToDiscord(&discordgo.MessageEmbed{
 		Title:       "✅ Deploy Successful",
 		Description: fmt.Sprintf("**%s** @ `%s` deployed successfully!", repo, branch),
@@ -252,7 +252,7 @@ func runMakeFullInstall(repo, branch string) {
 		Fields: []*discordgo.MessageEmbedField{
 			{Name: "Output", Value: fmt.Sprintf("```%s```", truncate(stdout.String(), 1000))},
 		},
-		Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
+		Footer: &discordgo.MessageEmbedFooter{Text: "make deploy"},
 	})
 }
 
