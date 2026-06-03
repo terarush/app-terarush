@@ -75,7 +75,7 @@ function AppContent() {
 							<Route path="assets" element={<Assets />} />
 							<Route path="settings" element={<Settings />} />
 						</Route>
-						<Route path="test" element={<h1>hello world</h1>} />
+						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</AssetProvider>
 			</AuthProvider>
