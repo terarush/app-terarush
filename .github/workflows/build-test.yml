@@ -1,0 +1,84 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  backend-test:
+    name: Backend Test (Go 1.25)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Build Go binary
+        run: go build -v -o bin/app main.go
+
+      - name: Run Go tests
+        run: go test -v ./...
+
+  events-test:
+    name: Events Test (Go 1.24)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+          cache-dependency-path: events/go.sum
+
+      - name: Install dependencies
+        working-directory: events
+        run: go mod download
+
+      - name: Build Go binary
+        working-directory: events
+        run: go build -v -o bin/events-service .
+
+      - name: Run Go tests
+        working-directory: events
+        run: go test -v ./...
+
+  web-test:
+    name: Web Build & Lint (Node 20)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Run linter
+        working-directory: web
+        run: npm run lint
+
+      - name: Build web application
+        working-directory: web
+        run: npm run build
