@@ -21,9 +21,9 @@ import (
 )
 
 var (
-	webhookSecret   []byte
-	discordSession  *discordgo.Session
-	discordChannel  string
+	webhookSecret  []byte
+	discordSession *discordgo.Session
+	discordChannel string
 )
 
 func init() {
@@ -180,7 +180,7 @@ func runMakeFullInstall(repo, branch string) {
 	var pullStdout, pullStderr bytes.Buffer
 	pullCmd.Stdout = &pullStdout
 	pullCmd.Stderr = &pullStderr
-	
+
 	if err := pullCmd.Run(); err != nil {
 		log.Printf("git pull failed: %v\nSTDERR: %s", err, pullStderr.String())
 		sendToDiscord(&discordgo.MessageEmbed{
@@ -206,7 +206,7 @@ func runMakeFullInstall(repo, branch string) {
 
 	log.Printf("Running command: %s", cmd.String())
 	err := cmd.Run()
-	
+
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Printf("make full-install timed out after 30 minutes")
 		sendToDiscord(&discordgo.MessageEmbed{
