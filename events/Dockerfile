@@ -14,4 +14,4 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o events-service .
 
-CMD ["/app/events-service"]
+CMD ["./events-service"]

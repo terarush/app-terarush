@@ -13,7 +13,6 @@ services:
       PORT: "9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /root/${APP_NAME}:/app
     working_dir: /app
     logging:
       driver: "json-file"
