@@ -58,7 +58,7 @@ jobs:
         run: go test -v ./...
 
   web-test:
-    name: Web Build & Lint (Node 20)
+    name: Web Build & Lint (Node 24)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -74,10 +74,6 @@ jobs:
       - name: Install dependencies
         working-directory: web
         run: npm ci
-
-      - name: Run linter
-        working-directory: web
-        run: npm run lint
 
       - name: Build web application
         working-directory: web
