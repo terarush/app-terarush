@@ -7,12 +7,14 @@ services:
     ports:
       - "9000:9000"
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       PORT: "9000"
-      PROJECT_DIR: /root/${APP_NAME}
+      PROJECT_DIR: /root/terarush
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /root/${APP_NAME}:/root/${APP_NAME}
+      - /root/terarush:/root/terarush
     working_dir: /app
     logging:
       driver: "json-file"
