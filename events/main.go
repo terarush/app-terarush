@@ -117,6 +117,13 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		branch := strings.TrimPrefix(payload.Ref, "refs/heads/")
 		log.Printf("Repository: %s | Branch: %s | Pusher: %s", payload.Repository.FullName, branch, payload.Pusher.Name)
 
+		if !isBranchAllowed(branch) {
+			log.Printf("Branch '%s' is not in the allowed list. Ignoring push event.", branch)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(fmt.Sprintf("Branch '%s' ignored", branch)))
+			return
+		}
+
 		commitLines := ""
 		for i, c := range payload.Commits {
 			if i >= 5 {
@@ -321,6 +328,20 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func isBranchAllowed(branch string) bool {
+	allowedBranchesStr := getEnv("BRANCH", "")
+	if allowedBranchesStr == "" {
+		return true
+	}
+	allowedBranches := strings.Split(allowedBranchesStr, ",")
+	for _, b := range allowedBranches {
+		if strings.TrimSpace(b) == branch {
+			return true
+		}
+	}
+	return false
 }
 
 type CommitAuthor struct {
