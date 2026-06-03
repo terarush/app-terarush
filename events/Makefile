@@ -1,5 +1,6 @@
 APP_NAME := terarush-events
 VERSION  := $(shell git describe --tags --always --dirty 2>/dev/null || date +%Y%m%d%H%M%S)
+COMPOSE  := docker compose --env-file ../.env
 
 .PHONY: build run up down restart logs ps deploy help
 
@@ -10,19 +11,19 @@ build:
 
 up:
 	@echo "Starting $(APP_NAME) (version: $(VERSION))..."
-	@docker compose up -d --build
+	@$(COMPOSE) up -d --build
 
 down:
-	@docker compose down
+	@$(COMPOSE) down
 
 restart:
-	@docker compose restart events
+	@$(COMPOSE) restart events
 
 logs:
-	@docker compose logs -f events
+	@$(COMPOSE) logs -f events
 
 ps:
-	@docker compose ps
+	@$(COMPOSE) ps
 
 deploy: down up
 	@echo "$(APP_NAME) deployed (version: $(VERSION))"
