@@ -1,6 +1,6 @@
 services:
   events:
-    container_name: terarush-events
+    container_name: events
     build:
       context: .
       dockerfile: Dockerfile

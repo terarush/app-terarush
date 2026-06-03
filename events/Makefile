@@ -11,7 +11,7 @@ build:
 
 up:
 	@echo "Starting $(APP_NAME) (version: $(VERSION))..."
-	@$(COMPOSE) up -d --build
+	@$(COMPOSE) up -d --force-recreate
 
 down:
 	@$(COMPOSE) down
@@ -25,7 +25,10 @@ logs:
 ps:
 	@$(COMPOSE) ps
 
-deploy: down up
+deploy: down
+	@echo "Building $(APP_NAME) (version: $(VERSION))..."
+	@$(COMPOSE) build --no-cache
+	@$(COMPOSE) up -d --force-recreate
 	@echo "$(APP_NAME) deployed (version: $(VERSION))"
 
 help:
