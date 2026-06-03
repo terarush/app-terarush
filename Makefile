@@ -41,7 +41,7 @@ docker-down:
 	@docker compose down
 
 ## Full install: build web, build images, run compose and persist version
-full-install: web-build docker-build docker-up
+deploy: web-build docker-build docker-up
 	@echo "$(VERSION)" | tee /etc/$(APP_NAME)_version > /dev/null
 	@echo "Deployed $(APP_NAME) version $(VERSION)"
 
