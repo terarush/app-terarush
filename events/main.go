@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -168,15 +170,34 @@ func runMakeFullInstall(repo, branch string) {
 		Color:       0xFEE75C,
 	})
 
+	// Add 30 minute timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	defer cancel()
+
 	var stdout, stderr bytes.Buffer
-	cmd := exec.Command("make", "full-install")
-	cmd.Dir = projectDir
+	cmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && make full-install")
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
+	log.Printf("Running command: %s in %s", cmd.String(), projectDir)
 	err := cmd.Run()
+	
+	if ctx.Err() == context.DeadlineExceeded {
+		log.Printf("make full-install timed out after 30 minutes")
+		sendToDiscord(&discordgo.MessageEmbed{
+			Title:       "⏱️ Deploy Timeout",
+			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
+			Color:       0xED4245,
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Error", Value: "Process exceeded 30 minute timeout"},
+			},
+			Footer: &discordgo.MessageEmbedFooter{Text: "make full-install"},
+		})
+		return
+	}
+
 	if err != nil {
-		log.Printf("make full-install failed: %v\nSTDERR: %s", err, stderr.String())
+		log.Printf("make full-install failed: %v\nSTDERR: %s\nSTDOUT: %s", err, stderr.String(), stdout.String())
 		sendToDiscord(&discordgo.MessageEmbed{
 			Title:       "❌ Deploy Failed",
 			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),

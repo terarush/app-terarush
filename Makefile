@@ -42,7 +42,7 @@ docker-down:
 
 ## Full install: build web, build images, run compose and persist version
 full-install: web-build docker-build docker-up
-	@echo "$(VERSION)" | sudo tee /etc/$(APP_NAME)_version > /dev/null
+	@echo "$(VERSION)" | tee /etc/$(APP_NAME)_version > /dev/null
 	@echo "Deployed $(APP_NAME) version $(VERSION)"
 
 install: full-install
