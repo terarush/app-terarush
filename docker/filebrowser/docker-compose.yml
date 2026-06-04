@@ -13,5 +13,5 @@ services:
     environment:
       - PID=1000
       - PGID=1000
-    command: >
-      sh -c "filebrowser users add root admin --perm.admin=true && filebrowser"
+    entrypoint: ["/bin/sh", "-c"]
+    command: "filebrowser users add root admin --perm.admin=true || true; filebrowser"
