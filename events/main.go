@@ -2,8 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -13,9 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -152,9 +148,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 			Footer: &discordgo.MessageEmbedFooter{Text: "GitHub Push Event"},
 		})
 
-		go runMakeDeploy(payload.Repository.FullName, branch)
-
-	default:
+		default:
 		log.Printf("Event '%s' is not specifically handled.", event)
 		sendToDiscord(&discordgo.MessageEmbed{
 			Title:       fmt.Sprintf("📦 GitHub Event: %s", event),
@@ -165,122 +159,6 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Event received successfully"))
-}
-
-func runMakeDeploy(repo, branch string) {
-	projectDir := getEnv("PROJECT_DIR", "/app/project")
-
-	log.Printf("Starting make deploy in %s for %s@%s", projectDir, repo, branch)
-	sendToDiscord(&discordgo.MessageEmbed{
-		Title:       "⚙️ Deploy Started",
-		Description: fmt.Sprintf("Running `make deploy` for **%s** on branch `%s`...", repo, branch),
-		Color:       0xFEE75C,
-	})
-
-	// Add 30 minute timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-	defer cancel()
-
-	// First, checkout target branch and pull latest changes
-	log.Printf("Running git checkout and pull in %s for branch %s", projectDir, branch)
-	pullCmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && git fetch origin && git checkout "+branch+" && git pull")
-	var pullStdout, pullStderr bytes.Buffer
-	pullCmd.Stdout = &pullStdout
-	pullCmd.Stderr = &pullStderr
-
-	if err := pullCmd.Run(); err != nil {
-		log.Printf("git pull failed: %v\nSTDERR: %s", err, pullStderr.String())
-		sendToDiscord(&discordgo.MessageEmbed{
-			Title:       "❌ Deploy Failed",
-			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
-			Color:       0xED4245,
-			Fields: []*discordgo.MessageEmbedField{
-				{Name: "Error", Value: fmt.Sprintf("git pull failed:\n```%s```", truncate(pullStderr.String(), 1000))},
-			},
-			Footer: &discordgo.MessageEmbedFooter{Text: "git pull"},
-		})
-		return
-	}
-	log.Printf("git pull output: %s", pullStdout.String())
-
-	// Then run make deploy
-	log.Printf("Running make deploy in %s", projectDir)
-
-	var stdout, stderr bytes.Buffer
-	cmd := exec.CommandContext(ctx, "sh", "-c", "cd "+projectDir+" && make deploy")
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	log.Printf("Running command: %s", cmd.String())
-	err := cmd.Run()
-
-	if ctx.Err() == context.DeadlineExceeded {
-		log.Printf("make deploy timed out after 30 minutes")
-		cleanupContainers()
-		sendToDiscord(&discordgo.MessageEmbed{
-			Title:       "⏱️ Deploy Timeout",
-			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
-			Color:       0xED4245,
-			Fields: []*discordgo.MessageEmbedField{
-				{Name: "Error", Value: "Process exceeded 30 minute timeout\nStopped build containers cleaned up."},
-			},
-			Footer: &discordgo.MessageEmbedFooter{Text: "make deploy"},
-		})
-		return
-	}
-
-	if err != nil {
-		log.Printf("make deploy failed: %v\nSTDERR: %s\nSTDOUT: %s", err, stderr.String(), stdout.String())
-		cleanupContainers()
-		sendToDiscord(&discordgo.MessageEmbed{
-			Title:       "❌ Deploy Failed",
-			Description: fmt.Sprintf("**%s** @ `%s`", repo, branch),
-			Color:       0xED4245,
-			Fields: []*discordgo.MessageEmbedField{
-				{Name: "Error", Value: fmt.Sprintf("```%s```\nStopped build containers cleaned up.", truncate(stderr.String(), 1000))},
-			},
-			Footer: &discordgo.MessageEmbedFooter{Text: "make deploy"},
-		})
-		return
-	}
-
-	log.Printf("make deploy succeeded:\n%s", stdout.String())
-	sendToDiscord(&discordgo.MessageEmbed{
-		Title:       "✅ Deploy Successful",
-		Description: fmt.Sprintf("**%s** @ `%s` deployed successfully!", repo, branch),
-		Color:       0x57F287,
-		Fields: []*discordgo.MessageEmbedField{
-			{Name: "Output", Value: fmt.Sprintf("```%s```", truncate(stdout.String(), 1000))},
-		},
-		Footer: &discordgo.MessageEmbedFooter{Text: "make deploy"},
-	})
-}
-
-func cleanupContainers() {
-	log.Printf("Cleaning up stopped containers after failed deployment...")
-
-	// Remove all stopped/exited containers (such as failed build containers)
-	cmdPrune := exec.Command("docker", "container", "prune", "-f")
-	if out, err := cmdPrune.CombinedOutput(); err != nil {
-		log.Printf("Failed to prune stopped containers: %v\n%s", err, string(out))
-	} else {
-		log.Printf("Stopped containers pruned successfully:\n%s", string(out))
-	}
-
-	// Remove dangling images created during the failed/aborted build process
-	cmdImagePrune := exec.Command("docker", "image", "prune", "-f")
-	if out, err := cmdImagePrune.CombinedOutput(); err != nil {
-		log.Printf("Failed to prune dangling images: %v\n%s", err, string(out))
-	} else {
-		log.Printf("Dangling images pruned successfully:\n%s", string(out))
-	}
-}
-
-func truncate(s string, max int) string {
-	if len(s) <= max {
-		return s
-	}
-	return s[len(s)-max:]
 }
 
 func verifySignature(signatureHeader string, body []byte) bool {

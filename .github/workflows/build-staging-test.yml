@@ -3,44 +3,29 @@ name: Staging Build Test
 on:
   push:
     branches:
-      - staging
+      - main
   pull_request:
     branches:
-      - staging
+      - main
 
 jobs:
   go-build:
-    name: Go Build Test (Backend & Events)
+    name: Go Build Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Backend (Go 1.25)
-      - name: Set up Go (Backend)
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
           cache: true
 
-      - name: Build Backend Go binary
+      - name: Build Go binary
         run: |
           go mod download
           go build -v -o bin/app main.go
-
-      # Events (Go 1.24)
-      - name: Set up Go (Events)
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
-          cache: true
-          cache-dependency-path: events/go.sum
-
-      - name: Build Events Go binary
-        working-directory: events
-        run: |
-          go mod download
-          go build -v -o bin/events-service .
 
   node-build:
     name: Node Build Test (Web)
@@ -78,9 +63,6 @@ jobs:
           - name: backend
             context: .
             file: Dockerfile
-          - name: events
-            context: events
-            file: events/Dockerfile
           - name: web
             context: web
             file: web/Dockerfile

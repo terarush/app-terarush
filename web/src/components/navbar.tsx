@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
 	Menu,
@@ -32,11 +32,16 @@ import { ThemeToggle } from "./elements/toggle-theme";
 import { siteConfig, navConfig } from "@/content/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAvatarUrl } from "@/lib/utils";
+import { getBlogs, type Blog } from "@/lib/api/blogs";
 
 export default function Navbar() {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [searchResults, setSearchResults] = useState<Blog[]>([]);
+	const [searchLoading, setSearchLoading] = useState(false);
+	const [searchError, setSearchError] = useState("");
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { user, isAuthenticated, logout } = useAuth();
@@ -54,14 +59,12 @@ export default function Navbar() {
 	};
 
 	const handleNavClick = (href: string) => {
-		// If it's a hash link and we're on home page, scroll to section
 		if (href.startsWith("#") && location.pathname === "/") {
 			const target = document.querySelector(href);
 			if (target) {
 				target.scrollIntoView({ behavior: "smooth" });
 			}
 		} else if (href.startsWith("#") && location.pathname !== "/") {
-			// If not on home page, navigate to home with hash
 			navigate("/" + href);
 		}
 	};
@@ -72,17 +75,60 @@ export default function Navbar() {
 	};
 
 	useEffect(() => {
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 		setIsMobileMenuOpen(false);
 	}, [location]);
 
+	// ponytail: IntersectionObserver over scroll listener — fires once on threshold cross, not every frame
 	useEffect(() => {
-		const handleScroll = () => {
-			setIsScrolled(window.scrollY > 20);
+		const sentinel = document.createElement("div");
+		sentinel.style.position = "absolute";
+		sentinel.style.top = "1px";
+		sentinel.style.height = "1px";
+		sentinel.style.width = "1px";
+		sentinel.style.pointerEvents = "none";
+		document.body.prepend(sentinel);
+
+		const observer = new IntersectionObserver(
+			([entry]) => setIsScrolled(!entry.isIntersecting),
+			{ threshold: 0 },
+		);
+		observer.observe(sentinel);
+
+		return () => {
+			observer.disconnect();
+			sentinel.remove();
 		};
-		window.addEventListener("scroll", handleScroll);
-		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
+
+	const closeSearch = useCallback(() => {
+		setIsSearchOpen(false);
+		setSearchQuery("");
+		setSearchResults([]);
+		setSearchError("");
+	}, []);
+
+	// ponytail: simple debounce, no extra dep
+	useEffect(() => {
+		if (!searchQuery.trim()) {
+			setSearchResults([]);
+			setSearchError("");
+			return;
+		}
+		const timer = setTimeout(async () => {
+			setSearchLoading(true);
+			setSearchError("");
+			try {
+				const res = await getBlogs({ search: searchQuery, page_size: 10 });
+				setSearchResults(res.blogs ?? []);
+			} catch {
+				setSearchError("Search failed");
+				setSearchResults([]);
+			} finally {
+				setSearchLoading(false);
+			}
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
 
 	// GSAP animation for header on mount
 	useEffect(() => {
@@ -98,7 +144,6 @@ export default function Navbar() {
 	// GSAP animation for mobile menu
 	useEffect(() => {
 		if (isMobileMenuOpen) {
-			// Animate backdrop
 			if (mobileBackdropRef.current) {
 				gsap.fromTo(
 					mobileBackdropRef.current,
@@ -106,16 +151,12 @@ export default function Navbar() {
 					{ opacity: 1, duration: 0.3, ease: "power2.out" },
 				);
 			}
-
-			// Animate menu
 			if (mobileMenuRef.current) {
 				gsap.fromTo(
 					mobileMenuRef.current,
 					{ y: 100, opacity: 0 },
 					{ y: 0, opacity: 1, duration: 0.5, ease: "power3.out" },
 				);
-
-				// Animate menu items
 				const menuItems =
 					mobileMenuRef.current.querySelectorAll(".menu-item");
 				gsap.fromTo(
@@ -132,7 +173,6 @@ export default function Navbar() {
 				);
 			}
 		} else if (mobileMenuRef.current && mobileBackdropRef.current) {
-			// Animate out
 			gsap.to(mobileMenuRef.current, {
 				y: 100,
 				opacity: 0,
@@ -169,7 +209,7 @@ export default function Navbar() {
 							>
 								<div className="relative">
 									<img
-										src="/assets/logo.png"
+										src="/company/logo.png"
 										alt={siteConfig.name}
 										className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110 rounded-md"
 									/>
@@ -180,7 +220,6 @@ export default function Navbar() {
 							</Link>
 							<div className="hidden lg:flex items-center space-x-1">
 								{navConfig.mainNav.map((item) => {
-									// Use Link component for internal routes
 									if (item.href.startsWith("/")) {
 										return (
 											<Link
@@ -192,7 +231,6 @@ export default function Navbar() {
 											</Link>
 										);
 									}
-									// Use anchor tag for hash links
 									return (
 										<a
 											key={item.href}
@@ -209,7 +247,10 @@ export default function Navbar() {
 						<div className="flex items-center space-x-3">
 							<Dialog
 								open={isSearchOpen}
-								onOpenChange={setIsSearchOpen}
+								onOpenChange={(open) => {
+									setIsSearchOpen(open);
+									if (!open) closeSearch();
+								}}
 							>
 								<DialogTrigger asChild>
 									<Button
@@ -228,17 +269,48 @@ export default function Navbar() {
 										<DialogTitle>Search</DialogTitle>
 									</DialogHeader>
 									<div className="flex items-center space-x-2 border-b pb-4">
-										<Search className="h-5 w-5 text-gray-400" />
+										<Search className="h-5 w-5 text-gray-400 shrink-0" />
 										<Input
-											placeholder="Search products, docs, and more..."
+											placeholder="Search articles..."
 											className="border-0 focus-visible:ring-0 text-lg"
 											autoFocus
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
 										/>
 									</div>
-									<div className="py-4">
-										<p className="text-sm text-gray-500">
-											Start typing to search...
-										</p>
+									<div className="py-4 min-h-[100px]">
+										{searchLoading && (
+											<p className="text-sm text-gray-500">Searching...</p>
+										)}
+										{searchError && (
+											<p className="text-sm text-red-500">{searchError}</p>
+										)}
+										{!searchLoading && !searchError && searchQuery.trim() && searchResults.length === 0 && (
+											<p className="text-sm text-gray-500">No results found</p>
+										)}
+										{!searchLoading && !searchError && !searchQuery.trim() && (
+											<p className="text-sm text-gray-500">Start typing to search...</p>
+										)}
+										{searchResults.length > 0 && (
+											<ul className="space-y-2">
+												{searchResults.map((blog) => (
+													<li key={blog.id}>
+														<button
+															className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+															onClick={() => {
+																navigate(`/blog/${blog.slug}`);
+																closeSearch();
+															}}
+														>
+															<p className="font-medium text-sm">{blog.title}</p>
+															<p className="text-xs text-gray-500 truncate mt-0.5">
+																{blog.excerpt || blog.category}
+															</p>
+														</button>
+													</li>
+												))}
+											</ul>
+										)}
 									</div>
 								</DialogContent>
 							</Dialog>
@@ -246,12 +318,12 @@ export default function Navbar() {
 								variant="ghost"
 								size="sm"
 								className="lg:hidden p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+								onClick={() => setIsSearchOpen(true)}
 							>
 								<Search className="h-5 w-5" />
 							</Button>
 							<ThemeToggle variant="rounded" />
 
-							{/* User Menu - Show when authenticated */}
 							{isAuthenticated && user ? (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
@@ -367,7 +439,6 @@ export default function Navbar() {
 							className="relative bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-6 pointer-events-auto translate-y-full opacity-0"
 						>
 							<div className="space-y-4">
-								{/* User Info in Mobile Menu */}
 								{isAuthenticated && user && (
 									<div className="menu-item flex items-center space-x-3 p-3 rounded-xl bg-gray-100/50 dark:bg-gray-800/50">
 									<Avatar className="h-10 w-10 border-2 border-primary/20">
@@ -399,7 +470,6 @@ export default function Navbar() {
 
 								<div className="space-y-2">
 									{navConfig.mainNav.map((item) => {
-										// Use Link component for internal routes
 										if (item.href.startsWith("/")) {
 											return (
 												<Link
@@ -416,7 +486,6 @@ export default function Navbar() {
 												</Link>
 											);
 										}
-										// Use anchor tag for hash links
 										return (
 											<a
 												key={item.href}
@@ -435,7 +504,6 @@ export default function Navbar() {
 										);
 									})}
 
-									{/* Additional menu items when authenticated */}
 									{isAuthenticated && (
 										<>
 											<Link
