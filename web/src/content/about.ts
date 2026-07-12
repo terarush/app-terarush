@@ -14,7 +14,7 @@ export const aboutContent = {
 	story: {
 		title: "Our Story",
 		paragraphs: [
-			"Founded in 2024, TeraRush emerged with a clear mission: to provide top-tier web and app development services to businesses worldwide. We recognized the need for reliable, experienced developers who understand modern technologies and deliver real results.",
+			"Founded in 2023, TeraRush emerged with a clear mission: to provide top-tier web and app development services to businesses worldwide. We recognized the need for reliable, experienced developers who understand modern technologies and deliver real results.",
 			"Today, we work with startups, agencies, and enterprises across 60+ countries, building custom solutions, fixing critical bugs, and providing ongoing technical support. We're committed to helping your business thrive through cutting-edge development.",
 		],
 		quote: {
@@ -22,7 +22,7 @@ export const aboutContent = {
 			author: "Ahmad Rafi'i, Founder",
 		},
 		image: {
-			src: "assets/art_logo.png",
+			src: "company/art_logo.png",
 			alt: "TeraRush Team working together",
 		},
 	},
@@ -86,7 +86,7 @@ export const aboutContent = {
 				name: "Rakha Adi",
 				role: "Co-founder",
 				bio: "Backend specialist with expertise in Go, Node.js, and microservices architecture. Focused on performance and scalability.",
-				avatar: "assets/team/rakha_adi.jpg",
+				avatar: "https://avatars.githubusercontent.com/u/160035782?v=4",
 				initials: "RA",
 				social: {
 					linkedin: "https://linkedin.com/in/rakhaadi",

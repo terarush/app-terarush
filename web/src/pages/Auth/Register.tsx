@@ -142,7 +142,7 @@ export default function Register() {
 						className="inline-flex items-center space-x-3 mb-6 group"
 					>
 						<img
-							src="/assets/logo.png"
+							src="/company/logo.png"
 							alt="Terarush"
 							className="h-12 w-12 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300"
 						/>

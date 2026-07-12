@@ -3,7 +3,6 @@ import { Code, Eye, Award, Github } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { whyTerarushContent } from "@/content/config";
 
@@ -23,7 +22,6 @@ export default function WhyUs() {
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
-			// Header
 			if (headerRef.current) {
 				gsap.fromTo(
 					headerRef.current.children,
@@ -43,7 +41,6 @@ export default function WhyUs() {
 				);
 			}
 
-			// Reasons cards
 			if (reasonsRef.current) {
 				const cards = reasonsRef.current.querySelectorAll(".reason-card");
 				gsap.fromTo(
@@ -75,21 +72,13 @@ export default function WhyUs() {
 			id="why"
 			className="relative overflow-hidden bg-background py-24"
 		>
-			{/* Background */}
-			<div className="absolute inset-0 overflow-hidden opacity-30">
+			<div className="absolute inset-0 overflow-hidden opacity-30 pointer-events-none">
 				<div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 				<div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
 			</div>
 
 			<div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-				{/* Header */}
 				<div ref={headerRef} className="text-center mb-20">
-					<Badge
-						variant="secondary"
-						className="px-4 py-1.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20 mb-6 opacity-0"
-					>
-						Why Choose Us
-					</Badge>
 					<h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mb-6 opacity-0">
 						{whyTerarushContent.title}
 					</h2>
@@ -98,7 +87,6 @@ export default function WhyUs() {
 					</p>
 				</div>
 
-				{/* Reasons Grid */}
 				<div ref={reasonsRef} className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 					{whyTerarushContent.reasons.map((reason, index) => {
 						const Icon = iconMap[reason.icon as keyof typeof iconMap];

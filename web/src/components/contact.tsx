@@ -17,7 +17,6 @@ import {
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/content/config";
@@ -31,7 +30,6 @@ export default function Contact() {
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
-			// Header animation
 			if (headerRef.current) {
 				gsap.fromTo(
 					headerRef.current.children,
@@ -51,7 +49,6 @@ export default function Contact() {
 				);
 			}
 
-			// Cards animation
 			if (cardsRef.current) {
 				const cards = cardsRef.current.querySelectorAll(".contact-card");
 				gsap.fromTo(
@@ -84,12 +81,6 @@ export default function Contact() {
 		>
 			<div className="container mx-auto px-4 sm:px-6">
 				<div ref={headerRef} className="text-center mb-16">
-					<Badge
-						variant="secondary"
-						className="px-4 py-1.5 text-sm font-medium rounded-full bg-accent text-accent-foreground mb-6 opacity-0"
-					>
-						Contact
-					</Badge>
 					<h2 className="text-4xl font-bold mb-4 text-foreground opacity-0">
 						Let's <span className="text-primary">talk</span>
 					</h2>
@@ -115,12 +106,6 @@ export default function Contact() {
 											<h3 className="text-xl font-semibold text-foreground">
 												Email Us
 											</h3>
-											<Badge
-												variant="secondary"
-												className="text-xs bg-secondary text-secondary-foreground"
-											>
-												Primary
-											</Badge>
 										</div>
 									</div>
 									<div className="flex-1">
@@ -138,7 +123,7 @@ export default function Contact() {
 											</div>
 											<div className="flex items-center space-x-2 text-sm">
 												<Shield className="h-4 w-4 text-primary" />
-												<span>Secure & confidential</span>
+												<span>Secure and confidential</span>
 											</div>
 										</div>
 									</div>
@@ -313,51 +298,32 @@ export default function Contact() {
 									</p>
 									<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 										{[
-											{
-												icon: Twitter,
-												name: "Twitter",
-												color: "text-primary",
-												href: siteConfig.links.twitter,
-											},
-											{
-												icon: Linkedin,
-												name: "LinkedIn",
-												color: "text-primary",
-												href: siteConfig.links.linkedin,
-											},
-											{
-												icon: Github,
-												name: "GitHub",
-												color: "text-foreground",
-												href: siteConfig.links.github,
-											},
-											{
-												icon: Instagram,
-												name: "Instagram",
-												color: "text-pink-500",
-												href: siteConfig.links.instagram,
-											},
-										].map((social, index) => {
-											const Icon = social.icon;
-											return (
-												<a
-													key={index}
-													href={social.href}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex flex-col items-center p-3 rounded-lg hover:bg-card/50 transition-colors duration-200 group"
-												>
-													<div className="w-8 h-8 mb-2 flex items-center justify-center">
-														<Icon
-															className={`h-5 w-5 ${social.color} group-hover:scale-110 transition-transform duration-200`}
-														/>
-													</div>
-													<p className="text-xs font-medium text-foreground">
-														{social.name}
-													</p>
-												</a>
-											);
-										})}
+												{ icon: Twitter, name: "Twitter", color: "text-primary", href: siteConfig.links.twitter },
+												{ icon: Linkedin, name: "LinkedIn", color: "text-primary", href: siteConfig.links.linkedin },
+												{ icon: Github, name: "GitHub", color: "text-foreground", href: siteConfig.links.github },
+												{ icon: Instagram, name: "Instagram", color: "text-pink-500", href: siteConfig.links.instagram },
+											]
+											.map((social, index) => {
+												const Icon = social.icon;
+												return (
+													<a
+														key={index}
+														href={social.href}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="flex flex-col items-center p-3 rounded-lg hover:bg-card/50 transition-colors duration-200 group"
+													>
+														<div className="w-8 h-8 mb-2 flex items-center justify-center">
+															<Icon
+																className={`h-5 w-5 ${social.color} group-hover:scale-110 transition-transform duration-200`}
+															/>
+														</div>
+														<p className="text-xs font-medium text-foreground">
+															{social.name}
+														</p>
+													</a>
+												);
+											})}
 									</div>
 								</CardContent>
 							</Card>

@@ -3,7 +3,6 @@ import { Wrench, Layers, Package, Check } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { openSourceContent } from "@/content/config";
 
@@ -24,46 +23,26 @@ export default function OpenSource() {
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
-			// Header
-			if (headerRef.current) {
+			const fadeIn = (el: HTMLElement) =>
 				gsap.fromTo(
-					headerRef.current.children,
+					el,
 					{ y: 30, opacity: 0 },
 					{
 						y: 0,
 						opacity: 1,
-						duration: 0.8,
-						stagger: 0.15,
+						duration: 0.7,
 						ease: "power3.out",
 						scrollTrigger: {
-							trigger: headerRef.current,
+							trigger: el,
 							start: "top 80%",
 							toggleActions: "play none none none",
 						},
-					}
+					},
 				);
-			}
 
-			// Philosophy
-			if (philosophyRef.current) {
-				gsap.fromTo(
-					philosophyRef.current,
-					{ y: 40, opacity: 0 },
-					{
-						y: 0,
-						opacity: 1,
-						duration: 0.8,
-						ease: "power3.out",
-						scrollTrigger: {
-							trigger: philosophyRef.current,
-							start: "top 80%",
-							toggleActions: "play none none none",
-						},
-					}
-				);
-			}
+			if (headerRef.current) fadeIn(headerRef.current);
+			if (philosophyRef.current) fadeIn(philosophyRef.current);
 
-			// Projects
 			if (projectsRef.current) {
 				const cards = projectsRef.current.querySelectorAll(".project-card");
 				gsap.fromTo(
@@ -85,25 +64,7 @@ export default function OpenSource() {
 				);
 			}
 
-			// Community
-			if (communityRef.current) {
-				gsap.fromTo(
-					communityRef.current.children,
-					{ y: 40, opacity: 0 },
-					{
-						y: 0,
-						opacity: 1,
-						duration: 0.8,
-						stagger: 0.1,
-						ease: "power3.out",
-						scrollTrigger: {
-							trigger: communityRef.current,
-							start: "top 80%",
-							toggleActions: "play none none none",
-						},
-					}
-				);
-			}
+			if (communityRef.current) fadeIn(communityRef.current);
 		}, sectionRef);
 
 		return () => ctx.revert();
@@ -115,21 +76,13 @@ export default function OpenSource() {
 			id="opensource"
 			className="relative overflow-hidden bg-background py-24"
 		>
-			{/* Background */}
-			<div className="absolute inset-0 overflow-hidden opacity-30">
+			<div className="absolute inset-0 overflow-hidden opacity-30 pointer-events-none">
 				<div className="absolute top-1/3 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 				<div className="absolute bottom-1/3 left-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
 			</div>
 
 			<div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-				{/* Header */}
 				<div ref={headerRef} className="text-center mb-20">
-					<Badge
-						variant="secondary"
-						className="px-4 py-1.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20 mb-6 opacity-0"
-					>
-						Open Source
-					</Badge>
 					<h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mb-6 opacity-0">
 						{openSourceContent.title}
 					</h2>
@@ -138,10 +91,9 @@ export default function OpenSource() {
 					</p>
 				</div>
 
-				{/* Philosophy */}
 				<div
 					ref={philosophyRef}
-					className="mb-20 opacity-0 bg-card rounded-3xl p-8 sm:p-12 border border-border"
+					className="mb-20 bg-card rounded-3xl p-8 sm:p-12 border border-border"
 				>
 					<h3 className="text-3xl font-bold text-foreground mb-4 text-center">
 						{openSourceContent.philosophy.headline}
@@ -151,7 +103,6 @@ export default function OpenSource() {
 					</p>
 				</div>
 
-				{/* Projects */}
 				<div className="mb-20">
 					<h3 className="text-3xl font-bold text-foreground mb-12 text-center">
 						{openSourceContent.projects.title}
@@ -162,7 +113,7 @@ export default function OpenSource() {
 							return (
 								<Card
 									key={index}
-									className="project-card opacity-0 group border border-border bg-card hover:shadow-xl hover:scale-105 transition-all duration-300"
+									className="project-card opacity-0 group border border-border bg-card hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
 								>
 									<CardContent className="p-8 text-center">
 										<div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -181,18 +132,17 @@ export default function OpenSource() {
 					</div>
 				</div>
 
-				{/* Community */}
 				<div
 					ref={communityRef}
 					className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl p-8 sm:p-12 border border-primary/20"
 				>
-					<h3 className="text-3xl font-bold text-foreground mb-4 text-center opacity-0">
+					<h3 className="text-3xl font-bold text-foreground mb-4 text-center">
 						{openSourceContent.community.title}
 					</h3>
-					<p className="text-lg text-muted-foreground text-center mb-8 max-w-3xl mx-auto opacity-0">
+					<p className="text-lg text-muted-foreground text-center mb-8 max-w-3xl mx-auto">
 						{openSourceContent.community.description}
 					</p>
-					<div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto opacity-0">
+					<div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
 						{openSourceContent.community.highlights.map((highlight, index) => (
 							<div
 								key={index}

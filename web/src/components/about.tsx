@@ -1,17 +1,8 @@
 import { useEffect, useRef } from "react";
-import {
-	Users,
-	Target,
-	Zap,
-	Heart,
-	Quote,
-	Linkedin,
-	Github,
-} from "lucide-react";
+import { Users, Target, Zap, Heart, Linkedin, Github } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,110 +27,30 @@ export default function About() {
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
-			// Header animation
-			if (headerRef.current) {
+			const fadeIn = (el: HTMLElement, delay = 0) =>
 				gsap.fromTo(
-					headerRef.current.children,
+					el,
 					{ y: 30, opacity: 0 },
 					{
 						y: 0,
 						opacity: 1,
-						duration: 0.8,
-						stagger: 0.15,
-						ease: "power3.out",
-					},
-				);
-			}
-
-			// Story section - ScrollTrigger
-			if (storyRef.current) {
-				const storyElements =
-					storyRef.current.querySelectorAll(".story-element");
-				gsap.fromTo(
-					storyElements,
-					{ y: 50, opacity: 0 },
-					{
-						y: 0,
-						opacity: 1,
-						duration: 0.8,
-						stagger: 0.2,
-						ease: "power3.out",
-						scrollTrigger: {
-							trigger: storyRef.current,
-							start: "top 80%",
-							toggleActions: "play none none none",
-						},
-					},
-				);
-			}
-
-			// Values - ScrollTrigger
-			if (valuesRef.current) {
-				const valueCards =
-					valuesRef.current.querySelectorAll(".value-card");
-				gsap.fromTo(
-					valueCards,
-					{ y: 40, opacity: 0, scale: 0.95 },
-					{
-						y: 0,
-						opacity: 1,
-						scale: 1,
 						duration: 0.7,
-						stagger: 0.12,
-						ease: "back.out(1.2)",
-						scrollTrigger: {
-							trigger: valuesRef.current,
-							start: "top 80%",
-							toggleActions: "play none none none",
-						},
-					},
-				);
-			}
-
-			// Team - ScrollTrigger
-			if (teamRef.current) {
-				const teamCards =
-					teamRef.current.querySelectorAll(".team-card");
-				gsap.fromTo(
-					teamCards,
-					{ y: 50, opacity: 0, scale: 0.9 },
-					{
-						y: 0,
-						opacity: 1,
-						scale: 1,
-						duration: 0.8,
-						stagger: 0.15,
-						ease: "back.out(1.4)",
-						scrollTrigger: {
-							trigger: teamRef.current,
-							start: "top 80%",
-							toggleActions: "play none none none",
-						},
-					},
-				);
-			}
-
-			// CTA - ScrollTrigger
-			if (ctaRef.current) {
-				gsap.fromTo(
-					ctaRef.current,
-					{ y: 40, opacity: 0, scale: 0.95 },
-					{
-						y: 0,
-						opacity: 1,
-						scale: 1,
-						duration: 0.8,
+						delay,
 						ease: "power3.out",
 						scrollTrigger: {
-							trigger: ctaRef.current,
-							start: "top 85%",
+							trigger: el,
+							start: "top 80%",
 							toggleActions: "play none none none",
 						},
 					},
 				);
-			}
-		}, sectionRef);
 
+			if (headerRef.current) fadeIn(headerRef.current);
+			if (storyRef.current) fadeIn(storyRef.current);
+			if (valuesRef.current) fadeIn(valuesRef.current);
+			if (teamRef.current) fadeIn(teamRef.current);
+			if (ctaRef.current) fadeIn(ctaRef.current);
+		}, sectionRef);
 		return () => ctx.revert();
 	}, []);
 
@@ -149,8 +60,7 @@ export default function About() {
 			className="relative overflow-hidden bg-background py-24"
 			id="about"
 		>
-			{/* Background gradients */}
-			<div className="absolute inset-0 overflow-hidden">
+			<div className="absolute inset-0 overflow-hidden pointer-events-none">
 				<div className="absolute top-1/4 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 				<div className="absolute bottom-1/4 -left-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
 			</div>
@@ -158,13 +68,7 @@ export default function About() {
 			<div className="container mx-auto px-4 sm:px-6 relative z-10">
 				{/* Header */}
 				<div ref={headerRef} className="text-center mb-20">
-					<Badge
-						variant="secondary"
-						className="px-4 py-1.5 text-sm font-medium rounded-full bg-accent text-accent-foreground mb-6 opacity-0"
-					>
-						{aboutContent.badge.text}
-					</Badge>
-					<h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 opacity-0">
+					<h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
 						<span className="block text-foreground">
 							{aboutContent.headline.line1}
 						</span>
@@ -172,7 +76,7 @@ export default function About() {
 							{aboutContent.headline.line2}
 						</span>
 					</h2>
-					<p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto opacity-0">
+					<p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
 						{aboutContent.description}
 					</p>
 				</div>
@@ -182,7 +86,7 @@ export default function About() {
 					ref={storyRef}
 					className="grid lg:grid-cols-2 gap-16 items-center mb-24"
 				>
-					<div className="story-element opacity-0">
+					<div>
 						<h3 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
 							{aboutContent.story.title}
 						</h3>
@@ -191,26 +95,25 @@ export default function About() {
 								(paragraph, index) => (
 									<p
 										key={index}
-										className="text-lg text-muted-foreground"
+										className="text-lg text-muted-foreground leading-relaxed"
 									>
 										{paragraph}
 									</p>
 								),
 							)}
 							<div className="flex items-start space-x-4 p-6 bg-card rounded-2xl border border-border">
-								<Quote className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
 								<div>
-									<p className="text-foreground font-medium italic">
+									<p className="text-foreground font-medium italic leading-relaxed">
 										"{aboutContent.story.quote.text}"
 									</p>
-									<p className="text-sm text-muted-foreground mt-2">
-										— {aboutContent.story.quote.author}
+									<p className="text-sm text-muted-foreground mt-2 font-semibold">
+										{aboutContent.story.quote.author}
 									</p>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div className="story-element opacity-0 relative">
+					<div className="relative">
 						<div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
 							<img
 								src={aboutContent.story.image.src}
@@ -238,7 +141,7 @@ export default function About() {
 							return (
 								<Card
 									key={index}
-									className="value-card opacity-0 h-full border-0 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:scale-105 transition-all duration-300 group"
+									className="group h-full border-0 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
 								>
 									<CardContent className="p-6 text-center">
 										<div
@@ -259,15 +162,9 @@ export default function About() {
 					</div>
 				</div>
 
-				{/* Team Section - Modern Design */}
+				{/* Team */}
 				<div ref={teamRef} className="mb-24">
 					<div className="text-center mb-16">
-						<Badge
-							variant="secondary"
-							className="px-4 py-1.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20 mb-6"
-						>
-							Our Team
-						</Badge>
 						<h3 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
 							{aboutContent.team.title}
 						</h3>
@@ -279,21 +176,17 @@ export default function About() {
 						{aboutContent.team.members.map((member, index) => (
 							<Card
 								key={index}
-								className="team-card opacity-0 group relative overflow-hidden border border-border bg-gradient-to-br from-card to-card/50 hover:shadow-2xl hover:scale-105 transition-all duration-500"
+								className="group relative overflow-hidden border border-border bg-gradient-to-br from-card to-card/50 hover:shadow-2xl hover:scale-[1.02] transition-all duration-500"
 							>
-								{/* Gradient overlay on hover */}
-								<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
 								<CardContent className="p-8 relative z-10">
 									<div className="flex flex-col items-center text-center">
-										{/* Avatar with animated ring */}
 										<div className="relative mb-6">
 											<div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/50 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
 											<Avatar className="w-28 h-28 relative border-4 border-background shadow-xl ring-4 ring-primary/20 group-hover:ring-primary/50 transition-all duration-500">
 												<AvatarImage
 													src={
 														member.avatar ||
-														"/placeholder.svg"
+														"/company/logo.png"
 													}
 													className="object-cover"
 												/>
@@ -303,7 +196,6 @@ export default function About() {
 											</Avatar>
 										</div>
 
-										{/* Member info */}
 										<div className="space-y-2 mb-6">
 											<h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
 												{member.name}
@@ -316,7 +208,6 @@ export default function About() {
 											</p>
 										</div>
 
-										{/* Social links */}
 										<div className="flex gap-3 pt-4 border-t border-border w-full justify-center">
 											<Button
 												variant="ghost"
@@ -361,7 +252,7 @@ export default function About() {
 				{/* CTA */}
 				<div
 					ref={ctaRef}
-					className="opacity-0 text-center bg-primary rounded-3xl p-12 text-primary-foreground shadow-2xl"
+					className="text-center bg-primary rounded-3xl p-12 text-primary-foreground shadow-2xl"
 				>
 					<h3 className="text-3xl sm:text-4xl font-bold mb-4">
 						{aboutContent.cta.title}
