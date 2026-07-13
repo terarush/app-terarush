@@ -8,14 +8,14 @@ export const aboutContent = {
 		line2: "Partners for Your Success",
 	},
 	description:
-		"TeraRush is a web and application development agency dedicated to delivering high-quality solutions. From custom websites to mobile apps, backend services, bug fixes, and ongoing support—we're your complete development partner.",
+		"TeraRush is a freelance web and application development service dedicated to delivering high-quality solutions. From custom websites to mobile apps, backend services, bug fixes, and ongoing support—we're your complete development partner.",
 
 	// Our Story Section
 	story: {
 		title: "Our Story",
 		paragraphs: [
 			"Founded in 2023, TeraRush emerged with a clear mission: to provide top-tier web and app development services to businesses worldwide. We recognized the need for reliable, experienced developers who understand modern technologies and deliver real results.",
-			"Today, we work with startups, agencies, and enterprises across 60+ countries, building custom solutions, fixing critical bugs, and providing ongoing technical support. We're committed to helping your business thrive through cutting-edge development.",
+			"Today, we work with startups, agencies, and businesses across the globe, building custom solutions, fixing critical bugs, and providing ongoing technical support. We're committed to helping your business thrive through cutting-edge development.",
 		],
 		quote: {
 			text: "We don't just write code—we build digital solutions that drive business growth and solve real problems.",
