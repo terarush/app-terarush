@@ -10,13 +10,11 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-FROM alpine:3.20
+FROM gcr.io/distroless/static-debian12
 
 WORKDIR /app
-
-RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/main .
 
