@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,7 +42,6 @@ export function CommentForm({
 	const { user } = useAuth();
 	const [loading, setLoading] = useState(false);
 	const [focused, setFocused] = useState(false);
-	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const schema = isReply ? createReplySchema : createCommentSchema;
 	type FormData = typeof isReply extends true
@@ -62,12 +61,6 @@ export function CommentForm({
 					post_id: postId,
 				} as FormData),
 	});
-
-	useEffect(() => {
-		if (isReply && textareaRef.current) {
-			textareaRef.current.focus();
-		}
-	}, [isReply]);
 
 	const handleSubmit = async (data: FormData) => {
 		try {
@@ -127,7 +120,6 @@ export function CommentForm({
 									<Textarea
 										placeholder={isReply ? "Write a reply..." : "Share your thoughts on this post..."}
 										className="min-h-[100px] border-0 bg-muted/25 rounded-xl resize-none focus-visible:ring-0 focus-visible:ring-offset-0 p-4 text-sm leading-relaxed"
-										ref={textareaRef}
 										{...field}
 										disabled={isDisabled}
 										onFocus={() => setFocused(true)}
