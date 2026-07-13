@@ -75,7 +75,7 @@ export const aboutContent = {
 				name: "Ahmad Rafi'i",
 				role: "CEO & Founder",
 				bio: "Full-stack developer with 2+ years building web and mobile applications. Passionate about clean code and scalable architecture.",
-				avatar: "https://avatars.githubusercontent.com/u/70046808?v=4",
+				avatar: "https://media.licdn.com/dms/image/v2/D5603AQFM7gD062Nw_A/profile-displayphoto-crop_800_800/B56Z9ahaE5IQAI-/0/1783930138438?e=1785369600&v=beta&t=c9c8KslU2z7qKFi0AklrKXewSf5nPvdZbNqQKZEyyhE",
 				initials: "AH",
 				social: {
 					linkedin: "https://linkedin.com/in/rafia9005",
@@ -86,7 +86,7 @@ export const aboutContent = {
 				name: "Rakha Adi",
 				role: "Co-founder",
 				bio: "Backend specialist with expertise in Go, Node.js, and microservices architecture. Focused on performance and scalability.",
-				avatar: "https://avatars.githubusercontent.com/u/160035782?v=4",
+				avatar: "https://media.licdn.com/dms/image/v2/D5603AQEYeUwuuhmlHQ/profile-displayphoto-crop_800_800/B56ZhSLA6nH0AQ-/0/1753725277093?e=1785369600&v=beta&t=50uwEotQYXrNig2i7wUiRKcwFZx-9htsxg1FAbV3Tew",
 				initials: "RA",
 				social: {
 					linkedin: "https://linkedin.com/in/rakhaadi",
@@ -97,11 +97,22 @@ export const aboutContent = {
 				name: "Bintang Adi Alvaro",
 				role: "Graphics Designer",
 				bio: "Creative designer crafting beautiful user interfaces and experiences that users love.",
-				avatar: "https://avatars.githubusercontent.com/u/143677312?v=4",
+				avatar: "https://media.licdn.com/dms/image/v2/D5603AQGSUsyw1X6rfQ/profile-displayphoto-shrink_400_400/B56Zmu5YVQHkAk-/0/1759575901878?e=1785369600&v=beta&t=EkGUdbEXHGwZqEjyYkj7NjL0xQeySu49ddQtHQ_P92s",
 				initials: "BA",
 				social: {
 					linkedin: "https://linkedin.com/in/rakhaadi",
 					github: "https://github.com/kentangaja",
+				},
+			},
+			{
+				name: "Maulidani Brian Melvino",
+				role: "Full Stack Developer",
+				bio: "Full-stack developer building scalable web applications with clean code and great user experiences.",
+				avatar: "https://media.licdn.com/dms/image/v2/D5603AQH9bvXx9XxYHA/profile-displayphoto-crop_800_800/B56Z1m3O3rJwAI-/0/1775547252143?e=1785369600&v=beta&t=jr5ImW_6aiWMavEsCptQdYE_9HF7RR5EP_6OOR83ubM",
+				initials: "MB",
+				social: {
+					linkedin: "https://www.linkedin.com/in/maulidani-brian-melvino-38067133b/",
+					github: "https://github.com/mel-cell",
 				},
 			},
 		],
