@@ -5,7 +5,7 @@ export const heroContent = {
 	},
 	title: "Build Your Digital Future with Expert Development.",
 	description:
-		"Professional web development, mobile app creation, backend solutions, and bug fixes. From concept to deployment, we deliver high-quality code and exceptional results.",
+		"Professional web dev, mobile apps, backend solutions, and bug fixes. From concept to deployment, we deliver exceptional results.",
 	email: {
 		placeholder: "Enter your email address",
 		buttonText: "Start Your Project",

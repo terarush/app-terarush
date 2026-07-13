@@ -72,7 +72,7 @@ export default function Footer() {
 									className="flex items-center space-x-3 mb-6 group"
 								>
 									<img
-										src="/assets/logo.png"
+										src="/company/logo.png"
 										alt="Terarush"
 										className="h-10 w-10 rounded-md shadow-lg group-hover:scale-110 transition-transform duration-300"
 									/>

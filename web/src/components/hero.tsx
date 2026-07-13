@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
+import { useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { heroContent } from "@/content/config";
 
@@ -8,8 +9,10 @@ export default function Hero() {
 	const heroRef = useRef<HTMLDivElement>(null);
 	const leftRef = useRef<HTMLDivElement>(null);
 	const rightRef = useRef<HTMLDivElement>(null);
+	const reduce = useReducedMotion();
 
 	useEffect(() => {
+		if (reduce) return;
 		const ctx = gsap.context(() => {
 			const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 			const els = leftRef.current?.querySelectorAll(".anim-el");
@@ -30,7 +33,7 @@ export default function Hero() {
 			}
 		}, heroRef);
 		return () => ctx.revert();
-	}, []);
+	}, [reduce]);
 
 	return (
 		<div

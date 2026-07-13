@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useReducedMotion } from "motion/react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,8 +28,10 @@ export default function Contact() {
 	const sectionRef = useRef<HTMLElement>(null);
 	const headerRef = useRef<HTMLDivElement>(null);
 	const cardsRef = useRef<HTMLDivElement>(null);
+	const reduce = useReducedMotion();
 
 	useEffect(() => {
+		if (reduce) return;
 		const ctx = gsap.context(() => {
 			if (headerRef.current) {
 				gsap.fromTo(
@@ -71,7 +74,7 @@ export default function Contact() {
 		}, sectionRef);
 
 		return () => ctx.revert();
-	}, []);
+	}, [reduce]);
 
 	return (
 		<section

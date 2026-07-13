@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Users, Target, Zap, Heart, Linkedin, Github } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +20,7 @@ const iconMap = {
 
 export default function About() {
 	const sectionRef = useRef<HTMLElement>(null);
+	const reduce = useReducedMotion();
 	const headerRef = useRef<HTMLDivElement>(null);
 	const storyRef = useRef<HTMLDivElement>(null);
 	const valuesRef = useRef<HTMLDivElement>(null);
@@ -26,6 +28,7 @@ export default function About() {
 	const ctaRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
+		if (reduce) return;
 		const ctx = gsap.context(() => {
 			const fadeIn = (el: HTMLElement, delay = 0) =>
 				gsap.fromTo(
@@ -52,7 +55,7 @@ export default function About() {
 			if (ctaRef.current) fadeIn(ctaRef.current);
 		}, sectionRef);
 		return () => ctx.revert();
-	}, []);
+	}, [reduce]);
 
 	return (
 		<section

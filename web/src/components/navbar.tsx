@@ -21,6 +21,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import gsap from "gsap";
+import { useReducedMotion } from "motion/react";
 import {
 	Dialog,
 	DialogContent,
@@ -35,6 +36,7 @@ import { getAvatarUrl } from "@/lib/utils";
 import { getBlogs, type Blog } from "@/lib/api/blogs";
 
 export default function Navbar() {
+	const reduce = useReducedMotion();
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -132,6 +134,7 @@ export default function Navbar() {
 
 	// GSAP animation for header on mount
 	useEffect(() => {
+		if (reduce) return;
 		if (headerRef.current) {
 			gsap.fromTo(
 				headerRef.current,
@@ -143,6 +146,7 @@ export default function Navbar() {
 
 	// GSAP animation for mobile menu
 	useEffect(() => {
+		if (reduce) return;
 		if (isMobileMenuOpen) {
 			if (mobileBackdropRef.current) {
 				gsap.fromTo(
