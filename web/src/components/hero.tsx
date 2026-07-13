@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+
 import { Button } from "@/components/ui/button";
 import { heroContent } from "@/content/config";
 
@@ -90,12 +91,15 @@ export default function Hero() {
 									<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
 								</Button>
 								<Button
-									asChild
 									size="lg"
 									variant="outline"
 									className="h-12 px-8 rounded-full font-medium text-base border-border hover:bg-accent transition-all active:scale-[0.97]"
+									onClick={() => {
+										const el = document.getElementById("contact");
+										if (el) el.scrollIntoView({ behavior: "smooth" });
+									}}
 								>
-									<a href="#contact">Contact Us</a>
+									Contact Us
 								</Button>
 							</div>
 						</div>
