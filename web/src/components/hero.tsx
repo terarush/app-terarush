@@ -16,6 +16,9 @@ export default function Hero() {
 				@media (min-width: 1024px) and (max-height: 900px) {
 					#home { max-height: calc(100dvh - 4rem) !important; overflow: hidden !important; }
 				}
+				@media (min-width: 1336px) and (min-height: 786px) {
+					#home { min-height: auto !important; max-height: none !important; overflow: visible !important; }
+				}
 			`}</style>
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 				<div className="grid lg:grid-cols-12 gap-4 md:gap-6 items-stretch">
