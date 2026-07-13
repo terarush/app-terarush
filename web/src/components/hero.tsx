@@ -9,14 +9,14 @@ export default function Hero() {
 
 	return (
 		<div
-			className="relative bg-background pt-24 pb-8 lg:pt-24 lg:pb-10 min-h-[100dvh] flex items-center"
+			className="relative bg-background pt-28 pb-8 lg:pt-28 lg:pb-10 min-h-[100dvh] flex items-center"
 			id="home"
 		>
 			<style>{`
 				@media (min-width: 1024px) and (max-height: 900px) {
 					#home { max-height: calc(100dvh - 4rem) !important; overflow: hidden !important; }
 				}
-				@media (min-width: 1336px) and (min-height: 786px) {
+				@media (min-width: 1337px) and (min-height: 787px) {
 					#home { min-height: auto !important; max-height: none !important; overflow: visible !important; }
 				}
 			`}</style>
