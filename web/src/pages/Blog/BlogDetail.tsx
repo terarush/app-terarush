@@ -536,6 +536,53 @@ export function BlogDetail() {
 									</div>
 								</div>
 							</article>
+
+								{/* Comments Section */}
+								<div
+									ref={commentSectionRef}
+									id="comments"
+									className="mt-8 sm:mt-12"
+								>
+									<div className="bg-card border border-border/40 rounded-lg sm:rounded-xl p-6 sm:p-8 md:p-10 shadow-xl shadow-primary/5">
+										<div className="flex items-center gap-3 mb-2">
+											<div className="p-2 rounded-lg bg-primary/10">
+												<MessageCircle className="h-5 w-5 text-primary" />
+											</div>
+											<div>
+												<h2 className="text-xl font-bold">
+													Discussion
+												</h2>
+												<p className="text-xs sm:text-sm text-muted-foreground">
+													{comments.length > 0
+														? `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`
+														: "Start the conversation"}
+												</p>
+											</div>
+										</div>
+
+										<div className="my-6 sm:my-8 border-t border-border/40" />
+
+										<div className="mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border/30">
+											<h3 className="text-sm font-semibold text-foreground/80 mb-4">
+												Leave a comment
+											</h3>
+											<CommentForm
+												postId={blog.id}
+												onSubmit={handleAddComment}
+												isSubmitting={commentSubmitting}
+											/>
+										</div>
+
+										<CommentList
+											comments={comments}
+											onAddReply={handleAddReply}
+											onEditComment={handleEditComment}
+											onDeleteComment={handleDeleteComment}
+											isSubmitting={commentSubmitting}
+											isLoading={commentsLoading}
+										/>
+									</div>
+								</div>
 						</div>
 
 						{/* Right Sidebar - Newsletter/Related */}
@@ -588,45 +635,6 @@ export function BlogDetail() {
 								</div>
 							)}
 						</aside>
-					</div>
-				</div>
-				{/* Comments Section - full width inside container */}
-				<div
-					ref={commentSectionRef}
-					id="comments"
-					className="mt-8 sm:mt-12"
-				>
-					<div className="bg-card border border-border/40 rounded-lg sm:rounded-xl p-6 sm:p-8 shadow-xl shadow-primary/5">
-						<div className="flex items-center gap-3 mb-6">
-							<MessageCircle className="h-5 w-5 text-primary" />
-							<h2 className="text-xl font-bold">
-								Comments
-								{comments.length > 0 && (
-									<span className="ml-2 text-sm font-normal text-muted-foreground">
-										({comments.length})
-									</span>
-								)}
-							</h2>
-						</div>
-
-						{/* New Comment Form */}
-						<div className="mb-8 pb-8 border-b border-border/40">
-							<CommentForm
-								postId={blog.id}
-								onSubmit={handleAddComment}
-								isSubmitting={commentSubmitting}
-							/>
-						</div>
-
-						{/* Comment List */}
-						<CommentList
-							comments={comments}
-							onAddReply={handleAddReply}
-							onEditComment={handleEditComment}
-							onDeleteComment={handleDeleteComment}
-							isSubmitting={commentSubmitting}
-							isLoading={commentsLoading}
-						/>
 					</div>
 				</div>
 			</main>

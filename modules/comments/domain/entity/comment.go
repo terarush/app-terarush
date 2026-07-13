@@ -1,6 +1,10 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Comment struct {
 	ID          string `gorm:"primaryKey" json:"id"`
@@ -9,6 +13,7 @@ type Comment struct {
 	PostID      uint   `gorm:"index;constraint:OnDelete:CASCADE" json:"post_id"` // Foreign key dengan cascade delete
 	ParentID    *string `gorm:"index" json:"parent_id"`        // For reply: references another comment ID
 	UserName    string  `gorm:"type:varchar(100)" json:"user_name"` // Store commenter's name
+	UserAvatar  string  `gorm:"type:varchar(255)" json:"user_avatar"` // Store commenter's avatar URL
 	CreatedAt   int64   `json:"created_at"`
 	UpdatedAt   int64   `json:"updated_at"`
 	DeletedAt   *int64  `json:"deleted_at"`
@@ -21,6 +26,7 @@ func (*Comment) TableName() string {
 func NewComment(content string, userID, postID uint) *Comment {
 	timestamp := time.Now().Unix()
 	return &Comment{
+		ID:        uuid.New().String(),
 		Content:   content,
 		UserID:    userID,
 		PostID:    postID,
@@ -32,6 +38,7 @@ func NewComment(content string, userID, postID uint) *Comment {
 func NewReply(content string, userID, postID uint, parentID string, userName string) *Comment {
 	timestamp := time.Now().Unix()
 	return &Comment{
+		ID:        uuid.New().String(),
 		Content:   content,
 		UserID:    userID,
 		PostID:    postID,

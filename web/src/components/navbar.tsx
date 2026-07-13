@@ -161,7 +161,7 @@ export default function Navbar() {
 							className="flex items-center gap-3 group shrink-0"
 						>
 							<img
-								src="/company/logo.png"
+								src={siteConfig.logo}
 								alt={siteConfig.name}
 								className="h-7 w-7 object-contain transition-transform duration-300 group-hover:scale-110 rounded-md"
 							/>

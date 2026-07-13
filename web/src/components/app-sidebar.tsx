@@ -81,7 +81,7 @@ export function AppSidebar() {
 							className="flex items-center space-x-2 group"
 						>
 							<img
-								src="/assets/logo.png"
+								src={siteConfig.logo}
 								alt={siteConfig.name}
 								className="h-8 w-8 rounded-lg group-hover:scale-110 transition-transform duration-200"
 							/>

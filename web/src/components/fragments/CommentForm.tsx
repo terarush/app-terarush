@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,12 +13,12 @@ import {
 	FormControl,
 	FormField,
 	FormItem,
-	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, X } from "lucide-react";
+import { Loader2, Send, X, User } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface CommentFormProps {
 	postId: number;
@@ -27,6 +27,7 @@ interface CommentFormProps {
 	onSubmit: (data: CreateCommentFormData | CreateReplyFormData) => Promise<void>;
 	onCancel?: () => void;
 	isSubmitting?: boolean;
+	initialContent?: string;
 }
 
 export function CommentForm({
@@ -36,26 +37,37 @@ export function CommentForm({
 	onSubmit,
 	onCancel,
 	isSubmitting = false,
+	initialContent,
 }: CommentFormProps) {
 	const { user } = useAuth();
 	const [loading, setLoading] = useState(false);
+	const [focused, setFocused] = useState(false);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const schema = isReply ? createReplySchema : createCommentSchema;
-	type FormData = typeof isReply extends true ? CreateReplyFormData : CreateCommentFormData;
+	type FormData = typeof isReply extends true
+		? CreateReplyFormData
+		: CreateCommentFormData;
 
 	const form = useForm<FormData>({
 		resolver: zodResolver(schema),
 		defaultValues: isReply
 			? ({
-				content: "",
-				post_id: postId,
-				parent_id: parentId,
-			} as FormData)
+					content: initialContent || "",
+					post_id: postId,
+					parent_id: parentId,
+				} as FormData)
 			: ({
-				content: "",
-				post_id: postId,
-			} as FormData),
+					content: initialContent || "",
+					post_id: postId,
+				} as FormData),
 	});
+
+	useEffect(() => {
+		if (isReply && textareaRef.current) {
+			textareaRef.current.focus();
+		}
+	}, [isReply]);
 
 	const handleSubmit = async (data: FormData) => {
 		try {
@@ -72,82 +84,102 @@ export function CommentForm({
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-				{/* User Info */}
 				{user && (
-					<div className="flex items-center gap-3 mb-4">
-						<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-							<span className="text-sm font-semibold text-primary">
-								{user.name?.charAt(0).toUpperCase() || "U"}
-							</span>
+					<motion.div
+						initial={{ opacity: 0, y: -8 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="flex items-center gap-3"
+					>
+						<div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/15 to-accent/15 ring-2 ring-primary/8 overflow-hidden shrink-0 flex items-center justify-center">
+							{user.avatar ? (
+								<img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+							) : (
+								<User className="h-4 w-4 text-primary/60" />
+							)}
 						</div>
-						<div className="text-sm">
-							<p className="font-semibold text-foreground">{user.name || "Anonymous"}</p>
-							<p className="text-xs text-muted-foreground">{user.email}</p>
+						<div className="text-sm leading-tight min-w-0">
+							<p className="font-semibold text-foreground truncate">{user.name || "Anonymous"}</p>
+							<p className="text-xs text-muted-foreground">{isReply ? "Replying..." : "Share your thoughts"}</p>
 						</div>
+					</motion.div>
+				)}
+
+				{isReply && onCancel && (
+					<div className="flex items-center gap-3 text-xs text-muted-foreground/60">
+						<span className="text-primary/70 font-medium">Reply</span>
+						<div className="h-px flex-1 bg-border/40" />
 					</div>
 				)}
 
-				{/* Content Field */}
 				<FormField
 					control={form.control}
 					name="content"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-sm font-medium">
-								{isReply ? "Write a reply" : "Write a comment"}
-							</FormLabel>
 							<FormControl>
-								<Textarea
-									placeholder={
-										isReply
-											? "Share your reply..."
-											: "Share your thoughts on this post..."
-									}
-									className="min-h-24 rounded-lg bg-muted/50 border-border/50 resize-none"
-									{...field}
-									disabled={isDisabled}
-								/>
+								<div
+									className={`relative rounded-xl border transition-all duration-200 ${
+										focused
+											? "border-primary/40 shadow-[0_0_0_3px_rgba(var(--primary)/0.08)]"
+											: "border-border/60 hover:border-border"
+									} ${isDisabled ? "opacity-60" : ""}`}
+								>
+									<Textarea
+										placeholder={isReply ? "Write a reply..." : "Share your thoughts on this post..."}
+										className="min-h-[100px] border-0 bg-muted/25 rounded-xl resize-none focus-visible:ring-0 focus-visible:ring-offset-0 p-4 text-sm leading-relaxed"
+										ref={textareaRef}
+										{...field}
+										disabled={isDisabled}
+										onFocus={() => setFocused(true)}
+										onBlur={() => setFocused(false)}
+									/>
+								</div>
 							</FormControl>
-							<FormMessage />
+							<FormMessage className="text-xs ml-1" />
 						</FormItem>
 					)}
 				/>
 
-				{/* Action Buttons */}
-				<div className="flex justify-end gap-2">
-					{isReply && onCancel && (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={onCancel}
-							disabled={isDisabled}
-							className="rounded-md h-9"
-						>
-							<X className="h-4 w-4 mr-2" />
-							Cancel
-						</Button>
+				<div className="flex items-center justify-between gap-3">
+					{!user && (
+						<div className="flex-1 px-4 py-2.5 bg-muted/20 rounded-lg border border-border/30 text-sm text-muted-foreground">
+							Please{" "}
+							<a href="/login" className="text-primary font-semibold hover:underline">
+								log in
+							</a>{" "}
+							to post.
+						</div>
 					)}
-					<Button
-						type="submit"
-						size="sm"
-						disabled={isDisabled}
-						className="rounded-md h-9 gap-2"
-					>
-						{loading || isSubmitting ? (
-							<Loader2 className="h-4 w-4 animate-spin" />
-						) : (
-							<Send className="h-4 w-4" />
-						)}
-						{isReply ? "Post Reply" : "Post Comment"}
-					</Button>
-				</div>
 
-				{!user && (
-					<div className="p-3 bg-muted/50 rounded-md border border-border/50 text-sm text-muted-foreground">
-						Please log in to post a comment.
+					<div className="flex items-center gap-2 ml-auto">
+						{isReply && onCancel && (
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								onClick={onCancel}
+								disabled={isDisabled}
+								className="rounded-lg h-9 px-3 text-xs text-muted-foreground"
+							>
+								<X className="h-3.5 w-3.5 mr-1.5" />
+								Cancel
+							</Button>
+						)}
+						<Button
+							type="submit"
+							size="sm"
+							disabled={isDisabled || !form.watch("content")?.trim()}
+							className="rounded-lg h-9 px-4 text-xs font-semibold gap-1.5"
+						>
+							{loading || isSubmitting ? (
+								<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							) : (
+								<Send className="h-3.5 w-3.5" />
+							)}
+							{isReply ? "Reply" : "Comment"}
+						</Button>
 					</div>
-				)}
+				</div>
 			</form>
 		</Form>
 	);

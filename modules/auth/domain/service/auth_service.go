@@ -101,6 +101,7 @@ func (s *AuthService) GenerateTokens(user *entity.User) (accessToken string, ref
 		"email":   user.Email,
 		"name":    user.Name,
 		"role":    user.Role,
+		"avatar":  user.Avatar,
 	}
 
 	accessToken, err = s.jwt.GenerateToken(tokenData)
@@ -248,6 +249,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshToken strin
 		"email":   user.Email,
 		"name":    user.Name,
 		"role":    user.Role,
+		"avatar":  user.Avatar,
 	}
 
 	accessToken, err := s.jwt.GenerateToken(tokenData)

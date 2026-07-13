@@ -1,4 +1,5 @@
 export const siteConfig = {
+  logo: "/company/logo.png",
 	name: "Terarush",
 	title: "Terarush - Open Source Development Agency",
 	description:

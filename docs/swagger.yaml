@@ -1,19 +1,4 @@
 definitions:
-  entity.Comment:
-    properties:
-      content:
-        type: string
-      created_at:
-        type: integer
-      id:
-        type: string
-      post_id:
-        type: integer
-      updated_at:
-        type: integer
-      user_id:
-        type: integer
-    type: object
   handler.UploadImageResponse:
     properties:
       path:
@@ -81,6 +66,19 @@ definitions:
         type: integer
       user_id:
         type: integer
+    type: object
+  request.CreateReplyRequest:
+    properties:
+      content:
+        type: string
+      parent_id:
+        type: string
+      post_id:
+        type: integer
+    required:
+    - content
+    - parent_id
+    - post_id
     type: object
   request.CreateUserRequest:
     properties:
@@ -173,6 +171,23 @@ definitions:
     - email
     - name
     type: object
+  response.AssetResponse:
+    properties:
+      created_at:
+        type: string
+      file_name:
+        type: string
+      id:
+        type: integer
+      mime_type:
+        type: string
+      path:
+        type: string
+      updated_at:
+        type: string
+      url:
+        type: string
+    type: object
   response.AuthResponse:
     properties:
       access_token:
@@ -217,6 +232,42 @@ definitions:
       view_count:
         type: integer
     type: object
+  response.CommentResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: integer
+      id:
+        type: string
+      parent_id:
+        type: string
+      post_id:
+        type: integer
+      replies:
+        items:
+          $ref: '#/definitions/response.CommentResponse'
+        type: array
+      updated_at:
+        type: integer
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  response.ListAssetsResponse:
+    properties:
+      assets:
+        items:
+          $ref: '#/definitions/response.AssetResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
   response.UploadAssetResponse:
     properties:
       id:
@@ -254,6 +305,36 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/admin/assets:
+    get:
+      description: Get all assets with pagination (admin only)
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 20)'
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assets retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ListAssetsResponse'
+        "500":
+          description: Failed to retrieve assets
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Get all assets
+      tags:
+      - Assets
   /api/v1/admin/assets/{id}:
     delete:
       description: Delete an asset by ID (admin only)
@@ -933,6 +1014,37 @@ paths:
       summary: Get all published blogs
       tags:
       - Blogs
+  /api/v1/blogs/{post_id}/comments:
+    get:
+      description: Retrieve all comments (with nested replies) for a specific blog
+        post
+      parameters:
+      - description: Blog post ID
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of comments with replies
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid post ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get comments for a blog post
+      tags:
+      - Comments
   /api/v1/blogs/{slug}:
     get:
       description: Retrieve a specific blog by its slug (public endpoint)
@@ -986,7 +1098,7 @@ paths:
         "201":
           description: Comment created successfully
           schema:
-            $ref: '#/definitions/entity.Comment'
+            $ref: '#/definitions/response.CommentResponse'
         "400":
           description: Invalid request body
           schema:
@@ -1015,7 +1127,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1066,7 +1178,7 @@ paths:
         "200":
           description: Comment updated successfully
           schema:
-            $ref: '#/definitions/entity.Comment'
+            $ref: '#/definitions/response.CommentResponse'
         "400":
           description: Invalid request body
           schema:
@@ -1085,6 +1197,45 @@ paths:
       security:
       - Bearer: []
       summary: Update a comment
+      tags:
+      - Comments
+  /api/v1/comments/reply:
+    post:
+      consumes:
+      - application/json
+      description: Add a reply to an existing comment on a blog post
+      parameters:
+      - description: Reply creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateReplyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Reply created successfully
+          schema:
+            $ref: '#/definitions/response.CommentResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a reply to a comment
       tags:
       - Comments
   /api/v1/favorite:

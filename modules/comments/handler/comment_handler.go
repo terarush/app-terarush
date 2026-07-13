@@ -33,19 +33,28 @@ func NewCommentHandler(log *logger.Logger, event *bus.EventBus, commentService s
 	}
 }
 
-// getUserIDAndNameFromContext extracts user ID and name from context
-func getUserIDAndNameFromContext(c echo.Context) (uint, string, error) {
-	ctx := c.Request().Context()
-	userID, err := utils.GetUserIDFromContext(ctx)
-	if err != nil {
-		return 0, "", fmt.Errorf("user ID not found in context")
+// getUserAvatarFromClaims extracts avatar URL from JWT claims
+func getUserAvatarFromClaims(c echo.Context) string {
+	claims, ok := c.Get("user").(map[string]interface{})
+	if !ok {
+		return ""
 	}
+	avatar, _ := claims["avatar"].(string)
+	return avatar
+}
 
-	// Ambil nama user dari context atau claims
+// getUserIDAndNameFromContext extracts user ID and name from Echo context
+func getUserIDAndNameFromContext(c echo.Context) (uint, string, error) {
 	claims, ok := c.Get("user").(map[string]interface{})
 	if !ok {
 		return 0, "", fmt.Errorf("user claims not found in context")
 	}
+
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return 0, "", fmt.Errorf("user ID not found in claims")
+	}
+	userID := uint(userIDFloat)
 
 	userName, ok := claims["name"].(string)
 	if !ok {
@@ -97,6 +106,7 @@ func (h *CommentHandler) GetCommentsByBlog(c echo.Context) error {
 			comment.UserName,
 			comment.CreatedAt,
 			comment.UpdatedAt,
+			comment.UserAvatar,
 		)
 
 		// Convert replies
@@ -111,6 +121,7 @@ func (h *CommentHandler) GetCommentsByBlog(c echo.Context) error {
 				reply.UserName,
 				reply.CreatedAt,
 				reply.UpdatedAt,
+				reply.UserAvatar,
 			)
 		}
 
@@ -158,6 +169,7 @@ func (h *CommentHandler) CreateComment(c echo.Context) error {
 		req.PostID,
 	)
 	comment.UserName = userName
+	comment.UserAvatar = getUserAvatarFromClaims(c)
 
 	if err := h.commentService.CreateComment(ctx, comment, userID); err != nil {
 		h.log.Error("Error creating comment", err)
@@ -174,6 +186,7 @@ func (h *CommentHandler) CreateComment(c echo.Context) error {
 		comment.UserName,
 		comment.CreatedAt,
 		comment.UpdatedAt,
+		comment.UserAvatar,
 	)
 
 	return h.r.CreatedResponse(c, commentResp, "Comment created successfully")
@@ -222,6 +235,7 @@ func (h *CommentHandler) CreateReply(c echo.Context) error {
 		req.ParentID,
 		userName,
 	)
+	reply.UserAvatar = getUserAvatarFromClaims(c)
 
 	if err := h.commentService.CreateComment(ctx, reply, userID); err != nil {
 		h.log.Error("Error creating reply", err)
@@ -239,6 +253,7 @@ func (h *CommentHandler) CreateReply(c echo.Context) error {
 		reply.UserName,
 		reply.CreatedAt,
 		reply.UpdatedAt,
+		reply.UserAvatar,
 	)
 
 	return h.r.CreatedResponse(c, replyResp, "Reply created successfully")
@@ -283,9 +298,7 @@ func (h *CommentHandler) DeleteComment(c echo.Context) error {
 		return h.r.UnauthorizedResponse(c, "You can only delete your own comments")
 	}
 
-	// Parse to uint for deletion (assuming DeleteComment expects uint)
-	// We need to handle this - comment ID is string
-	if err := h.commentService.DeleteComment(ctx, 0); err != nil {
+	if err := h.commentService.DeleteComment(ctx, id); err != nil {
 		h.log.Error("Error deleting comment", err)
 		return h.r.InternalServerErrorResponse(c, "Failed to delete comment")
 	}

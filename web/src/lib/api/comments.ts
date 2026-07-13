@@ -5,6 +5,7 @@ export interface Comment {
 	post_id: number;
 	user_id: number;
 	user_name: string;
+	user_avatar?: string;
 	content: string;
 	parent_id?: string | null;
 	created_at: number; // Unix timestamp (seconds) from backend int64

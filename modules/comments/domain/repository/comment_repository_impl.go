@@ -16,7 +16,7 @@ func (r *CommentRepositoryImpl) Create(ctx context.Context, comment *entity.Comm
 	return database.DB.WithContext(ctx).Create(comment).Error
 }
 
-func (r *CommentRepositoryImpl) Delete(ctx context.Context, id uint) error {
+func (r *CommentRepositoryImpl) Delete(ctx context.Context, id string) error {
 	return database.DB.WithContext(ctx).Delete(&entity.Comment{}, "id = ?", id).Error
 }
 
