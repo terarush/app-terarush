@@ -66,8 +66,7 @@ export default function Hero() {
 						initial={reduce ? false : { opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, ease: "easeOut" }}
-						whileHover={reduce ? {} : { y: -2 }}
-						className="lg:col-span-7 flex flex-col justify-center p-8 md:p-12 rounded-3xl bg-secondary/30 border border-border/50 transition-shadow duration-500"
+						className="lg:col-span-7 flex flex-col justify-center p-8 md:p-12 rounded-3xl bg-secondary/30 border border-border/50"
 					>
 						<div className="space-y-8 max-w-2xl">
 							<div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -88,6 +87,7 @@ export default function Hero() {
 									className="h-12 px-8 rounded-full font-medium text-base bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.97] inline-flex items-center justify-center"
 								>
 									Start Building
+									<ArrowRight className="w-4 h-4 ml-2" />
 								</Button>
 								<Button
 									size="lg"
@@ -104,7 +104,7 @@ export default function Hero() {
 						</div>
 					</motion.div>
 
-					{/* Right Bento Cell: Image - no hover animation */}
+					{/* Right Bento Cell: Image */}
 					<div className="lg:col-span-5 relative min-h-[400px] lg:min-h-full rounded-3xl overflow-hidden border border-border/50">
 						<img
 							src="/company/hello_world.jpeg"
