@@ -16,7 +16,7 @@ export default function Services() {
 	return (
 		<section
 			id="services"
-			className="relative overflow-hidden bg-background py-32"
+			className="relative overflow-hidden bg-background pt-32 pb-16"
 		>
 			<div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
 				<div className="mb-20 max-w-2xl">
