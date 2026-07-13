@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
 	Menu,
-	Search,
 	X,
 	User,
 	LogOut,
@@ -10,7 +9,6 @@ import {
 	Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -22,28 +20,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import gsap from "gsap";
 import { useReducedMotion } from "motion/react";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
 import { ThemeToggle } from "./elements/toggle-theme";
 import { siteConfig, navConfig } from "@/content/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAvatarUrl } from "@/lib/utils";
-import { getBlogs, type Blog } from "@/lib/api/blogs";
 
 export default function Navbar() {
 	const reduce = useReducedMotion();
 	const [isScrolled, setIsScrolled] = useState(false);
-	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<Blog[]>([]);
-	const [searchLoading, setSearchLoading] = useState(false);
-	const [searchError, setSearchError] = useState("");
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { user, isAuthenticated, logout } = useAuth();
@@ -51,21 +36,17 @@ export default function Navbar() {
 	const mobileMenuRef = useRef<HTMLDivElement>(null);
 	const mobileBackdropRef = useRef<HTMLDivElement>(null);
 
-	const getInitials = (name: string) => {
-		return name
+	const getInitials = (name: string) =>
+		name
 			.split(" ")
 			.map((n) => n[0])
 			.join("")
 			.toUpperCase()
 			.slice(0, 2);
-	};
 
 	const handleNavClick = (href: string) => {
 		if (href.startsWith("#") && location.pathname === "/") {
-			const target = document.querySelector(href);
-			if (target) {
-				target.scrollIntoView({ behavior: "smooth" });
-			}
+			document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
 		} else if (href.startsWith("#") && location.pathname !== "/") {
 			navigate("/" + href);
 		}
@@ -102,49 +83,17 @@ export default function Navbar() {
 		};
 	}, []);
 
-	const closeSearch = useCallback(() => {
-		setIsSearchOpen(false);
-		setSearchQuery("");
-		setSearchResults([]);
-		setSearchError("");
+	// GSAP header mount animation
+	useEffect(() => {
+		if (reduce || !headerRef.current) return;
+		gsap.fromTo(
+			headerRef.current,
+			{ y: -100, opacity: 0 },
+			{ y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+		);
 	}, []);
 
-	// ponytail: simple debounce, no extra dep
-	useEffect(() => {
-		if (!searchQuery.trim()) {
-			setSearchResults([]);
-			setSearchError("");
-			return;
-		}
-		const timer = setTimeout(async () => {
-			setSearchLoading(true);
-			setSearchError("");
-			try {
-				const res = await getBlogs({ search: searchQuery, page_size: 10 });
-				setSearchResults(res.blogs ?? []);
-			} catch {
-				setSearchError("Search failed");
-				setSearchResults([]);
-			} finally {
-				setSearchLoading(false);
-			}
-		}, 300);
-		return () => clearTimeout(timer);
-	}, [searchQuery]);
-
-	// GSAP animation for header on mount
-	useEffect(() => {
-		if (reduce) return;
-		if (headerRef.current) {
-			gsap.fromTo(
-				headerRef.current,
-				{ y: -100, opacity: 0 },
-				{ y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
-			);
-		}
-	}, []);
-
-	// GSAP animation for mobile menu
+	// GSAP mobile menu animations
 	useEffect(() => {
 		if (reduce) return;
 		if (isMobileMenuOpen) {
@@ -161,10 +110,10 @@ export default function Navbar() {
 					{ y: 100, opacity: 0 },
 					{ y: 0, opacity: 1, duration: 0.5, ease: "power3.out" },
 				);
-				const menuItems =
+				const items =
 					mobileMenuRef.current.querySelectorAll(".menu-item");
 				gsap.fromTo(
-					menuItems,
+					items,
 					{ y: 20, opacity: 0 },
 					{
 						y: 0,
@@ -200,132 +149,54 @@ export default function Navbar() {
 			>
 				<nav
 					className={[
-						"relative backdrop-blur-xl border border-border shadow-md shadow-gray-900/10 transition-all duration-500 rounded-xl mx-auto",
-						isScrolled ? "py-3 max-w-7xl" : "py-3 max-w-7xl",
-						"bg-background/80",
+						"relative backdrop-blur-xl border border-border/60 shadow-lg shadow-black/5 rounded-2xl mx-auto max-w-7xl transition-all duration-500",
+						isScrolled
+							? "bg-background/90 shadow-md"
+							: "bg-background/70",
 					].join(" ")}
 				>
-					<div className="relative px-6 flex items-center justify-between">
-						<div className="flex items-center space-x-8">
-							<Link
-								to="/"
-								className="flex items-center space-x-3 group"
-							>
-								<div className="relative">
-									<img
-										src="/company/logo.png"
-										alt={siteConfig.name}
-										className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110 rounded-md"
-									/>
-								</div>
-								<span className="text-xl font-bold text-gray-900 dark:text-white">
-									{siteConfig.name}
-								</span>
-							</Link>
-							<div className="hidden lg:flex items-center space-x-1">
-								{navConfig.mainNav.map((item) => {
-									if (item.href.startsWith("/")) {
-										return (
-											<Link
-												key={item.href}
-												to={item.href}
-												className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 font-medium"
-											>
-												{item.label}
-											</Link>
-										);
-									}
+					<div className="relative px-5 flex items-center justify-between h-14">
+						<Link
+							to="/"
+							className="flex items-center gap-3 group shrink-0"
+						>
+							<img
+								src="/company/logo.png"
+								alt={siteConfig.name}
+								className="h-7 w-7 object-contain transition-transform duration-300 group-hover:scale-110 rounded-md"
+							/>
+							<span className="text-lg font-semibold tracking-tight">
+								{siteConfig.name}
+							</span>
+						</Link>
+
+						<div className="hidden lg:flex items-center gap-1">
+							{navConfig.mainNav.map((item) => {
+								if (item.href.startsWith("/")) {
 									return (
-										<a
+										<Link
 											key={item.href}
-											href={item.href}
-											onClick={() => handleNavClick(item.href)}
-											className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 font-medium"
+											to={item.href}
+											className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
 										>
 											{item.label}
-										</a>
+										</Link>
 									);
-								})}
-							</div>
-						</div>
-						<div className="flex items-center space-x-3">
-							<Dialog
-								open={isSearchOpen}
-								onOpenChange={(open) => {
-									setIsSearchOpen(open);
-									if (!open) closeSearch();
-								}}
-							>
-								<DialogTrigger asChild>
-									<Button
-										variant="ghost"
-										size="sm"
-										className="hidden lg:flex items-center space-x-2 px-3 py-2 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all duration-200 min-w-[200px] justify-start"
+								}
+								return (
+									<a
+										key={item.href}
+										href={item.href}
+										onClick={() => handleNavClick(item.href)}
+										className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
 									>
-										<Search className="h-4 w-4 text-gray-500" />
-										<span className="text-gray-500 text-sm">
-											Search...
-										</span>
-									</Button>
-								</DialogTrigger>
-								<DialogContent className="max-w-2xl">
-									<DialogHeader>
-										<DialogTitle>Search</DialogTitle>
-									</DialogHeader>
-									<div className="flex items-center space-x-2 border-b pb-4">
-										<Search className="h-5 w-5 text-gray-400 shrink-0" />
-										<Input
-											placeholder="Search articles..."
-											className="border-0 focus-visible:ring-0 text-lg"
-											autoFocus
-											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
-										/>
-									</div>
-									<div className="py-4 min-h-[100px]">
-										{searchLoading && (
-											<p className="text-sm text-gray-500">Searching...</p>
-										)}
-										{searchError && (
-											<p className="text-sm text-red-500">{searchError}</p>
-										)}
-										{!searchLoading && !searchError && searchQuery.trim() && searchResults.length === 0 && (
-											<p className="text-sm text-gray-500">No results found</p>
-										)}
-										{!searchLoading && !searchError && !searchQuery.trim() && (
-											<p className="text-sm text-gray-500">Start typing to search...</p>
-										)}
-										{searchResults.length > 0 && (
-											<ul className="space-y-2">
-												{searchResults.map((blog) => (
-													<li key={blog.id}>
-														<button
-															className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-															onClick={() => {
-																navigate(`/blog/${blog.slug}`);
-																closeSearch();
-															}}
-														>
-															<p className="font-medium text-sm">{blog.title}</p>
-															<p className="text-xs text-gray-500 truncate mt-0.5">
-																{blog.excerpt || blog.category}
-															</p>
-														</button>
-													</li>
-												))}
-											</ul>
-										)}
-									</div>
-								</DialogContent>
-							</Dialog>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="lg:hidden p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
-								onClick={() => setIsSearchOpen(true)}
-							>
-								<Search className="h-5 w-5" />
-							</Button>
+										{item.label}
+									</a>
+								);
+							})}
+						</div>
+
+						<div className="flex items-center gap-2">
 							<ThemeToggle variant="rounded" />
 
 							{isAuthenticated && user ? (
@@ -333,28 +204,26 @@ export default function Navbar() {
 									<DropdownMenuTrigger asChild>
 										<Button
 											variant="ghost"
-											className="hidden sm:flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
+											className="hidden sm:flex items-center gap-2 px-2 py-1.5 h-9 rounded-xl hover:bg-accent/50 transition-all duration-200"
 										>
-										<Avatar className="h-8 w-8 border-2 border-primary/20">
-											{user.avatar && (
-												<AvatarImage
-													src={getAvatarUrl(user.avatar)}
-													alt={user.name}
-												/>
-											)}
-											<AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-												{getInitials(user.name)}
-											</AvatarFallback>
-										</Avatar>
-											<div className="flex flex-col items-start">
-												<div className="flex items-center gap-1.5">
-													<span className="text-sm font-medium">
-														{user.name}
-													</span>
-													{user.role === "admin" && (
-														<Crown className="h-3 w-3 text-yellow-500" />
-													)}
-												</div>
+											<Avatar className="h-7 w-7 border-2 border-primary/20">
+												{user.avatar && (
+													<AvatarImage
+														src={getAvatarUrl(user.avatar)}
+														alt={user.name}
+													/>
+												)}
+												<AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
+													{getInitials(user.name)}
+												</AvatarFallback>
+											</Avatar>
+											<div className="flex items-center gap-1 leading-tight">
+												<span className="text-sm font-medium">
+													{user.name}
+												</span>
+												{user.role === "admin" && (
+													<Crown className="h-3 w-3 text-yellow-500" />
+												)}
 											</div>
 										</Button>
 									</DropdownMenuTrigger>
@@ -406,7 +275,7 @@ export default function Navbar() {
 								</DropdownMenu>
 							) : (
 								<Button
-									className="hidden sm:flex bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl px-6 py-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+									className="hidden sm:inline-flex h-8 px-4 text-sm font-semibold rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
 									asChild
 								>
 									<Link to="/login">Get Started</Link>
@@ -415,21 +284,23 @@ export default function Navbar() {
 
 							<Button
 								variant="ghost"
-								className="lg:hidden p-2 rounded-md hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+								size="icon"
+								className="lg:hidden rounded-full"
 								onClick={() =>
 									setIsMobileMenuOpen(!isMobileMenuOpen)
 								}
 							>
 								{isMobileMenuOpen ? (
-									<X className="h-6 w-6" />
+									<X className="h-5 w-5" />
 								) : (
-									<Menu className="h-6 w-6" />
+									<Menu className="h-5 w-5" />
 								)}
 							</Button>
 						</div>
 					</div>
 				</nav>
 			</header>
+
 			{isMobileMenuOpen && (
 				<div className="fixed inset-0 z-40 lg:hidden">
 					<div
@@ -440,22 +311,22 @@ export default function Navbar() {
 					<div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none">
 						<div
 							ref={mobileMenuRef}
-							className="relative bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-6 pointer-events-auto translate-y-full opacity-0"
+							className="relative bg-background/95 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl p-5 pointer-events-auto translate-y-full opacity-0"
 						>
-							<div className="space-y-4">
+							<div className="space-y-1">
 								{isAuthenticated && user && (
-									<div className="menu-item flex items-center space-x-3 p-3 rounded-xl bg-gray-100/50 dark:bg-gray-800/50">
-									<Avatar className="h-10 w-10 border-2 border-primary/20">
-										{user.avatar && (
-											<AvatarImage
-												src={getAvatarUrl(user.avatar)}
-												alt={user.name}
-											/>
-										)}
-										<AvatarFallback className="bg-primary/10 text-primary font-semibold">
-											{getInitials(user.name)}
-										</AvatarFallback>
-									</Avatar>
+									<div className="menu-item flex items-center gap-3 p-3 rounded-xl bg-accent/50 mb-3">
+										<Avatar className="h-10 w-10 border-2 border-primary/20">
+											{user.avatar && (
+												<AvatarImage
+													src={getAvatarUrl(user.avatar)}
+													alt={user.name}
+												/>
+											)}
+											<AvatarFallback className="bg-primary/10 text-primary font-semibold">
+												{getInitials(user.name)}
+											</AvatarFallback>
+										</Avatar>
 										<div className="flex-1">
 											<div className="flex items-center gap-1.5">
 												<p className="text-sm font-medium">
@@ -472,93 +343,100 @@ export default function Navbar() {
 									</div>
 								)}
 
-								<div className="space-y-2">
-									{navConfig.mainNav.map((item) => {
-										if (item.href.startsWith("/")) {
-											return (
-												<Link
-													key={item.href}
-													to={item.href}
-													className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-													onClick={() =>
-														setIsMobileMenuOpen(false)
-													}
-												>
-													<span className="font-medium text-gray-900 dark:text-white">
-														{item.label}
-													</span>
-												</Link>
-											);
-										}
+								{navConfig.mainNav.map((item) => {
+									if (item.href.startsWith("/")) {
 										return (
-											<a
+											<Link
 												key={item.href}
-												href={item.href}
-												className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-												onClick={(e) => {
-													e.preventDefault();
-													setIsMobileMenuOpen(false);
-													handleNavClick(item.href);
-												}}
+												to={item.href}
+												className="menu-item flex items-center p-3 rounded-xl hover:bg-accent/50 transition-all duration-200"
+												onClick={() =>
+													setIsMobileMenuOpen(false)
+												}
 											>
-												<span className="font-medium text-gray-900 dark:text-white">
+												<span className="font-medium">
 													{item.label}
 												</span>
-											</a>
+											</Link>
 										);
-									})}
-
-									{isAuthenticated && (
-										<>
-											<Link
-												to="/dashboard"
-												className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-												onClick={() =>
-													setIsMobileMenuOpen(false)
-												}
-											>
-												<LayoutDashboard className="h-5 w-5" />
-												<span className="font-medium text-gray-900 dark:text-white">
-													Dashboard
-												</span>
-											</Link>
-											<Link
-												to="/dashboard/profile"
-												className="menu-item flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-												onClick={() =>
-													setIsMobileMenuOpen(false)
-												}
-											>
-												<User className="h-5 w-5" />
-												<span className="font-medium text-gray-900 dark:text-white">
-													Profile
-												</span>
-											</Link>
-										</>
-									)}
-								</div>
-
-								<div className="pt-2 menu-item">
-									{isAuthenticated ? (
-										<Button
-											className="w-full bg-destructive text-destructive-foreground rounded-xl py-3 font-semibold"
-											onClick={() => {
-												handleLogout();
+									}
+									return (
+										<a
+											key={item.href}
+											href={item.href}
+											className="menu-item flex items-center p-3 rounded-xl hover:bg-accent/50 transition-all duration-200"
+											onClick={(e) => {
+												e.preventDefault();
 												setIsMobileMenuOpen(false);
+												handleNavClick(item.href);
 											}}
 										>
-											<LogOut className="mr-2 h-5 w-5" />
-											Logout
-										</Button>
-									) : (
-										<Button
-											className="w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl py-3 font-semibold"
-											asChild
+											<span className="font-medium">
+												{item.label}
+											</span>
+										</a>
+									);
+								})}
+
+								{isAuthenticated && (
+									<>
+										<div className="my-2 border-t border-border/60" />
+										<Link
+											to="/dashboard"
+											className="menu-item flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200"
+											onClick={() =>
+												setIsMobileMenuOpen(false)
+											}
 										>
-											<Link to="/login">Get Started</Link>
-										</Button>
-									)}
-								</div>
+											<LayoutDashboard className="h-5 w-5" />
+											<span className="font-medium">
+												Dashboard
+											</span>
+										</Link>
+										<Link
+											to="/dashboard/profile"
+											className="menu-item flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200"
+											onClick={() =>
+												setIsMobileMenuOpen(false)
+											}
+										>
+											<User className="h-5 w-5" />
+											<span className="font-medium">
+												Profile
+											</span>
+										</Link>
+									</>
+								)}
+							</div>
+
+							<div className="mt-4 pt-4 border-t border-border/60 menu-item">
+								{isAuthenticated ? (
+									<Button
+										className="w-full rounded-xl py-2.5"
+										variant="destructive"
+										onClick={() => {
+											handleLogout();
+											setIsMobileMenuOpen(false);
+										}}
+									>
+										<LogOut className="mr-2 h-5 w-5" />
+										Logout
+									</Button>
+								) : (
+									<Button
+										className="w-full rounded-xl py-2.5 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-semibold"
+										asChild
+									>
+										<Link
+											to="/login"
+											onClick={() =>
+												setIsMobileMenuOpen(false)
+											}
+										>
+											Get Started
+										</Link>
+									</Button>
+								)}
 							</div>
 						</div>
 					</div>
