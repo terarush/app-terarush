@@ -9,7 +9,7 @@ export default function Hero() {
 
 	return (
 		<div
-			className="relative bg-background pt-24 pb-8 lg:pt-24 lg:pb-16 min-h-[100dwh] flex items-center"
+			className="relative bg-background pt-24 pb-8 lg:pt-32 lg:pb-16 min-h-[100dwh] flex items-center"
 			id="home"
 		>
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
