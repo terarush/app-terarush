@@ -85,10 +85,9 @@ export default function Hero() {
 							<div className="flex flex-col sm:flex-row gap-4 pt-4">
 								<Button
 									size="lg"
-									className="h-12 px-8 rounded-full font-medium text-base bg-foreground text-background hover:bg-foreground/90 transition-all flex items-center gap-2 group active:scale-[0.97]"
+									className="h-12 px-8 rounded-full font-medium text-base bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.97] inline-flex items-center justify-center"
 								>
 									Start Building
-									<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
 								</Button>
 								<Button
 									size="lg"
@@ -105,40 +104,15 @@ export default function Hero() {
 						</div>
 					</motion.div>
 
-					{/* Right Bento Cell: Image */}
-					<motion.div
-						initial={reduce ? false : { opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-						whileHover={reduce ? {} : { scale: 1.008 }}
-						className="lg:col-span-5 relative min-h-[400px] lg:min-h-full rounded-3xl overflow-hidden border border-border/50 group"
-					>
-						{!reduce && (
-							<motion.div
-								className="absolute inset-0 w-full h-full"
-								animate={{ scale: [1, 1.03, 1] }}
-								transition={{
-									duration: 12,
-									ease: "easeInOut",
-									repeat: Infinity,
-								}}
-							>
-								<img
-									src="/company/hello_world.jpeg"
-									alt="Team workspace"
-									className="w-full h-full object-cover"
-								/>
-							</motion.div>
-						)}
-						{reduce && (
-							<img
-								src="/company/hello_world.jpeg"
-								alt="Team workspace"
-								className="absolute inset-0 w-full h-full object-cover"
-							/>
-						)}
+					{/* Right Bento Cell: Image - no hover animation */}
+					<div className="lg:col-span-5 relative min-h-[400px] lg:min-h-full rounded-3xl overflow-hidden border border-border/50">
+						<img
+							src="/company/hello_world.jpeg"
+							alt="Team workspace"
+							className="absolute inset-0 w-full h-full object-cover"
+						/>
 						<div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
-					</motion.div>
+					</div>
 				</div>
 			</div>
 		</div>
