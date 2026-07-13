@@ -9,9 +9,14 @@ export default function Hero() {
 
 	return (
 		<div
-			className="relative bg-background pt-24 pb-8 lg:pt-32 lg:pb-16 min-h-[100dwh] flex items-center"
+			className="relative bg-background pt-24 pb-8 lg:pt-24 lg:pb-10 min-h-[100dvh] flex items-center"
 			id="home"
 		>
+			<style>{`
+				@media (min-width: 1024px) and (max-height: 900px) {
+					#home { max-height: calc(100dvh - 4rem) !important; overflow: hidden !important; }
+				}
+			`}</style>
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 				<div className="grid lg:grid-cols-12 gap-4 md:gap-6 items-stretch">
 					{/* Left Bento Cell: Text Content */}
@@ -19,14 +24,14 @@ export default function Hero() {
 						initial={reduce ? false : { opacity: 0, y: 16 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-						className="lg:col-span-6 flex flex-col justify-center p-8 md:p-10 lg:p-12 rounded-3xl bg-secondary/40 border border-border/60 shadow-sm"
+						className="lg:col-span-6 flex flex-col justify-center p-8 md:p-10 lg:p-10 xl:p-12 rounded-3xl bg-secondary/40 border border-border/60 shadow-sm"
 					>
-						<div className="space-y-6 max-w-xl">
+						<div className="space-y-5 lg:space-y-6 max-w-xl">
 							<div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-widest rounded-full bg-primary/10 text-primary border border-primary/20">
 								{heroContent.badge.text}
 							</div>
 
-							<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter text-foreground leading-[1.08]">
+							<h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tighter text-foreground leading-[1.08]">
 								{heroContent.title}
 							</h1>
 
@@ -34,7 +39,7 @@ export default function Hero() {
 								{heroContent.description}
 							</p>
 
-							<div className="flex flex-col sm:flex-row gap-3 pt-2">
+							<div className="flex flex-col sm:flex-row gap-3 pt-1 lg:pt-2">
 								<Button
 									size="lg"
 									className="h-11 px-7 rounded-full font-medium text-sm bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.97] inline-flex items-center justify-center"
@@ -62,7 +67,7 @@ export default function Hero() {
 						initial={reduce ? false : { opacity: 0, y: 16 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-						className="lg:col-span-6 relative min-h-[400px] lg:min-h-full rounded-3xl overflow-hidden border border-border/60 shadow-sm"
+						className="lg:col-span-6 relative min-h-[350px] lg:min-h-full rounded-3xl overflow-hidden border border-border/60 shadow-sm"
 					>
 						<img
 							src="/company/hello_world.jpeg"
