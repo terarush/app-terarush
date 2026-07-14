@@ -37,7 +37,7 @@ jobs:
       - name: Setup Vercel Project
         run: |
           mkdir -p .vercel
-          echo "{\"projectId\":\"${{ vars.VERCEL_PROJECT_ID }}\",\"orgId\":\"${{ vars.VERCEL_ORG_ID }}\"}" > .vercel/project.json
+          echo "{\"projectId\":\"${{ secrets.VERCEL_PROJECT_ID }}\",\"orgId\":\"${{ secrets.VERCEL_ORG_ID }}\"}" > .vercel/project.json
 
       - name: Install Dependencies
         run: npm ci
@@ -50,4 +50,4 @@ jobs:
           VITE_NODE_ENV: ${{ secrets.VITE_NODE_ENV }}
 
       - name: Deploy to Vercel
-        run: npx vercel deploy --prebuilt --prod --token=${{ vars.VERCEL_TOKEN }}
+        run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
