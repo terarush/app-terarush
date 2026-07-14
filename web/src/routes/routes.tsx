@@ -41,23 +41,18 @@ function Home() {
   )
 }
 
-export const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
-  component: Home,
-})
+const routes = [
+  { path: '/', component: Home },
+  { path: '/login', component: LoginPage },
+  { path: '/register', component: RegisterPage },
+]
 
-export const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
-  component: LoginPage,
-})
-
-export const registerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/register',
-  component: RegisterPage,
-})
-
-export const routeTree = rootRoute.addChildren([indexRoute, loginRoute, registerRoute])
-
+export const routeTree = rootRoute.addChildren(
+  routes.map((r) =>
+    createRoute({
+      getParentRoute: () => rootRoute,
+      path: r.path,
+      component: r.component,
+    })
+  )
+)
