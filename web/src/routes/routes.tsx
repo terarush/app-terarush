@@ -9,6 +9,8 @@ import GitHubCallbackPage from '@/modules/auth/github-callback'
 
 import '../styles.css'
 
+import { Toaster } from '@/components/ui/sonner'
+
 export const rootRoute = createRootRoute({
   component: RootComponent,
 })
@@ -20,6 +22,7 @@ function RootComponent() {
         <TooltipProvider>
           <div className="min-h-screen bg-background text-foreground font-sans antialiased">
             <Outlet />
+            <Toaster />
           </div>
         </TooltipProvider>
       </ThemeProvider>
