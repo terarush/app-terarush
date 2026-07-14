@@ -36,8 +36,8 @@ export default function Navbar() {
 	const mobileMenuRef = useRef<HTMLDivElement>(null);
 	const mobileBackdropRef = useRef<HTMLDivElement>(null);
 
-	const getInitials = (name: string) =>
-		name
+	const getInitials = (name?: string | null) =>
+		(name ?? "")
 			.split(" ")
 			.map((n) => n[0])
 			.join("")

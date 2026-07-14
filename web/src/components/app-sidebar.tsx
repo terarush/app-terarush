@@ -52,8 +52,8 @@ export function AppSidebar() {
 		await logout();
 	};
 
-	const getInitials = (name: string) => {
-		return name
+	const getInitials = (name?: string | null) => {
+		return (name ?? "")
 			.split(" ")
 			.map((n) => n[0])
 			.join("")
