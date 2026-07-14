@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { usersApi } from '@/api/users';
+import { usersApi } from '@/service/api/users';
 
 // Query Key Factory for clean cache management
 export const userKeys = {

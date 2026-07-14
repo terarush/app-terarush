@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useGitHubLoginMutation } from "@/service/mutation/auth"
 import { toast } from "sonner"
