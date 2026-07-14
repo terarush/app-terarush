@@ -1,5 +1,3 @@
-// Domain models and common TS types for the application
-
 export interface User {
   id: number;
   name: string;
