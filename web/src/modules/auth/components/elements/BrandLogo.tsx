@@ -3,16 +3,11 @@ import { Link } from "@tanstack/react-router"
 
 export function BrandLogo() {
   return (
-    <Link to="/" className="inline-flex items-center space-x-3 group">
-      <div className="h-11 w-11 rounded-lg bg-[--brand-green] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
-          <path d="M4 4h16" />
-          <path d="M12 4v16" />
-          <path d="M12 11h4a3 3 0 0 0 0-6" />
-          <path d="M14 11.5l5 8.5" />
-        </svg>
+    <Link to="/" className="inline-flex items-center space-x-2.5 group">
+      <div className="h-9 w-9 rounded-md bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-950 flex items-center justify-center font-bold tracking-tighter text-sm">
+        TR
       </div>
-      <span className="text-3xl font-bold text-foreground">
+      <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
         TeraRush
       </span>
     </Link>

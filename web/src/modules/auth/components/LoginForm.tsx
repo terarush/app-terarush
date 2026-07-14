@@ -1,14 +1,14 @@
 import React, { useState } from "react"
-import { Mail, Lock, ArrowRight } from "lucide-react"
+import { Mail, Lock } from "lucide-react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { AuthField } from "./fragments/AuthField"
 import { SocialButton } from "./elements/SocialButton"
 import { Divider } from "./fragments/Divider"
 import { authContent } from "../content/auth"
+import { loginSchema } from "@/schemas/auth"
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -20,21 +20,18 @@ export function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("")
 
   const validate = () => {
-    const newErrors: typeof errors = {}
-    if (!email) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address"
+    const result = loginSchema.safeParse({ email, password })
+    if (!result.success) {
+      const fieldErrors: typeof errors = {}
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof typeof errors
+        fieldErrors[path] = issue.message
+      })
+      setErrors(fieldErrors)
+      return false
     }
-
-    if (!password) {
-      newErrors.password = "Password is required"
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors({})
+    return true
   }
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -45,7 +42,7 @@ export function LoginForm() {
 
     setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       toast.success("Welcome back!", {
         description: "You have successfully signed in.",
       })
@@ -65,107 +62,92 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="border border-border bg-card shadow-xl rounded-2xl">
-      <CardContent className="p-8">
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-              {errorMessage}
-            </div>
-          )}
-
-          {/* Email Field */}
-          <AuthField
-            id="email"
-            label={authContent.login.emailLabel}
-            type="email"
-            placeholder={authContent.login.emailPlaceholder}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors.email}
-            icon={<Mail className="h-5 w-5" />}
-            disabled={isLoading}
-          />
-
-          {/* Password Field */}
-          <AuthField
-            id="password"
-            label={authContent.login.passwordLabel}
-            type="password"
-            placeholder={authContent.login.passwordPlaceholder}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={errors.password}
-            icon={<Lock className="h-5 w-5" />}
-            disabled={isLoading}
-          />
-
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center space-x-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer"
-                disabled={isLoading}
-              />
-              <span className="text-sm text-muted-foreground">
-                {authContent.login.rememberMe}
-              </span>
-            </label>
-            <Link
-              to="/login"
-              className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
-            >
-              {authContent.login.forgotPassword}
-            </Link>
+    <div className="w-full space-y-5">
+      <form onSubmit={onSubmit} className="space-y-4">
+        {errorMessage && (
+          <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
+            {errorMessage}
           </div>
+        )}
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+        <AuthField
+          id="email"
+          label={authContent.login.emailLabel}
+          type="email"
+          placeholder={authContent.login.emailPlaceholder}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={errors.email}
+          icon={<Mail className="h-4 w-4" />}
+          disabled={isLoading}
+        />
+
+        <AuthField
+          id="password"
+          label={authContent.login.passwordLabel}
+          type="password"
+          placeholder={authContent.login.passwordPlaceholder}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={errors.password}
+          icon={<Lock className="h-4 w-4" />}
+          disabled={isLoading}
+        />
+
+        <div className="flex items-center justify-between text-xs pt-1">
+          <label className="flex items-center space-x-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-950 cursor-pointer"
+              disabled={isLoading}
+            />
+            <span className="text-zinc-600 dark:text-zinc-400 font-medium">
+              {authContent.login.rememberMe}
+            </span>
+          </label>
+          <Link
+            to="/login"
+            className="text-zinc-900 dark:text-zinc-100 hover:underline font-semibold"
           >
-            {isLoading ? (
-              authContent.login.submittingButton
-            ) : (
-              <span className="flex items-center justify-center">
-                {authContent.login.submitButton}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </span>
-            )}
-          </Button>
-        </form>
-
-        {/* Divider */}
-        <Divider>{authContent.login.dividerText}</Divider>
-
-        {/* Social Login */}
-        <div className="space-y-3">
-          <SocialButton
-            provider="github"
-            onClick={handleGitHubLogin}
-          >
-            {authContent.login.githubButton}
-          </SocialButton>
+            {authContent.login.forgotPassword}
+          </Link>
         </div>
 
-        {/* Sign Up Link */}
-        <div className="text-center mt-6">
-          <p className="text-muted-foreground">
-            {authContent.login.noAccountText}{" "}
-            <Link
-              to="/register"
-              className="text-primary hover:text-primary/80 font-semibold transition-colors"
-            >
-              {authContent.login.signUpLink}
-            </Link>
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10 text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center border border-transparent"
+        >
+          {isLoading ? (
+            authContent.login.submittingButton
+          ) : (
+            authContent.login.submitButton
+          )}
+        </Button>
+      </form>
+
+      <Divider>{authContent.login.dividerText}</Divider>
+
+      <SocialButton
+        provider="github"
+        onClick={handleGitHubLogin}
+      >
+        {authContent.login.githubButton}
+      </SocialButton>
+
+      <div className="text-center pt-2">
+        <p className="text-zinc-500 dark:text-zinc-400 text-xs">
+          {authContent.login.noAccountText}{" "}
+          <Link
+            to="/register"
+            className="font-semibold text-primary hover:underline"
+          >
+            {authContent.login.signUpLink}
+          </Link>
+        </p>
+      </div>
+    </div>
   )
 }

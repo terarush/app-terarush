@@ -14,38 +14,38 @@ export function AuthField({ label, error, icon, type = "text", className, id, ..
   const inputType = isPassword ? (showPassword ? "text" : "password") : type
 
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-foreground mb-2">
+    <div className="space-y-1.5 text-left">
+      <label htmlFor={id} className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
         {label}
       </label>
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none">
             {icon}
           </div>
         )}
         <Input
           id={id}
           type={inputType}
-          className={`${icon ? "pl-10" : "pl-3.5"} ${isPassword ? "pr-10" : "pr-3.5"} rounded-xl border-border focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 h-12 bg-transparent w-full`}
+          className={`${icon ? "pl-9" : "pl-3"} ${isPassword ? "pr-9" : "pr-3"} rounded-lg border border-zinc-200 dark:border-zinc-800 bg-transparent text-sm h-10 w-full focus-visible:border-zinc-900 focus-visible:ring-1 focus-visible:ring-zinc-900/10 dark:focus-visible:border-zinc-100 dark:focus-visible:ring-zinc-100/10`}
           {...props}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 focus:outline-hidden transition-colors"
           >
             {showPassword ? (
-              <EyeOff className="h-5 w-5" />
+              <EyeOff className="h-4.5 w-4.5" />
             ) : (
-              <Eye className="h-5 w-5" />
+              <Eye className="h-4.5 w-4.5" />
             )}
           </button>
         )}
       </div>
       {error && (
-        <p className="mt-1 text-sm text-destructive">{error}</p>
+        <p className="text-xs text-red-500 font-medium">{error}</p>
       )}
     </div>
   )

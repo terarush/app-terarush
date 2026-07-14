@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react"
-import { Mail, Lock, User, Check, ArrowRight } from "lucide-react"
+import { Mail, Lock, User, Check } from "lucide-react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { AuthField } from "./fragments/AuthField"
 import { SocialButton } from "./elements/SocialButton"
 import { Divider } from "./fragments/Divider"
 import { authContent } from "../content/auth"
+import { registerSchema } from "@/schemas/auth"
 
 export function RegisterForm() {
   const navigate = useNavigate()
@@ -22,7 +22,6 @@ export function RegisterForm() {
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string; agreeTerms?: string }>({})
   const [errorMessage, setErrorMessage] = useState("")
 
-  // Calculate password strength
   useEffect(() => {
     let strength = 0
     if (password.length >= 8) strength++
@@ -33,38 +32,22 @@ export function RegisterForm() {
   }, [password])
 
   const validate = () => {
-    const newErrors: typeof errors = {}
+    const result = registerSchema.safeParse({ name, email, password, confirmPassword })
+    const fieldErrors: typeof errors = {}
     
-    if (!name.trim()) {
-      newErrors.name = "Full name is required"
-    } else if (name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters"
+    if (!result.success) {
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof typeof errors
+        fieldErrors[path] = issue.message
+      })
     }
-
-    if (!email) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address"
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required"
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters"
-    }
-
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password"
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-    }
-
+    
     if (!agreeTerms) {
-      newErrors.agreeTerms = "You must agree to the Terms and Privacy Policy"
+      fieldErrors.agreeTerms = "You must agree to the Terms and Privacy Policy"
     }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    
+    setErrors(fieldErrors)
+    return result.success && agreeTerms
   }
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -75,7 +58,7 @@ export function RegisterForm() {
 
     setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       toast.success("Account created successfully!", {
         description: "Please sign in to proceed.",
       })
@@ -95,7 +78,7 @@ export function RegisterForm() {
   }
 
   const getPasswordStrengthColor = () => {
-    if (passwordStrength === 0) return "bg-muted"
+    if (passwordStrength === 0) return "bg-zinc-200 dark:bg-zinc-800"
     if (passwordStrength === 1) return "bg-red-500"
     if (passwordStrength === 2) return "bg-orange-500"
     if (passwordStrength === 3) return "bg-yellow-500"
@@ -111,166 +94,148 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="border border-border bg-card shadow-xl rounded-2xl">
-      <CardContent className="p-8">
-        <form onSubmit={onSubmit} className="space-y-5">
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-              {errorMessage}
+    <div className="w-full space-y-5">
+      <form onSubmit={onSubmit} className="space-y-4">
+        {errorMessage && (
+          <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
+            {errorMessage}
+          </div>
+        )}
+
+        <AuthField
+          id="name"
+          label={authContent.register.nameLabel}
+          type="text"
+          placeholder={authContent.register.namePlaceholder}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={errors.name}
+          icon={<User className="h-4 w-4" />}
+          disabled={isLoading}
+        />
+
+        <AuthField
+          id="email"
+          label={authContent.register.emailLabel}
+          type="email"
+          placeholder={authContent.register.emailPlaceholder}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={errors.email}
+          icon={<Mail className="h-4 w-4" />}
+          disabled={isLoading}
+        />
+
+        <div>
+          <AuthField
+            id="password"
+            label={authContent.register.passwordLabel}
+            type="password"
+            placeholder={authContent.register.passwordPlaceholder}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors.password}
+            icon={<Lock className="h-4 w-4" />}
+            disabled={isLoading}
+          />
+          {password && (
+            <div className="mt-2">
+              <div className="flex gap-1 mb-1">
+                {[1, 2, 3, 4].map((level) => (
+                  <div
+                    key={level}
+                    className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                      level <= passwordStrength
+                        ? getPasswordStrengthColor()
+                        : "bg-zinc-200 dark:bg-zinc-800"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                Password strength: {getPasswordStrengthText()}
+              </p>
             </div>
           )}
+        </div>
 
-          {/* Name Field */}
+        <div>
           <AuthField
-            id="name"
-            label={authContent.register.nameLabel}
-            type="text"
-            placeholder={authContent.register.namePlaceholder}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={errors.name}
-            icon={<User className="h-5 w-5" />}
+            id="confirmPassword"
+            label={authContent.register.confirmPasswordLabel}
+            type="password"
+            placeholder={authContent.register.confirmPasswordPlaceholder}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            error={errors.confirmPassword}
+            icon={<Lock className="h-4 w-4" />}
             disabled={isLoading}
           />
-
-          {/* Email Field */}
-          <AuthField
-            id="email"
-            label={authContent.register.emailLabel}
-            type="email"
-            placeholder={authContent.register.emailPlaceholder}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors.email}
-            icon={<Mail className="h-5 w-5" />}
-            disabled={isLoading}
-          />
-
-          {/* Password Field */}
-          <div>
-            <AuthField
-              id="password"
-              label={authContent.register.passwordLabel}
-              type="password"
-              placeholder={authContent.register.passwordPlaceholder}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={errors.password}
-              icon={<Lock className="h-5 w-5" />}
-              disabled={isLoading}
-            />
-            {/* Password Strength Indicator */}
-            {password && (
-              <div className="mt-2">
-                <div className="flex gap-1 mb-1">
-                  {[1, 2, 3, 4].map((level) => (
-                    <div
-                      key={level}
-                      className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                        level <= passwordStrength
-                          ? getPasswordStrengthColor()
-                          : "bg-muted"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Password strength: {getPasswordStrengthText()}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Confirm Password Field */}
-          <div>
-            <AuthField
-              id="confirmPassword"
-              label={authContent.register.confirmPasswordLabel}
-              type="password"
-              placeholder={authContent.register.confirmPasswordPlaceholder}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              error={errors.confirmPassword}
-              icon={<Lock className="h-5 w-5" />}
-              disabled={isLoading}
-            />
-            {confirmPassword && password === confirmPassword && (
-              <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-                <Check className="h-3 w-3" />
-                Passwords match
-              </p>
-            )}
-          </div>
-
-          {/* Terms Checkbox */}
-          <div className="flex items-start space-x-2">
-            <input
-              type="checkbox"
-              id="terms"
-              checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="w-4 h-4 mt-0.5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer"
-              disabled={isLoading}
-            />
-            <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer select-none">
-              {authContent.register.termsText}{" "}
-              <Link to="/login" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                {authContent.register.termsLink}
-              </Link>{" "}
-              {authContent.register.andText}{" "}
-              <Link to="/login" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                {authContent.register.privacyLink}
-              </Link>
-            </label>
-          </div>
-          {errors.agreeTerms && (
-            <p className="text-sm text-destructive">{errors.agreeTerms}</p>
+          {confirmPassword && password === confirmPassword && (
+            <p className="text-[10px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1 font-medium">
+              <Check className="h-3.5 w-3.5" />
+              Passwords match
+            </p>
           )}
+        </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
+        <div className="flex items-start space-x-2 pt-1">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreeTerms}
+            onChange={(e) => setAgreeTerms(e.target.checked)}
+            className="w-3.5 h-3.5 mt-0.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-950 cursor-pointer"
             disabled={isLoading}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer"
-          >
-            {isLoading ? (
-              authContent.register.submittingButton
-            ) : (
-              <span className="flex items-center justify-center">
-                {authContent.register.submitButton}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </span>
-            )}
-          </Button>
-        </form>
-
-        {/* Divider */}
-        <Divider>{authContent.register.dividerText}</Divider>
-
-        {/* Social Login */}
-        <div className="space-y-3">
-          <SocialButton
-            provider="github"
-            onClick={handleGitHubLogin}
-          >
-            {authContent.register.githubButton}
-          </SocialButton>
-        </div>
-
-        {/* Sign In Link */}
-        <div className="text-center mt-6">
-          <p className="text-muted-foreground">
-            {authContent.register.hasAccountText}{" "}
-            <Link
-              to="/login"
-              className="text-primary hover:text-primary/80 font-semibold transition-colors"
-            >
-              {authContent.register.signInLink}
+          />
+          <label htmlFor="terms" className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none font-medium leading-normal">
+            {authContent.register.termsText}{" "}
+            <Link to="/login" className="text-zinc-900 dark:text-zinc-100 hover:underline font-semibold">
+              {authContent.register.termsLink}
+            </Link>{" "}
+            {authContent.register.andText}{" "}
+            <Link to="/login" className="text-zinc-900 dark:text-zinc-100 hover:underline font-semibold">
+              {authContent.register.privacyLink}
             </Link>
-          </p>
+          </label>
         </div>
-      </CardContent>
-    </Card>
+        {errors.agreeTerms && (
+          <p className="text-xs text-red-500 font-medium">{errors.agreeTerms}</p>
+        )}
+
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10 text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center border border-transparent"
+        >
+          {isLoading ? (
+            authContent.register.submittingButton
+          ) : (
+            authContent.register.submitButton
+          )}
+        </Button>
+      </form>
+
+      <Divider>{authContent.register.dividerText}</Divider>
+
+      <SocialButton
+        provider="github"
+        onClick={handleGitHubLogin}
+      >
+        {authContent.register.githubButton}
+      </SocialButton>
+
+      <div className="text-center pt-2">
+        <p className="text-zinc-500 dark:text-zinc-400 text-xs">
+          {authContent.register.hasAccountText}{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-primary hover:underline"
+          >
+            {authContent.register.signInLink}
+          </Link>
+        </p>
+      </div>
+    </div>
   )
 }
