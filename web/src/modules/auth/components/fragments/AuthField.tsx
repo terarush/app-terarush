@@ -1,40 +1,33 @@
 import React, { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import { Input } from "@/components/ui/input"
 
-interface AuthFieldProps extends React.ComponentProps<typeof Input> {
+interface AuthFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
-  icon?: React.ReactNode
 }
 
-export function AuthField({ label, error, icon, type = "text", className, id, ...props }: AuthFieldProps) {
+export function AuthField({ label, error, type = "text", className, id, ...props }: AuthFieldProps) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === "password"
   const inputType = isPassword ? (showPassword ? "text" : "password") : type
 
   return (
     <div className="space-y-1.5 text-left">
-      <label htmlFor={id} className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+      <label htmlFor={id} className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
         {label}
       </label>
       <div className="relative">
-        {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none">
-            {icon}
-          </div>
-        )}
-        <Input
+        <input
           id={id}
           type={inputType}
-          className={`${icon ? "pl-9" : "pl-3"} ${isPassword ? "pr-9" : "pr-3"} rounded-lg border border-zinc-200 dark:border-zinc-800 bg-transparent text-sm h-10 w-full focus-visible:border-zinc-900 focus-visible:ring-1 focus-visible:ring-zinc-900/10 dark:focus-visible:border-zinc-100 dark:focus-visible:ring-zinc-100/10`}
+          className={`w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-md px-3 py-2.5 text-sm h-10 transition-all duration-200 shadow-xs placeholder:text-zinc-400 focus:bg-white dark:focus:bg-zinc-900 focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-3 focus:ring-zinc-950/5 dark:focus:ring-zinc-100/5 focus:outline-hidden ${isPassword ? "pr-10" : ""}`}
           {...props}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 focus:outline-hidden transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 focus:outline-hidden transition-colors cursor-pointer"
           >
             {showPassword ? (
               <EyeOff className="h-4.5 w-4.5" />
@@ -45,7 +38,7 @@ export function AuthField({ label, error, icon, type = "text", className, id, ..
         )}
       </div>
       {error && (
-        <p className="text-xs text-red-500 font-medium">{error}</p>
+        <p className="text-xs text-red-500 font-medium mt-1">{error}</p>
       )}
     </div>
   )

@@ -1,7 +1,6 @@
 import React from "react"
-import { Button } from "@/components/ui/button"
 
-interface SocialButtonProps extends React.ComponentProps<typeof Button> {
+interface SocialButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   provider: "google" | "github"
 }
 
@@ -9,10 +8,9 @@ export function SocialButton({ provider, children, className, ...props }: Social
   const isGoogle = provider === "google"
 
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
-      className={`w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg h-10 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center ${className}`}
+      className={`w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-md h-10 text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-center shadow-xs focus:outline-hidden focus:ring-3 focus:ring-zinc-950/5 dark:focus:ring-zinc-100/5 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       {...props}
     >
       {isGoogle ? (
@@ -40,6 +38,6 @@ export function SocialButton({ provider, children, className, ...props }: Social
         </svg>
       )}
       <span>{children}</span>
-    </Button>
+    </button>
   )
 }

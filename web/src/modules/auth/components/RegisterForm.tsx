@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react"
-import { Mail, Lock, User, Check } from "lucide-react"
+import { Check } from "lucide-react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 
-import { Button } from "@/components/ui/button"
 import { AuthField } from "./fragments/AuthField"
 import { SocialButton } from "./elements/SocialButton"
 import { Divider } from "./fragments/Divider"
@@ -105,7 +104,16 @@ export function RegisterForm() {
   const isPending = registerMutation.isPending
 
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full">
+      <div className="text-left space-y-1 mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          {authContent.register.title}
+        </h1>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          {authContent.register.subtitle}
+        </p>
+      </div>
+
       <form onSubmit={onSubmit} className="space-y-4">
         {errorMessage && (
           <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
@@ -121,7 +129,6 @@ export function RegisterForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           error={errors.name}
-          icon={<User className="h-4 w-4" />}
           disabled={isPending}
         />
 
@@ -133,7 +140,6 @@ export function RegisterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           error={errors.email}
-          icon={<Mail className="h-4 w-4" />}
           disabled={isPending}
         />
 
@@ -146,7 +152,6 @@ export function RegisterForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
-            icon={<Lock className="h-4 w-4" />}
             disabled={isPending}
           />
           {password && (
@@ -179,7 +184,6 @@ export function RegisterForm() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={errors.confirmPassword}
-            icon={<Lock className="h-4 w-4" />}
             disabled={isPending}
           />
           {confirmPassword && password === confirmPassword && (
@@ -214,38 +218,40 @@ export function RegisterForm() {
           <p className="text-xs text-red-500 font-medium">{errors.agreeTerms}</p>
         )}
 
-        <Button
+        <button
           type="submit"
           disabled={isPending}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10 text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center border border-transparent"
+          className="w-full bg-zinc-950 hover:bg-zinc-900 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-zinc-50 dark:text-zinc-950 rounded-md h-10 text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center border-0 shadow-sm focus:outline-hidden focus:ring-3 focus:ring-zinc-950/10 dark:focus:ring-zinc-100/15 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending ? (
             authContent.register.submittingButton
           ) : (
             authContent.register.submitButton
           )}
-        </Button>
+        </button>
       </form>
 
-      <Divider>{authContent.register.dividerText}</Divider>
+      <div className="mt-5 space-y-5">
+        <Divider>{authContent.register.dividerText}</Divider>
 
-      <SocialButton
-        provider="github"
-        onClick={handleGitHubLogin}
-      >
-        {authContent.register.githubButton}
-      </SocialButton>
+        <SocialButton
+          provider="github"
+          onClick={handleGitHubLogin}
+        >
+          {authContent.register.githubButton}
+        </SocialButton>
 
-      <div className="text-center pt-2">
-        <p className="text-zinc-500 dark:text-zinc-400 text-xs">
-          {authContent.register.hasAccountText}{" "}
-          <Link
-            to="/login"
-            className="font-semibold text-primary hover:underline"
-          >
-            {authContent.register.signInLink}
-          </Link>
-        </p>
+        <div className="text-center pt-1">
+          <p className="text-zinc-500 dark:text-zinc-400 text-xs">
+            {authContent.register.hasAccountText}{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-primary hover:underline"
+            >
+              {authContent.register.signInLink}
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )
