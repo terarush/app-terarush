@@ -1,9 +1,9 @@
 name: Deploy Web to Vercel
 
 env:
-  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-  VERCEL_TOKEN: ${{ vars.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
 on:
   push:
@@ -47,9 +47,9 @@ jobs:
 
       - name: Write Env File for Build
         run: |
-          echo "VITE_GITHUB_CLIENT_ID=${{ vars.VITE_GITHUB_CLIENT_ID }}" >> .vercel/.env.production.local
-          echo "VITE_API_URL=${{ vars.VITE_API_URL }}" >> .vercel/.env.production.local
-          echo "VITE_NODE_ENV=${{ vars.VITE_NODE_ENV }}" >> .vercel/.env.production.local
+          echo "VITE_GITHUB_CLIENT_ID=${{ secrets.VITE_GITHUB_CLIENT_ID }}" >> .vercel/.env.production.local
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .vercel/.env.production.local
+          echo "VITE_NODE_ENV=${{ secrets.VITE_NODE_ENV }}" >> .vercel/.env.production.local
 
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ env.VERCEL_TOKEN }}
