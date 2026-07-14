@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useGitHubLoginMutation } from "@/service/mutation/auth"
 import { toast } from "sonner"
@@ -7,8 +7,11 @@ import { Loader2 } from "lucide-react"
 export default function GitHubCallback() {
   const navigate = useNavigate()
   const githubMutation = useGitHubLoginMutation()
+  const calledRef = useRef(false)
 
   useEffect(() => {
+    if (calledRef.current) return
+
     const handleCallback = async () => {
       const params = new URLSearchParams(window.location.search)
       const code = params.get("code")
@@ -21,12 +24,14 @@ export default function GitHubCallback() {
         return
       }
 
+      calledRef.current = true
+
       try {
         await githubMutation.mutateAsync(code)
         toast.success("GitHub Login Successful", {
           description: "Welcome to TeraRush!",
         })
-        navigate({ to: "/" })
+        navigate({ to: "/app" })
       } catch (error: any) {
         console.error("GitHub auth callback error:", error)
         toast.error("GitHub Login Failed", {
