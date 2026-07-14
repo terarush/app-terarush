@@ -10,12 +10,12 @@ type User struct {
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	Avatar    string    `json:"avatar"`
-	Role      string    `json:"role" gorm:"type:enum('admin', 'user');default:'user'"`
+	Role      string    `json:"role" gorm:"type:varchar(20);default:'user'"`
 	Bio       string    `json:"bio,omitempty"`
 	Banner    string    `json:"banner,omitempty"`
 	IsBanned  bool      `json:"is_banned" gorm:"default:false"`
 	Password  string    `json:"-"`
-	Provider  string    `json:"provider" gorm:"type:enum('local', 'github');default:'local'"`
+	Provider  string    `json:"provider" gorm:"type:varchar(20);default:'local'"`
 	GithubID  string    `json:"github_id,omitempty" gorm:"column:github_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
