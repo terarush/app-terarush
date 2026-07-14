@@ -1,26 +1,32 @@
-# Multi-stage Dockerfile: build with Node, serve with nginx
-FROM node:24-alpine AS build
+# syntax=docker/dockerfile:1.7
 
+# ───── Stage 1: Build ─────
+FROM node:22-alpine AS build
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --silent
+# Manifest first — lets Docker reuse the install layer when only source changes
+COPY package.json yarn.lock ./
+
+# BuildKit cache mount keeps the yarn cache across builds
+RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
+    yarn install --frozen-lockfile --network-timeout 300000
 
 COPY . .
 
-# Build production assets
-RUN npm run build
+# Vite inlines env at build time — .env.prod is the source of truth for prod
+COPY .env.prod .env
 
-FROM nginx:stable-alpine AS runtime
+RUN yarn build
 
-# Remove default nginx static files
-RUN rm -rf /usr/share/nginx/html/*
+# ───── Stage 2: Serve ─────
+FROM nginx:1.27-alpine AS runtime
 
-# Copy built assets from previous stage
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1
 
 EXPOSE 80
 

@@ -1,9 +1,0 @@
-/* Minimal styling - let library do its thing */
-.w-md-editor {
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.dark .w-md-editor {
-  border-color: #374151;
-}
