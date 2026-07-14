@@ -1,6 +1,4 @@
-// Simple, type-safe API client wrapper around the standard Fetch API
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://jsonplaceholder.typicode.com';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
