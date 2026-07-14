@@ -1,14 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getBlogBySlug, getImageUrl, type Blog } from "@/lib/api/blogs";
+import { getBlogBySlug, getImageUrl } from "@/lib/api/blogs";
 import {
 	getCommentsByPost,
 	createComment,
 	createReply,
 	updateComment,
 	deleteComment,
-	type Comment,
-	type CommentListResponse,
 } from "@/lib/api/comments";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,21 +29,12 @@ import { toast } from "sonner";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { CommentList } from "@/components/fragments/CommentList";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function BlogDetail() {
 	const { slug } = useParams<{ slug: string }>();
 	const navigate = useNavigate();
-	const [blog, setBlog] = useState<Blog | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const [headings, setHeadings] = useState<
-		Array<{ id: string; text: string; level: number }>
-	>([]);
-
-	// Comment state
-	const [comments, setComments] = useState<Comment[]>([]);
-	const [commentsLoading, setCommentsLoading] = useState(false);
-	const [commentSubmitting, setCommentSubmitting] = useState(false);
+	const queryClient = useQueryClient();
 	const commentSectionRef = useRef<HTMLDivElement>(null);
 
 	const { scrollYProgress } = useScroll();
@@ -55,121 +44,125 @@ export function BlogDetail() {
 		restDelta: 0.001,
 	});
 
-	useEffect(() => {
-		if (slug) {
-			loadBlog();
-		}
-		window.scrollTo(0, 0);
-	}, [slug]);
+	// Fetch blog post
+	const {
+		data: blog,
+		isLoading: blogLoading,
+		error: blogError,
+	} = useQuery({
+		queryKey: ["blog", slug],
+		queryFn: () => getBlogBySlug(slug!),
+		enabled: !!slug,
+	});
 
-	const loadBlog = async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const data = await getBlogBySlug(slug!);
-			setBlog(data);
-			setHeadings(extractHeadings(data.content));
-			// Load comments after blog is loaded
-			await loadComments(data.id);
-		} catch (err) {
-			console.error("Error loading blog:", err);
-			setError("Failed to load blog post. Please try again later.");
-		} finally {
-			setLoading(false);
-		}
-	};
+	// Fetch comments
+	const {
+		data: commentsData,
+		isLoading: commentsLoading,
+	} = useQuery({
+		queryKey: ["comments", blog?.id],
+		queryFn: () => getCommentsByPost(blog!.id),
+		enabled: !!blog?.id,
+	});
 
-	const loadComments = async (postId: number) => {
-		try {
-			setCommentsLoading(true);
-			const data: CommentListResponse = await getCommentsByPost(postId);
-			setComments(data.comments || []);
-		} catch (err) {
-			console.error("Error loading comments:", err);
-		} finally {
-			setCommentsLoading(false);
-		}
-	};
+	const comments = commentsData?.comments || [];
+
+	// Create comment mutation
+	const createCommentMutation = useMutation({
+		mutationFn: (content: string) =>
+			createComment({
+				content,
+				post_id: blog!.id,
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["comments", blog?.id] });
+			toast.success("Comment posted!");
+		},
+		onError: (err) => {
+			console.error("Error creating comment:", err);
+			toast.error("Failed to post comment. Please try again.");
+		},
+	});
+
+	// Create reply mutation
+	const createReplyMutation = useMutation({
+		mutationFn: (data: { content: string; parent_id: string }) =>
+			createReply({
+				content: data.content,
+				post_id: blog!.id,
+				parent_id: data.parent_id,
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["comments", blog?.id] });
+			toast.success("Reply posted!");
+		},
+		onError: (err) => {
+			console.error("Error posting reply:", err);
+			toast.error("Failed to post reply. Please try again.");
+		},
+	});
+
+	// Update comment mutation
+	const editCommentMutation = useMutation({
+		mutationFn: (data: { id: string; content: string }) =>
+			updateComment(data.id, {
+				content: data.content,
+				post_id: blog!.id,
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["comments", blog?.id] });
+			toast.success("Comment updated!");
+		},
+		onError: (err) => {
+			console.error("Error updating comment:", err);
+			toast.error("Failed to update comment. Please try again.");
+		},
+	});
+
+	// Delete comment mutation
+	const deleteCommentMutation = useMutation({
+		mutationFn: (id: string) => deleteComment(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["comments", blog?.id] });
+			toast.success("Comment deleted.");
+		},
+		onError: (err) => {
+			console.error("Error deleting comment:", err);
+			toast.error("Failed to delete comment. Please try again.");
+		},
+	});
+
+	const commentSubmitting =
+		createCommentMutation.isPending ||
+		createReplyMutation.isPending ||
+		editCommentMutation.isPending ||
+		deleteCommentMutation.isPending;
 
 	const handleAddComment = async (data: any) => {
 		if (!blog) return;
-		try {
-			setCommentSubmitting(true);
-			const newComment = await createComment({
-				content: data.content,
-				post_id: blog.id,
-			});
-			setComments((prev) => [newComment, ...prev]);
-			toast.success("Comment posted!");
-		} catch (err) {
-			console.error("Error creating comment:", err);
-			toast.error("Failed to post comment. Please try again.");
-		} finally {
-			setCommentSubmitting(false);
-		}
+		await createCommentMutation.mutateAsync(data.content);
 	};
 
 	const handleAddReply = async (data: any) => {
 		if (!blog) return;
-		try {
-			setCommentSubmitting(true);
-			await createReply({
-				content: data.content,
-				post_id: blog.id,
-				parent_id: data.parent_id,
-			});
-			// Re-fetch to get nested replies correctly
-			await loadComments(blog.id);
-			toast.success("Reply posted!");
-		} catch (err) {
-			console.error("Error posting reply:", err);
-			toast.error("Failed to post reply. Please try again.");
-		} finally {
-			setCommentSubmitting(false);
-		}
+		await createReplyMutation.mutateAsync({
+			content: data.content,
+			parent_id: data.parent_id,
+		});
 	};
 
 	const handleEditComment = async (id: string, data: any) => {
 		if (!blog) return;
-		try {
-			setCommentSubmitting(true);
-			const updated = await updateComment(id, {
-				content: data.content,
-				post_id: blog.id,
-			});
-			setComments((prev) =>
-				prev.map((c) =>
-					c.id === id
-						? {
-								...c,
-								content: updated.content,
-								updated_at: updated.updated_at,
-							}
-						: c,
-				),
-			);
-			toast.success("Comment updated!");
-		} catch (err) {
-			console.error("Error updating comment:", err);
-			toast.error("Failed to update comment. Please try again.");
-		} finally {
-			setCommentSubmitting(false);
-		}
+		await editCommentMutation.mutateAsync({ id, content: data.content });
 	};
 
 	const handleDeleteComment = async (id: string) => {
-		try {
-			setCommentSubmitting(true);
-			await deleteComment(id);
-			setComments((prev) => prev.filter((c) => c.id !== id));
-			toast.success("Comment deleted.");
-		} catch (err) {
-			console.error("Error deleting comment:", err);
-			toast.error("Failed to delete comment. Please try again.");
-		} finally {
-			setCommentSubmitting(false);
-		}
+		await deleteCommentMutation.mutateAsync(id);
 	};
+
+	useEffect(() => {
+		window.scrollTo(0, 0);
+	}, [slug]);
 
 	const estimateReadingTime = (content: string) => {
 		const wordsPerMinute = 200;
@@ -198,6 +191,11 @@ export function BlogDetail() {
 		return headingsList;
 	};
 
+	const headings = useMemo(() => {
+		if (!blog?.content) return [];
+		return extractHeadings(blog.content);
+	}, [blog?.content]);
+
 	const scrollToHeading = (id: string) => {
 		const element = document.getElementById(id);
 		if (element) {
@@ -210,7 +208,7 @@ export function BlogDetail() {
 		toast.success("Link copied to clipboard!");
 	};
 
-	if (loading) {
+	if (blogLoading) {
 		return (
 			<div className="min-h-screen bg-background flex flex-col">
 				<Navbar />
@@ -225,7 +223,7 @@ export function BlogDetail() {
 		);
 	}
 
-	if (error || !blog) {
+	if (blogError || !blog) {
 		return (
 			<div className="min-h-screen bg-background flex flex-col">
 				<Navbar />
@@ -235,7 +233,7 @@ export function BlogDetail() {
 							<ArrowLeft className="h-10 w-10" />
 						</div>
 						<h1 className="text-3xl font-bold mb-4">
-							{error || "Blog Post Not Found"}
+							{blogError instanceof Error ? blogError.message : "Blog Post Not Found"}
 						</h1>
 						<p className="text-muted-foreground mb-8 max-w-md mx-auto">
 							The article you're looking for might have been moved

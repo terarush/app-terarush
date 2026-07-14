@@ -14,7 +14,6 @@ const footerLinks = {
 	product: [
 		{ name: "Services", href: "#services" },
 		{ name: "Open Source", href: "#opensource" },
-		{ name: "Documentation", href: "/docs", external: true },
 	],
 	company: [
 		{ name: "About", href: "#about" },
@@ -23,8 +22,6 @@ const footerLinks = {
 	],
 	resources: [
 		{ name: "GitHub", href: siteConfig.links.github, external: true },
-		{ name: "Community", href: "/community" },
-		{ name: "Blog", href: "/blog" },
 	],
 	legal: [
 		{ name: "Privacy Policy", href: "/privacy" },
@@ -108,25 +105,13 @@ export default function Footer() {
 									<ul className="space-y-3">
 										{footerLinks.product.map((link) => (
 											<li key={link.name}>
-												{link.external ? (
-													<a
-														href={link.href}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center group"
-													>
-														{link.name}
-														<ExternalLink className="ml-1 h-3 w-3" />
-													</a>
-												) : (
-													<a
-														href={link.href}
-														className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center group"
-													>
-														{link.name}
-														<ArrowRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-													</a>
-												)}
+												<a
+													href={link.href}
+													className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center group"
+												>
+													{link.name}
+													<ArrowRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+												</a>
 											</li>
 										))}
 									</ul>

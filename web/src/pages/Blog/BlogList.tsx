@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBlogs, type Blog } from "@/lib/api/blogs";
+import { getBlogs } from "@/lib/api/blogs";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { LoadingSpinner } from "@/components/elements/loading-spinner";
@@ -14,80 +14,48 @@ import {
 	HeroSection,
 	ContentSection,
 } from "@/components/layouts/page-layout";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 export function BlogList() {
-	const [blogs, setBlogs] = useState<Blog[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [loadingMore, setLoadingMore] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [page, setPage] = useState(1);
-	const [total, setTotal] = useState(0);
 	const [searchQuery, setSearchQuery] = useState("");
 	const navigate = useNavigate();
 	const pageSize = 10;
 
-	useEffect(() => {
-		if (page === 1) {
-			loadBlogs();
-		} else {
-			loadMoreBlogs();
-		}
-	}, [page]);
+	const {
+		data,
+		error,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		status,
+		refetch,
+	} = useInfiniteQuery({
+		queryKey: ["blogs", searchQuery],
+		queryFn: ({ pageParam = 1 }) =>
+			getBlogs({
+				page: pageParam,
+				page_size: pageSize,
+				search: searchQuery || undefined,
+			}),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage, allPages) => {
+			const loadedCount = allPages.reduce(
+				(acc, curr) => acc + (curr.blogs?.length || 0),
+				0,
+			);
+			return loadedCount < (lastPage.total || 0) ? allPages.length + 1 : undefined;
+		},
+	});
 
-	// Reset to first page and clear blogs when search query changes
-    useEffect(() => {
-        // When search changes, reset to first page and reload from server
-        setPage(1);
-        setBlogs([]);
-        // trigger load for page 1 with new search
-        // loadBlogs will be invoked by the page effect when page === 1
-    }, [searchQuery]);
+	const blogs = data?.pages.flatMap((page) => page.blogs || []) || [];
+	const loading = status === "pending";
+	const loadingMore = isFetchingNextPage;
 
-	const loadBlogs = async () => {
-		try {
-			setLoading(true);
-			setError(null);
-            const response = await getBlogs({
-                page: 1,
-                page_size: pageSize,
-                search: searchQuery || undefined,
-            });
-			setBlogs(response.blogs || []);
-			setTotal(response.total || 0);
-			setPage(1);
-		} catch (err) {
-			console.error("Error loading blogs:", err);
-			setError("Failed to load blogs. Please try again later.");
-		} finally {
-			setLoading(false);
-		}
-	};
+	// Server-side search is used. Keep client-side list as-is for rendering.
+	const filteredBlogs = blogs;
 
-	const loadMoreBlogs = async () => {
-		try {
-			setLoadingMore(true);
-			setError(null);
-            const response = await getBlogs({
-                page,
-                page_size: pageSize,
-                search: searchQuery || undefined,
-            });
-			setBlogs((prevBlogs) => [...prevBlogs, ...(response.blogs || [])]);
-			setTotal(response.total || 0);
-		} catch (err) {
-			console.error("Error loading more blogs:", err);
-			setError("Failed to load more blogs. Please try again later.");
-		} finally {
-			setLoadingMore(false);
-		}
-	};
-
-    // Server-side search is used. Keep client-side list as-is for rendering.
-    const filteredBlogs = blogs;
-
-    // Only show load more if there are more blogs to load
-    // Backend handles search scoping, so hasMore is based on counts from server
-    const hasMore = blogs.length < total;
+	// Only show load more if there are more blogs to load
+	const hasMore = hasNextPage;
 
 	if (loading && blogs.length === 0) {
 		return (
@@ -129,9 +97,12 @@ export function BlogList() {
 
 				{/* Blog Grid */}
 				<ContentSection>
-					{error && (
+					{status === "error" && (
 						<div className="mb-8">
-							<ErrorMessage message={error} onRetry={loadBlogs} />
+							<ErrorMessage
+								message={error instanceof Error ? error.message : "Failed to load blogs. Please try again later."}
+								onRetry={() => refetch()}
+							/>
 						</div>
 					)}
 
@@ -157,7 +128,7 @@ export function BlogList() {
 
 							{/* Load More Button */}
 							<LoadMoreButton
-								onClick={() => setPage((prev) => prev + 1)}
+								onClick={() => fetchNextPage()}
 								isLoading={loadingMore}
 								hasMore={hasMore}
 								itemCount={blogs.length}

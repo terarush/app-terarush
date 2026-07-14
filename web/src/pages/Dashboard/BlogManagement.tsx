@@ -26,42 +26,47 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BlogForm } from "@/components/fragments/BlogForm";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function BlogManagement() {
-	const [blogs, setBlogs] = useState<Blog[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const queryClient = useQueryClient();
 	const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [deleteId, setDeleteId] = useState<number | null>(null);
-	const [isDeleting, setIsDeleting] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
-	const [total, setTotal] = useState(0);
 	const itemsPerPage = 10;
 
-	useEffect(() => {
-		loadBlogs();
-	}, [currentPage]);
-
-	const loadBlogs = async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const response = await getAllBlogs({
+	const {
+		data,
+		isLoading: loading,
+		status,
+		refetch: loadBlogs,
+	} = useQuery({
+		queryKey: ["adminBlogs", currentPage],
+		queryFn: () =>
+			getAllBlogs({
 				page: currentPage,
 				page_size: itemsPerPage,
-			});
-			setBlogs(response.blogs || []);
-			setTotal(response.total || 0);
-		} catch (err) {
-			console.error("Error loading blogs:", err);
-			setError("Failed to load blogs");
-			toast.error("Failed to load blogs");
-		} finally {
-			setLoading(false);
-		}
-	};
+			}),
+	});
+
+	const blogs = data?.blogs || [];
+	const total = data?.total || 0;
+	const error = status === "error" ? "Failed to load blogs" : null;
+
+	const deleteBlogMutation = useMutation({
+		mutationFn: (id: number) => deleteBlog(id),
+		onSuccess: () => {
+			toast.success("Blog deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["adminBlogs"] });
+			setDeleteId(null);
+		},
+		onError: (err) => {
+			console.error("Error deleting blog:", err);
+			toast.error("Failed to delete blog");
+		},
+	});
 
 	// Pagination logic
 	const totalPages = Math.ceil(total / itemsPerPage);
@@ -96,24 +101,15 @@ export function BlogManagement() {
 		setIsFormOpen(false);
 		setSelectedBlog(null);
 		if (saved) {
-			loadBlogs();
+			queryClient.invalidateQueries({ queryKey: ["adminBlogs"] });
 		}
 	};
 
-	const handleDelete = async (id: number) => {
-		try {
-			setIsDeleting(true);
-			await deleteBlog(id);
-			toast.success("Blog deleted successfully");
-			setDeleteId(null);
-			loadBlogs();
-		} catch (err) {
-			console.error("Error deleting blog:", err);
-			toast.error("Failed to delete blog");
-		} finally {
-			setIsDeleting(false);
-		}
+	const handleDelete = (id: number) => {
+		deleteBlogMutation.mutate(id);
 	};
+
+	const isDeleting = deleteBlogMutation.isPending;
 
 	if (loading) {
 		return (
@@ -127,7 +123,7 @@ export function BlogManagement() {
 		return (
 			<div className="text-center py-12">
 				<p className="text-destructive mb-4">{error}</p>
-				<Button onClick={loadBlogs}>Try Again</Button>
+				<Button onClick={() => loadBlogs()}>Try Again</Button>
 			</div>
 		);
 	}

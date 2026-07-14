@@ -1,40 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AssetUploader } from "@/components/AssetUploader";
 import { AssetGallery } from "@/components/AssetGallery";
 import { apiClient } from "@/lib/api/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Asset } from "@/lib/api/assets";
 
 export function Assets() {
-	const [assets, setAssets] = useState<Asset[]>([]);
-	const [loading, setLoading] = useState(true);
+	const queryClient = useQueryClient();
 	const [displayMode, setDisplayMode] = useState<"grid" | "list">("grid");
 	const [uploadTab, setUploadTab] = useState("single");
 
-	useEffect(() => {
-		loadAssets();
-	}, []);
-
-	const loadAssets = async () => {
-		try {
-			setLoading(true);
+	const {
+		data: assets = [],
+		isLoading: loading,
+		refetch,
+	} = useQuery<Asset[]>({
+		queryKey: ["assets"],
+		queryFn: async () => {
 			const response = await apiClient.get("/admin/assets");
-			setAssets(response.data?.assets || []);
-		} catch (err) {
-			console.error("Error loading assets:", err);
-		} finally {
-			setLoading(false);
-		}
-	};
+			return response.data?.assets || [];
+		},
+	});
 
 	const handleUploadSuccess = () => {
-		// Reload assets to get the latest list from backend
-		loadAssets();
+		queryClient.invalidateQueries({ queryKey: ["assets"] });
 	};
 
-	const handleAssetDeleted = (assetId: string) => {
-		setAssets((prev) => prev.filter((asset) => asset.id !== assetId));
+	const handleAssetDeleted = () => {
+		queryClient.invalidateQueries({ queryKey: ["assets"] });
 	};
 
 	return (
@@ -193,7 +188,7 @@ export function Assets() {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={loadAssets}
+								onClick={() => refetch()}
 								disabled={loading}
 							>
 								{loading ? "Loading..." : "Refresh"}
