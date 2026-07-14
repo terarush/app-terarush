@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, Outlet, Link } from '@tanstack/react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
+import { ThemeProvider } from '@/components/theme-provider'
 import LoginPage from '@/modules/auth/login'
 import RegisterPage from '@/modules/auth/register'
 
@@ -12,11 +13,13 @@ export const rootRoute = createRootRoute({
 
 function RootComponent() {
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-background text-foreground font-sans antialiased">
-        <Outlet />
-      </div>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <div className="min-h-screen bg-background text-foreground font-sans antialiased">
+          <Outlet />
+        </div>
+      </TooltipProvider>
+    </ThemeProvider>
   )
 }
 
