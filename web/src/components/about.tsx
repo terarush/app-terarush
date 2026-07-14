@@ -146,16 +146,16 @@ export default function About() {
 									key={index}
 									className="group h-full border-0 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
 								>
-									<CardContent className="p-6 text-center">
+									<CardContent className="p-6 text-center flex flex-col items-center">
 										<div
-											className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${value.color} mb-4 group-hover:scale-110 transition-transform duration-300`}
+											className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${value.color} mb-4 shrink-0 group-hover:scale-110 transition-transform duration-300`}
 										>
 											<Icon className="h-8 w-8 text-primary-foreground" />
 										</div>
 										<h4 className="text-xl font-semibold text-foreground mb-3">
 											{value.title}
 										</h4>
-										<p className="text-muted-foreground">
+										<p className="text-muted-foreground flex-1">
 											{value.description}
 										</p>
 									</CardContent>
@@ -181,8 +181,8 @@ export default function About() {
 								key={index}
 								className="group relative overflow-hidden border border-border bg-gradient-to-br from-card to-card/50 hover:shadow-2xl hover:scale-[1.02] transition-all duration-500"
 							>
-								<CardContent className="p-8 relative z-10">
-									<div className="flex flex-col items-center text-center">
+								<CardContent className="p-8 relative z-10 flex flex-col h-full">
+									<div className="flex flex-col items-center text-center flex-1">
 										<div className="relative mb-6">
 											<div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/50 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
 											<Avatar className="w-28 h-28 relative border-4 border-background shadow-xl ring-4 ring-primary/20 group-hover:ring-primary/50 transition-all duration-500">
@@ -199,7 +199,7 @@ export default function About() {
 											</Avatar>
 										</div>
 
-										<div className="space-y-2 mb-6">
+										<div className="space-y-2 mb-6 flex-1">
 											<h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
 												{member.name}
 											</h4>
