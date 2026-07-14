@@ -1,45 +1,107 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
+import axios from "axios"
+import Cookies from "js-cookie"
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `HTTP error! status: ${response.status}`);
+export const apiClient = axios.create({
+  baseURL: `${BASE_URL}/v1`,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: 10000,
+})
+
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get("accessToken")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
   }
+)
 
-  // Handle empty responses
-  if (response.status === 204) {
-    return {} as T;
+apiClient.interceptors.response.use(
+  (response) => {
+    if (
+      response.data &&
+      typeof response.data === "object" &&
+      "data" in response.data
+    ) {
+      response.data = response.data.data
+    }
+    return response
+  },
+  async (error) => {
+    const originalRequest = error.config
+
+    const skipRefreshUrls = [
+      "/auth/login",
+      "/auth/register",
+      "/auth/refresh",
+      "/auth/github/callback",
+    ]
+    const isSkipUrl = skipRefreshUrls.some((url) =>
+      originalRequest?.url?.includes(url)
+    )
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isSkipUrl
+    ) {
+      originalRequest._retry = true
+
+      const refreshToken = Cookies.get("refreshToken")
+      if (refreshToken) {
+        try {
+          const response = await axios.post(
+            `${BASE_URL}/v1/auth/refresh`,
+            {
+              refresh_token: refreshToken,
+            }
+          )
+
+          const data = response.data?.data || response.data
+          const access_token = data.access_token || data.AccessToken
+
+          if (access_token) {
+            Cookies.set("accessToken", access_token, {
+              expires: 7,
+            })
+
+            originalRequest.headers.Authorization = `Bearer ${access_token}`
+            return apiClient(originalRequest)
+          }
+        } catch (refreshError) {
+          Cookies.remove("accessToken")
+          Cookies.remove("refreshToken")
+
+          if (
+            !window.location.pathname.includes("/login") &&
+            !window.location.pathname.includes("/register")
+          ) {
+            window.location.href = "/login"
+          }
+          return Promise.reject(refreshError)
+        }
+      } else {
+        Cookies.remove("accessToken")
+        Cookies.remove("refreshToken")
+
+        if (
+          !window.location.pathname.includes("/login") &&
+          !window.location.pathname.includes("/register") &&
+          window.location.pathname !== "/"
+        ) {
+          window.location.href = "/login"
+        }
+      }
+    }
+
+    return Promise.reject(error)
   }
-
-  return response.json();
-}
-
-export const apiClient = {
-  get: <T>(path: string, options?: RequestInit) => 
-    request<T>(path, { ...options, method: 'GET' }),
-  
-  post: <T>(path: string, data: unknown, options?: RequestInit) => 
-    request<T>(path, { 
-      ...options, 
-      method: 'POST', 
-      body: JSON.stringify(data) 
-    }),
-  
-  put: <T>(path: string, data: unknown, options?: RequestInit) => 
-    request<T>(path, { 
-      ...options, 
-      method: 'PUT', 
-      body: JSON.stringify(data) 
-    }),
-  
-  delete: <T>(path: string, options?: RequestInit) => 
-    request<T>(path, { ...options, method: 'DELETE' }),
-};
+)
