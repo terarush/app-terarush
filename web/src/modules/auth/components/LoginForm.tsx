@@ -9,13 +9,15 @@ import { SocialButton } from "./elements/SocialButton"
 import { Divider } from "./fragments/Divider"
 import { authContent } from "../content/auth"
 import { loginSchema } from "@/schemas/auth"
+import { useLoginMutation } from "@/service/mutation/auth"
+import { authApi } from "@/service/api/auth"
 
 export function LoginForm() {
+  const loginMutation = useLoginMutation()
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [errorMessage, setErrorMessage] = useState("")
 
@@ -40,18 +42,19 @@ export function LoginForm() {
     
     if (!validate()) return
 
-    setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await loginMutation.mutateAsync({ email, password })
       toast.success("Welcome back!", {
         description: "You have successfully signed in.",
       })
       navigate({ to: "/" })
     } catch (error: any) {
       console.error("Login error:", error)
-      setErrorMessage("Login failed. Please check your credentials.")
-    } finally {
-      setIsLoading(false)
+      const errorMsg = error?.response?.data?.error || "Login failed. Please check your credentials."
+      setErrorMessage(errorMsg)
+      toast.error("Authentication failed", {
+        description: errorMsg,
+      })
     }
   }
 
@@ -59,7 +62,10 @@ export function LoginForm() {
     toast.info("Redirecting to GitHub...", {
       description: "Connecting to OAuth authentication provider.",
     })
+    window.location.href = authApi.getGitHubAuthUrl()
   }
+
+  const isPending = loginMutation.isPending
 
   return (
     <div className="w-full space-y-5">
@@ -79,7 +85,7 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           error={errors.email}
           icon={<Mail className="h-4 w-4" />}
-          disabled={isLoading}
+          disabled={isPending}
         />
 
         <AuthField
@@ -91,7 +97,7 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           error={errors.password}
           icon={<Lock className="h-4 w-4" />}
-          disabled={isLoading}
+          disabled={isPending}
         />
 
         <div className="flex items-center justify-between text-xs pt-1">
@@ -101,7 +107,7 @@ export function LoginForm() {
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
               className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-950 cursor-pointer"
-              disabled={isLoading}
+              disabled={isPending}
             />
             <span className="text-zinc-600 dark:text-zinc-400 font-medium">
               {authContent.login.rememberMe}
@@ -117,10 +123,10 @@ export function LoginForm() {
 
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isPending}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10 text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center border border-transparent"
         >
-          {isLoading ? (
+          {isPending ? (
             authContent.login.submittingButton
           ) : (
             authContent.login.submitButton

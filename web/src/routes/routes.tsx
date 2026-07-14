@@ -2,8 +2,10 @@ import { createRootRoute, createRoute, Outlet, Link } from '@tanstack/react-rout
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import { ThemeProvider } from '@/components/theme-provider'
+import { AuthProvider } from '@/contexts/auth-context'
 import LoginPage from '@/modules/auth/login'
 import RegisterPage from '@/modules/auth/register'
+import GitHubCallbackPage from '@/modules/auth/github-callback'
 
 import '../styles.css'
 
@@ -13,13 +15,15 @@ export const rootRoute = createRootRoute({
 
 function RootComponent() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <div className="min-h-screen bg-background text-foreground font-sans antialiased">
-          <Outlet />
-        </div>
-      </TooltipProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <div className="min-h-screen bg-background text-foreground font-sans antialiased">
+            <Outlet />
+          </div>
+        </TooltipProvider>
+      </ThemeProvider>
+    </AuthProvider>
   )
 }
 
@@ -48,6 +52,7 @@ const routes = [
   { path: '/', component: Home },
   { path: '/login', component: LoginPage },
   { path: '/register', component: RegisterPage },
+  { path: '/auth/github/callback', component: GitHubCallbackPage },
 ]
 
 export const routeTree = rootRoute.addChildren(

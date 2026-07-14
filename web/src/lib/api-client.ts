@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 const API_VERSION = import.meta.env.VITE_API_VERSION;
 
 export const apiClient = axios.create({
-  baseURL: `${BASE_URL}/${API_VERSION}`,
+  baseURL: `${BASE_URL}/v${API_VERSION}`,
   headers: {
     "Content-Type": "application/json",
   },

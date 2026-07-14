@@ -2,6 +2,7 @@ import React from "react"
 import { Link } from "@tanstack/react-router"
 import { BrandLogo } from "../components/elements/BrandLogo"
 import { authContent } from "../content/auth"
+import { companyMeta } from "@/meta"
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -17,16 +18,19 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
 
         <div>
           <Link to="/" className="inline-flex items-center space-x-2.5 group">
-            <div className="h-9 w-9 rounded-lg border border-3 text-primary flex items-center justify-center font-bold tracking-tighter text-sm">
-              <img src="/company/logo.png" />
+            <div className="h-9 w-9 rounded-md bg-primary-foreground text-primary flex items-center justify-center font-bold tracking-tighter text-sm">
+              TR
             </div>
             <span className="text-xl font-bold tracking-tight text-primary-foreground">
-              TeraRush
+              {companyMeta.name}
             </span>
           </Link>
         </div>
 
         <div className="space-y-6 my-auto">
+          <span className="text-[10px] font-bold tracking-widest uppercase bg-white/10 text-primary-foreground/90 px-2.5 py-1 rounded-md border border-white/5">
+            Custom Web & App Development Agency
+          </span>
           <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight leading-tight font-serif text-primary-foreground">
             Build Your Digital Future with Expert Development.
           </h2>
@@ -38,11 +42,12 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             <p className="text-xs italic leading-relaxed text-primary-foreground/90">
               &quot;To empower businesses and developers by delivering cutting-edge web and application development services, solving technical challenges, and creating robust digital solutions.&quot;
             </p>
+            <p className="text-[10px] font-bold text-primary-foreground/75 tracking-wider uppercase">— Our Mission</p>
           </div>
         </div>
 
         <div className="text-[10px] text-primary-foreground/40 font-medium">
-          &copy; {new Date().getFullYear()} TeraRush Inc. All rights reserved.
+          &copy; {new Date().getFullYear()} {companyMeta.name}. All rights reserved.
         </div>
       </div>
 

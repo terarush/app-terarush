@@ -9,8 +9,11 @@ import { SocialButton } from "./elements/SocialButton"
 import { Divider } from "./fragments/Divider"
 import { authContent } from "../content/auth"
 import { registerSchema } from "@/schemas/auth"
+import { useRegisterMutation } from "@/service/mutation/auth"
+import { authApi } from "@/service/api/auth"
 
 export function RegisterForm() {
+  const registerMutation = useRegisterMutation()
   const navigate = useNavigate()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -18,7 +21,6 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(0)
-  const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string; agreeTerms?: string }>({})
   const [errorMessage, setErrorMessage] = useState("")
 
@@ -56,18 +58,24 @@ export function RegisterForm() {
     
     if (!validate()) return
 
-    setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await registerMutation.mutateAsync({
+        name,
+        email,
+        password,
+        confirm_password: confirmPassword,
+      })
       toast.success("Account created successfully!", {
         description: "Please sign in to proceed.",
       })
       navigate({ to: "/login" })
     } catch (error: any) {
       console.error("Registration error:", error)
-      setErrorMessage("Registration failed. Please try again.")
-    } finally {
-      setIsLoading(false)
+      const errorMsg = error?.response?.data?.error || "Registration failed. Please try again."
+      setErrorMessage(errorMsg)
+      toast.error("Registration failed", {
+        description: errorMsg,
+      })
     }
   }
 
@@ -75,6 +83,7 @@ export function RegisterForm() {
     toast.info("Redirecting to GitHub...", {
       description: "Connecting to OAuth authentication provider.",
     })
+    window.location.href = authApi.getGitHubAuthUrl()
   }
 
   const getPasswordStrengthColor = () => {
@@ -92,6 +101,8 @@ export function RegisterForm() {
     if (passwordStrength === 3) return "Good"
     return "Strong"
   }
+
+  const isPending = registerMutation.isPending
 
   return (
     <div className="w-full space-y-5">
@@ -111,7 +122,7 @@ export function RegisterForm() {
           onChange={(e) => setName(e.target.value)}
           error={errors.name}
           icon={<User className="h-4 w-4" />}
-          disabled={isLoading}
+          disabled={isPending}
         />
 
         <AuthField
@@ -123,7 +134,7 @@ export function RegisterForm() {
           onChange={(e) => setEmail(e.target.value)}
           error={errors.email}
           icon={<Mail className="h-4 w-4" />}
-          disabled={isLoading}
+          disabled={isPending}
         />
 
         <div>
@@ -136,7 +147,7 @@ export function RegisterForm() {
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
             icon={<Lock className="h-4 w-4" />}
-            disabled={isLoading}
+            disabled={isPending}
           />
           {password && (
             <div className="mt-2">
@@ -169,7 +180,7 @@ export function RegisterForm() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={errors.confirmPassword}
             icon={<Lock className="h-4 w-4" />}
-            disabled={isLoading}
+            disabled={isPending}
           />
           {confirmPassword && password === confirmPassword && (
             <p className="text-[10px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1 font-medium">
@@ -186,7 +197,7 @@ export function RegisterForm() {
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
             className="w-3.5 h-3.5 mt-0.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-950 cursor-pointer"
-            disabled={isLoading}
+            disabled={isPending}
           />
           <label htmlFor="terms" className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none font-medium leading-normal">
             {authContent.register.termsText}{" "}
@@ -205,10 +216,10 @@ export function RegisterForm() {
 
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isPending}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg h-10 text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center border border-transparent"
         >
-          {isLoading ? (
+          {isPending ? (
             authContent.register.submittingButton
           ) : (
             authContent.register.submitButton

@@ -1,5 +1,6 @@
 import React from "react"
 import { Link } from "@tanstack/react-router"
+import { companyMeta } from "@/meta"
 
 export function BrandLogo() {
   return (
@@ -8,7 +9,7 @@ export function BrandLogo() {
         TR
       </div>
       <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-        TeraRush
+        {companyMeta.name}
       </span>
     </Link>
   )
