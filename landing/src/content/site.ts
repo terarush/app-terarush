@@ -1,5 +1,5 @@
 export const siteConfig = {
-  logo: "/company/logo.png",
+	logo: "/company/logo.png",
 	name: "Terarush",
 	title: "Terarush - Open Source Development Agency",
 	description:
@@ -29,6 +29,7 @@ export const siteConfig = {
 export const navConfig = {
 	mainNav: [
 		{ label: "Home", href: "/" },
+		{ label: "Blog", href: "/blog" },
 		{ label: "Services", href: "#services" },
 		{ label: "About", href: "#about" },
 		{ label: "Why Us", href: "#why" },

@@ -7,6 +7,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BlogList } from "./pages/Blog/BlogList";
+import { BlogDetail } from "./pages/Blog/BlogDetail";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +57,8 @@ function AppContent() {
       <Toaster position="top-right" richColors />
       <Routes>
         <Route path="" element={<Index />} />
+        <Route path="blog" element={<BlogList />} />
+        <Route path="blog/:slug" element={<BlogDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
