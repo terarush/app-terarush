@@ -6,10 +6,17 @@ import (
 	"go-modular/internal/pkg/config"
 	"go-modular/internal/pkg/logger"
 	"go-modular/internal/pkg/middleware"
+	"go-modular/modules/activity"
+	"go-modular/modules/agent"
+	"go-modular/modules/analytics"
 	"go-modular/modules/assets"
 	"go-modular/modules/auth"
 	"go-modular/modules/blogs"
+	"go-modular/modules/bookmarks"
 	"go-modular/modules/comments"
+	"go-modular/modules/moderation"
+	"go-modular/modules/notifications"
+	"go-modular/modules/subscriptions"
 	user "go-modular/modules/users"
 	"log"
 	"os"
@@ -46,6 +53,13 @@ func main() {
 	middleware.InitializeAuth(jwtSignatureKey)
 
 	// register modules
+	app.RegisterModule(agent.NewModule())
+	app.RegisterModule(activity.NewModule())
+	app.RegisterModule(analytics.NewModule())
+	app.RegisterModule(bookmarks.NewModule())
+	app.RegisterModule(moderation.NewModule())
+	app.RegisterModule(notifications.NewModule())
+	app.RegisterModule(subscriptions.NewModule())
 	app.RegisterModule(user.NewModule())
 	app.RegisterModule(auth.NewModule())
 	app.RegisterModule(blogs.NewModule())
