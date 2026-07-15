@@ -33,12 +33,13 @@ function RootComponent() {
   )
 }
 
-const routeConfig = {
+type RouteItem = { path: string; component?: any; beforeLoad?: any };
+const routeConfig: { root: RouteItem[]; app: { layout: any; children: RouteItem[] } } = {
   root: [
     {
       path: '/',
       beforeLoad: () => {
-        throw redirect({ to: '/app' })
+        throw redirect({ to: '/app' as any })
       },
     },
     { path: '/login', component: LoginPage },
