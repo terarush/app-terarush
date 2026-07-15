@@ -10,6 +10,27 @@ import (
 // Response is a standard structure for JSON responses.
 type Response struct{}
 
+// SuccessResponse is a swagger-compatible success response type.
+type SuccessResponse struct {
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+}
+
+// ErrorResponse is a swagger-compatible error response type.
+type ErrorResponse struct {
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+}
+
+// CreatedResponse is a swagger-compatible created response type.
+type CreatedResponse struct {
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+}
+
 // ErrorDetail represents a structured error detail
 type ErrorDetail struct {
 	Field   string `json:"field,omitempty"`

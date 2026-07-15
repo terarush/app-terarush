@@ -1,5 +1,14 @@
 package main
 
+// @title TeraRush API
+// @version 1.0
+// @description Modular blogging platform API
+// @host localhost:8080
+// @BasePath /api/v1
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+
 import (
 	"flag"
 	"go-modular/internal/app"
