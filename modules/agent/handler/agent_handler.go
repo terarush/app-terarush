@@ -40,6 +40,15 @@ func getUserID(c echo.Context) (uint, error) {
 
 // ─── Agents ──────────────────────────────────────────────────────────────────
 
+// ListAgents lists all agents
+// @Summary List agents
+// @Description List all AI agents (admin only)
+// @Tags Agent
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse "Agents list"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents [get]
+// @Security Bearer
 func (h *AgentHandler) ListAgents(c echo.Context) error {
 	agents, err := h.svc.GetAgents(c.Request().Context(), nil)
 	if err != nil {
@@ -48,6 +57,17 @@ func (h *AgentHandler) ListAgents(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.AgentFromEntities(agents), "")
 }
 
+// GetAgent gets an agent by ID
+// @Summary Get agent
+// @Description Get a specific AI agent by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Agent ID"
+// @Success 200 {object} utils.SuccessResponse "Agent details"
+// @Failure 404 {object} utils.ErrorResponse "Agent not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/{id} [get]
+// @Security Bearer
 func (h *AgentHandler) GetAgent(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -63,6 +83,18 @@ func (h *AgentHandler) GetAgent(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.AgentFromEntity(agent), "")
 }
 
+// CreateAgent creates a new agent
+// @Summary Create agent
+// @Description Create a new AI agent configuration (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param request body request.CreateAgentRequest true "Agent creation data"
+// @Success 201 {object} utils.CreatedResponse "Agent created"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents [post]
+// @Security Bearer
 func (h *AgentHandler) CreateAgent(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.CreateAgentRequest)
@@ -93,6 +125,20 @@ func (h *AgentHandler) CreateAgent(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.AgentFromEntity(agent), "")
 }
 
+// UpdateAgent updates an agent
+// @Summary Update agent
+// @Description Update an existing AI agent configuration (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Agent ID"
+// @Param request body request.UpdateAgentRequest true "Agent update data"
+// @Success 200 {object} utils.SuccessResponse "Agent updated"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Agent not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/{id} [put]
+// @Security Bearer
 func (h *AgentHandler) UpdateAgent(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -143,6 +189,18 @@ func (h *AgentHandler) UpdateAgent(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.AgentFromEntity(agent), "")
 }
 
+// DeleteAgent deletes an agent
+// @Summary Delete agent
+// @Description Delete an AI agent by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Agent ID"
+// @Success 204 "No content"
+// @Failure 400 {object} utils.ErrorResponse "Invalid agent ID"
+// @Failure 404 {object} utils.ErrorResponse "Agent not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/{id} [delete]
+// @Security Bearer
 func (h *AgentHandler) DeleteAgent(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -157,6 +215,20 @@ func (h *AgentHandler) DeleteAgent(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// SetAgentStatus updates agent status
+// @Summary Set agent status
+// @Description Set the operational status of an AI agent (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Agent ID"
+// @Param request body request.SetAgentStatusRequest true "Status data"
+// @Success 200 {object} utils.SuccessResponse "Status updated"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Agent not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/{id}/status [patch]
+// @Security Bearer
 func (h *AgentHandler) SetAgentStatus(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -181,6 +253,19 @@ func (h *AgentHandler) SetAgentStatus(c echo.Context) error {
 
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
+// ListTasks lists agent tasks
+// @Summary List tasks
+// @Description List all agent tasks with optional filters (admin only)
+// @Tags Agent
+// @Produce json
+// @Param page query int false "Page number"
+// @Param limit query int false "Items per page"
+// @Param status query string false "Filter by status"
+// @Param agent_id query string false "Filter by agent ID"
+// @Success 200 {object} utils.SuccessResponse "Tasks list with pagination"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks [get]
+// @Security Bearer
 func (h *AgentHandler) ListTasks(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -207,6 +292,17 @@ func (h *AgentHandler) ListTasks(c echo.Context) error {
 	}, "")
 }
 
+// GetTask gets a task by ID
+// @Summary Get task
+// @Description Get a specific agent task by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 200 {object} utils.SuccessResponse "Task details"
+// @Failure 404 {object} utils.ErrorResponse "Task not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id} [get]
+// @Security Bearer
 func (h *AgentHandler) GetTask(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -222,6 +318,18 @@ func (h *AgentHandler) GetTask(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.TaskFromEntity(task), "")
 }
 
+// CreateTask creates a new task
+// @Summary Create task
+// @Description Create a new agent task (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param request body request.CreateTaskRequest true "Task creation data"
+// @Success 201 {object} utils.CreatedResponse "Task created"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks [post]
+// @Security Bearer
 func (h *AgentHandler) CreateTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.CreateTaskRequest)
@@ -246,6 +354,20 @@ func (h *AgentHandler) CreateTask(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.TaskFromEntity(task), "")
 }
 
+// UpdateTask updates a task
+// @Summary Update task
+// @Description Update an existing agent task (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Param request body request.UpdateTaskRequest true "Task update data"
+// @Success 200 {object} utils.SuccessResponse "Task updated"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Task not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id} [put]
+// @Security Bearer
 func (h *AgentHandler) UpdateTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -296,6 +418,18 @@ func (h *AgentHandler) UpdateTask(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.TaskFromEntity(task), "")
 }
 
+// DeleteTask deletes a task
+// @Summary Delete task
+// @Description Delete an agent task by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 204 "No content"
+// @Failure 400 {object} utils.ErrorResponse "Invalid task ID"
+// @Failure 404 {object} utils.ErrorResponse "Task not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id} [delete]
+// @Security Bearer
 func (h *AgentHandler) DeleteTask(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -310,6 +444,21 @@ func (h *AgentHandler) DeleteTask(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// AssignTask assigns a task to an agent
+// @Summary Assign task
+// @Description Assign an agent task to a specific agent (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Param request body request.AssignTaskRequest true "Assignment data"
+// @Success 200 {object} utils.SuccessResponse "Task assigned"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Task or agent not found"
+// @Failure 409 {object} utils.ErrorResponse "Agent busy or disabled"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id}/assign [post]
+// @Security Bearer
 func (h *AgentHandler) AssignTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -335,6 +484,17 @@ func (h *AgentHandler) AssignTask(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "task assigned")
 }
 
+// StartTask starts executing a task
+// @Summary Start task
+// @Description Start executing an agent task (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 200 {object} utils.SuccessResponse "Session details"
+// @Failure 404 {object} utils.ErrorResponse "Task not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id}/start [post]
+// @Security Bearer
 func (h *AgentHandler) StartTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -352,6 +512,19 @@ func (h *AgentHandler) StartTask(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.SessionFromEntity(session), "")
 }
 
+// CompleteTask marks a task as complete
+// @Summary Complete task
+// @Description Mark an agent task as completed with output (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Param request body request.CompleteTaskRequest true "Completion data"
+// @Success 200 {object} utils.SuccessResponse "Task completed"
+// @Failure 404 {object} utils.ErrorResponse "Task not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id}/complete [post]
+// @Security Bearer
 func (h *AgentHandler) CompleteTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -372,6 +545,20 @@ func (h *AgentHandler) CompleteTask(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "task completed")
 }
 
+// FailTask marks a task as failed
+// @Summary Fail task
+// @Description Mark an agent task as failed with error details (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Param request body request.FailTaskRequest true "Failure data"
+// @Success 200 {object} utils.SuccessResponse "Task failed"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Task not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/{id}/fail [post]
+// @Security Bearer
 func (h *AgentHandler) FailTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -394,6 +581,15 @@ func (h *AgentHandler) FailTask(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "task failed")
 }
 
+// AutoAssign automatically assigns pending tasks
+// @Summary Auto-assign tasks
+// @Description Automatically assign pending tasks to idle agents (admin only)
+// @Tags Agent
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse "Assigned count"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/tasks/auto-assign [post]
+// @Security Bearer
 func (h *AgentHandler) AutoAssign(c echo.Context) error {
 	assigned, err := h.svc.AutoAssign(c.Request().Context())
 	if err != nil {
@@ -407,6 +603,17 @@ func (h *AgentHandler) AutoAssign(c echo.Context) error {
 
 // ─── Sessions ────────────────────────────────────────────────────────────────
 
+// ListSessions lists agent sessions
+// @Summary List sessions
+// @Description List all agent execution sessions with optional filters (admin only)
+// @Tags Agent
+// @Produce json
+// @Param agent_id query string false "Filter by agent ID"
+// @Param status query string false "Filter by status"
+// @Success 200 {object} utils.SuccessResponse "Sessions list"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/sessions [get]
+// @Security Bearer
 func (h *AgentHandler) ListSessions(c echo.Context) error {
 	agentID := c.QueryParam("agent_id")
 	status := c.QueryParam("status")
@@ -424,6 +631,17 @@ func (h *AgentHandler) ListSessions(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.SessionFromEntities(sessions), "")
 }
 
+// GetSession gets a session by ID
+// @Summary Get session
+// @Description Get a specific agent execution session by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Session ID"
+// @Success 200 {object} utils.SuccessResponse "Session details"
+// @Failure 404 {object} utils.ErrorResponse "Session not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/sessions/{id} [get]
+// @Security Bearer
 func (h *AgentHandler) GetSession(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -439,6 +657,17 @@ func (h *AgentHandler) GetSession(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.SessionFromEntity(session), "")
 }
 
+// EndSession ends a session
+// @Summary End session
+// @Description Terminate an active agent execution session (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Session ID"
+// @Success 200 {object} utils.SuccessResponse "Session ended"
+// @Failure 404 {object} utils.ErrorResponse "Session not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/sessions/{id}/end [post]
+// @Security Bearer
 func (h *AgentHandler) EndSession(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -455,6 +684,17 @@ func (h *AgentHandler) EndSession(c echo.Context) error {
 
 // ─── Capabilities ────────────────────────────────────────────────────────────
 
+// ListCapabilities lists agent capabilities
+// @Summary List capabilities
+// @Description List all capabilities for a specific agent (admin only)
+// @Tags Agent
+// @Produce json
+// @Param agentId path int true "Agent ID"
+// @Success 200 {object} utils.SuccessResponse "Capabilities list"
+// @Failure 400 {object} utils.ErrorResponse "Invalid agent ID"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/agents/{agentId}/capabilities [get]
+// @Security Bearer
 func (h *AgentHandler) ListCapabilities(c echo.Context) error {
 	agentID, err := strconv.ParseUint(c.Param("agentId"), 10, 32)
 	if err != nil {
@@ -467,6 +707,18 @@ func (h *AgentHandler) ListCapabilities(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.CapabilityFromEntities(caps), "")
 }
 
+// AddCapability adds a capability to an agent
+// @Summary Add capability
+// @Description Add a new capability to an agent (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param request body request.AddCapabilityRequest true "Capability data"
+// @Success 201 {object} utils.CreatedResponse "Capability added"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/capabilities [post]
+// @Security Bearer
 func (h *AgentHandler) AddCapability(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.AddCapabilityRequest)
@@ -484,6 +736,16 @@ func (h *AgentHandler) AddCapability(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.CapabilityFromEntity(cap), "")
 }
 
+// RemoveCapability removes a capability
+// @Summary Remove capability
+// @Description Remove a capability by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Capability ID"
+// @Success 204 "No content"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/capabilities/{id} [delete]
+// @Security Bearer
 func (h *AgentHandler) RemoveCapability(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -495,6 +757,20 @@ func (h *AgentHandler) RemoveCapability(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// ToggleCapability toggles a capability
+// @Summary Toggle capability
+// @Description Enable or disable an agent capability (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param id path int true "Capability ID"
+// @Param request body request.ToggleCapabilityRequest true "Toggle data"
+// @Success 200 {object} utils.SuccessResponse "Capability updated"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Capability not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/capabilities/{id}/toggle [patch]
+// @Security Bearer
 func (h *AgentHandler) ToggleCapability(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -519,6 +795,20 @@ func (h *AgentHandler) ToggleCapability(c echo.Context) error {
 
 // ─── Logs ────────────────────────────────────────────────────────────────────
 
+// ListLogs lists agent logs
+// @Summary List logs
+// @Description List agent execution logs with optional filters (admin only)
+// @Tags Agent
+// @Produce json
+// @Param page query int false "Page number"
+// @Param limit query int false "Items per page"
+// @Param agent_id query string false "Filter by agent ID"
+// @Param task_id query string false "Filter by task ID"
+// @Param level query string false "Filter by log level"
+// @Success 200 {object} utils.SuccessResponse "Logs list with pagination"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/logs [get]
+// @Security Bearer
 func (h *AgentHandler) ListLogs(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -551,6 +841,16 @@ func (h *AgentHandler) ListLogs(c echo.Context) error {
 
 // ─── Templates ───────────────────────────────────────────────────────────────
 
+// ListTemplates lists agent templates
+// @Summary List templates
+// @Description List all task templates with optional category filter (admin only)
+// @Tags Agent
+// @Produce json
+// @Param category query string false "Filter by category"
+// @Success 200 {object} utils.SuccessResponse "Templates list"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/templates [get]
+// @Security Bearer
 func (h *AgentHandler) ListTemplates(c echo.Context) error {
 	category := c.QueryParam("category")
 	filter := map[string]any{}
@@ -564,6 +864,17 @@ func (h *AgentHandler) ListTemplates(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.TemplateFromEntities(templates), "")
 }
 
+// GetTemplate gets a template by ID
+// @Summary Get template
+// @Description Get a specific task template by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Template ID"
+// @Success 200 {object} utils.SuccessResponse "Template details"
+// @Failure 404 {object} utils.ErrorResponse "Template not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/templates/{id} [get]
+// @Security Bearer
 func (h *AgentHandler) GetTemplate(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -579,6 +890,18 @@ func (h *AgentHandler) GetTemplate(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.TemplateFromEntity(tmpl), "")
 }
 
+// CreateTemplate creates a task template
+// @Summary Create template
+// @Description Create a new agent task template (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param request body request.CreateTemplateRequest true "Template data"
+// @Success 201 {object} utils.CreatedResponse "Template created"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/templates [post]
+// @Security Bearer
 func (h *AgentHandler) CreateTemplate(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.CreateTemplateRequest)
@@ -603,6 +926,17 @@ func (h *AgentHandler) CreateTemplate(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.TemplateFromEntity(tmpl), "")
 }
 
+// DeleteTemplate deletes a template
+// @Summary Delete template
+// @Description Delete a task template by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Template ID"
+// @Success 204 "No content"
+// @Failure 404 {object} utils.ErrorResponse "Template not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/templates/{id} [delete]
+// @Security Bearer
 func (h *AgentHandler) DeleteTemplate(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -617,6 +951,19 @@ func (h *AgentHandler) DeleteTemplate(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// CreateTaskFromTemplate creates a task from a template
+// @Summary Create task from template
+// @Description Create a new task from an existing template (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param request body request.CreateTaskFromTemplateRequest true "Template task data"
+// @Success 201 {object} utils.CreatedResponse "Task created"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 404 {object} utils.ErrorResponse "Template not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/templates/{id}/create-task [post]
+// @Security Bearer
 func (h *AgentHandler) CreateTaskFromTemplate(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.CreateTaskFromTemplateRequest)
@@ -639,6 +986,17 @@ func (h *AgentHandler) CreateTaskFromTemplate(c echo.Context) error {
 
 // ─── Schedules ───────────────────────────────────────────────────────────────
 
+// ListSchedules lists agent schedules
+// @Summary List schedules
+// @Description List all scheduled agent tasks with optional filters (admin only)
+// @Tags Agent
+// @Produce json
+// @Param agent_id query string false "Filter by agent ID"
+// @Param status query string false "Filter by status"
+// @Success 200 {object} utils.SuccessResponse "Schedules list"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/schedules [get]
+// @Security Bearer
 func (h *AgentHandler) ListSchedules(c echo.Context) error {
 	agentID := c.QueryParam("agent_id")
 	status := c.QueryParam("status")
@@ -656,6 +1014,17 @@ func (h *AgentHandler) ListSchedules(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.ScheduleFromEntities(schedules), "")
 }
 
+// GetSchedule gets a schedule by ID
+// @Summary Get schedule
+// @Description Get a specific agent schedule by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Schedule ID"
+// @Success 200 {object} utils.SuccessResponse "Schedule details"
+// @Failure 404 {object} utils.ErrorResponse "Schedule not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/schedules/{id} [get]
+// @Security Bearer
 func (h *AgentHandler) GetSchedule(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -671,6 +1040,18 @@ func (h *AgentHandler) GetSchedule(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.ScheduleFromEntity(sched), "")
 }
 
+// CreateSchedule creates a schedule
+// @Summary Create schedule
+// @Description Create a new scheduled task for an agent (admin only)
+// @Tags Agent
+// @Accept json
+// @Produce json
+// @Param request body request.CreateScheduleRequest true "Schedule data"
+// @Success 201 {object} utils.CreatedResponse "Schedule created"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/schedules [post]
+// @Security Bearer
 func (h *AgentHandler) CreateSchedule(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.CreateScheduleRequest)
@@ -694,6 +1075,17 @@ func (h *AgentHandler) CreateSchedule(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.ScheduleFromEntity(sched), "")
 }
 
+// DeleteSchedule deletes a schedule
+// @Summary Delete schedule
+// @Description Delete a scheduled agent task by ID (admin only)
+// @Tags Agent
+// @Produce json
+// @Param id path int true "Schedule ID"
+// @Success 204 "No content"
+// @Failure 404 {object} utils.ErrorResponse "Schedule not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/schedules/{id} [delete]
+// @Security Bearer
 func (h *AgentHandler) DeleteSchedule(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -708,6 +1100,15 @@ func (h *AgentHandler) DeleteSchedule(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// ProcessDueSchedules processes due schedules
+// @Summary Process due schedules
+// @Description Process all schedules that are due for execution (admin only)
+// @Tags Agent
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse "Tasks created count"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/schedules/process-due [post]
+// @Security Bearer
 func (h *AgentHandler) ProcessDueSchedules(c echo.Context) error {
 	tasks, err := h.svc.ProcessDueSchedules(c.Request().Context())
 	if err != nil {
@@ -718,6 +1119,15 @@ func (h *AgentHandler) ProcessDueSchedules(c echo.Context) error {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
+// GetStats gets agent dashboard stats
+// @Summary Get agent stats
+// @Description Get aggregate statistics for agent dashboard (admin only)
+// @Tags Agent
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse "Stats"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/agents/stats [get]
+// @Security Bearer
 func (h *AgentHandler) GetStats(c echo.Context) error {
 	stats, err := h.svc.GetStats(c.Request().Context())
 	if err != nil {

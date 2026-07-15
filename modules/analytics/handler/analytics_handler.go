@@ -22,6 +22,16 @@ func NewAnalyticsHandler(log *logger.Logger, evt *bus.EventBus, svc *service.Ana
 	return &AnalyticsHandler{svc: svc, log: log, evt: evt, r: &utils.Response{}}
 }
 
+// ListEvents lists analytics events
+// @Summary List analytics events
+// @Description List analytics events with optional event_type filter (admin only)
+// @Tags Analytics
+// @Produce json
+// @Param event_type query string false "Filter by event type"
+// @Success 200 {object} utils.SuccessResponse "Events list"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/analytics/events [get]
+// @Security Bearer
 func (h *AnalyticsHandler) ListEvents(c echo.Context) error {
 	filter := map[string]any{}
 	if t := c.QueryParam("event_type"); t != "" {
@@ -34,6 +44,15 @@ func (h *AnalyticsHandler) ListEvents(c echo.Context) error {
 	return h.r.SuccessResponse(c, items, "")
 }
 
+// GetDashboard gets analytics dashboard stats
+// @Summary Get dashboard stats
+// @Description Get aggregated analytics dashboard statistics (admin only)
+// @Tags Analytics
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse "Dashboard stats"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/analytics/dashboard [get]
+// @Security Bearer
 func (h *AnalyticsHandler) GetDashboard(c echo.Context) error {
 	stats, err := h.svc.GetDashboardStats(c.Request().Context())
 	if err != nil {
@@ -42,6 +61,16 @@ func (h *AnalyticsHandler) GetDashboard(c echo.Context) error {
 	return h.r.SuccessResponse(c, stats, "")
 }
 
+// GetTopBlogs gets top blogs
+// @Summary Get top blogs
+// @Description Get the top performing blogs based on analytics (admin only)
+// @Tags Analytics
+// @Produce json
+// @Param limit query int false "Number of top blogs (default 10)"
+// @Success 200 {object} utils.SuccessResponse "Top blogs"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /api/v1/admin/analytics/top-blogs [get]
+// @Security Bearer
 func (h *AnalyticsHandler) GetTopBlogs(c echo.Context) error {
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
 	if limit < 1 { limit = 10 }
