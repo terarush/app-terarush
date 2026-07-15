@@ -1,8 +1,8 @@
 # TeraRush - Product Requirements Document (PRD)
 
 **Status**: Active Development  
-**Version**: 1.0  
-**Last Updated**: May 25, 2025
+**Version**: 2.0  
+**Last Updated**: July 15, 2026
 
 ---
 
@@ -393,21 +393,21 @@ CREATE UNIQUE INDEX idx_users_email ON users(email);
 ✅ Database schema and migrations
 
 ### Phase 2: Enhancement (Weeks 3-4)
-- [ ] Draft blog support
-- [ ] Revision history
-- [ ] Comments system
-- [ ] Pagination refinements
-- [ ] Search optimization
-- [ ] Performance optimization
-- [ ] Dark mode support
+✅ Draft blog support
+✅ Revision history
+✅ Comments system
+✅ Pagination refinements
+✅ Search optimization
+✅ Performance optimization
+✅ Dark mode support
 
 ### Phase 3: Advanced (Weeks 5-6)
-- [ ] Follow system
-- [ ] Recommendation engine
-- [ ] Social sharing
-- [ ] Email notifications
-- [ ] Analytics dashboard
-- [ ] Admin panel
+✅ Follow system (activity module)
+✅ Social sharing (activity module)
+✅ Email notifications (notifications module)
+✅ Analytics dashboard (analytics module)
+✅ Admin panel
+✅ Agent system — task orchestration, scheduling, automation
 
 ### Phase 4: Production (Week 7+)
 - [ ] Error tracking (Sentry)
@@ -519,15 +519,69 @@ CREATE UNIQUE INDEX idx_users_email ON users(email);
 
 ---
 
-## 14. Revision History
+## 14. Backend Module Catalog
+
+TeraRush uses a modular monolith architecture. Each module is self-contained with domain entities, repositories, services, DTOs, and HTTP handlers.
+
+| Module | Directory | Entities | Purpose |
+|--------|-----------|----------|---------|
+| **auth** | `modules/auth/` | — | JWT auth, login, register, token refresh, OAuth |
+| **users** | `modules/users/` | User | User CRUD, profile, avatar/banner upload, roles |
+| **blogs** | `modules/blogs/` | Blog | Blog CRUD, publish/draft, slug, tags, upload |
+| **comments** | `modules/comments/` | Comment | Blog comments, nested replies, moderation flags |
+| **favorites** | `modules/favorites/` | Favorite | Bookmark/like blogs |
+| **assets** | `modules/assets/` | Asset | File upload management, media library |
+| **agent** | `modules/agent/` | Agent, AgentTask, AgentSession, AgentCapability, AgentLog, AgentTemplate, AgentSchedule | AI agent orchestration, task lifecycle, scheduling, capability registry, sessions, templates |
+| **notifications** | `modules/notifications/` | Notification, NotificationTemplate, NotificationPreference | In-app + email/push notifications, templates, quiet hours, digest |
+| **analytics** | `modules/analytics/` | AnalyticsEvent, AnalyticsAggregate, BlogStats, UserAnalytics | Page view & event tracking, blog stats, user analytics, dashboard aggregation |
+| **moderation** | `modules/moderation/` | Report, ModerationAction, BannedUser, ContentFilter | Content reporting, user bans, keyword auto-filters, moderation queue |
+| **subscriptions** | `modules/subscriptions/` | Subscription, Newsletter, NewsletterSubscriber | Follow authors/blogs, newsletter management, subscriber lists |
+| **bookmarks** | `modules/bookmarks/` | Bookmark, Collection, ReadingGoal | Reading list, collections/folders, reading progress, yearly goals |
+| **activity** | `modules/activity/` | Activity, ActivityFeed, Follow, EngagementMetric | Activity feed with follower fan-out, follow/unfollow, XP/level, leaderboard |
+
+### Architecture Pattern
+
+```
+modules/<name>/
+├── module.go                          # Module interface (Name, Initialize, RegisterRoutes, Migrations, Logger)
+├── domain/
+│   ├── entity/<name>.go               # GORM model with TableName()
+│   ├── repository/
+│   │   ├── <name>_repository.go       # Interface
+│   │   └── <name>_repository_impl.go  # GORM implementation
+│   └── service/<name>_service.go      # Business logic
+├── handler/<name>_handler.go          # HTTP handlers + route registration
+└── dto/
+    ├── request/<name>_request.go      # Request DTOs with validate tags
+    └── response/<name>_response.go    # Response DTOs + FromEntity converters
+```
+
+### Route Prefixes
+
+- **`/api/v1/<resource>`** — Public or user routes (auth-protected)
+- **`/api/v1/admin/<resource>`** — Admin-only routes (auth + admin middleware)
+- All admin routes use `middleware.Auth` + `middleware.AdminOnly`
+
+### Key Design Decisions
+
+- **Repository**: Uses global `database.DB` (`*gorm.DB`) directly. Empty struct impl.
+- **Service**: Business logic only, maps repo errors to domain errors.
+- **Handler**: Binds/validates requests, calls service, maps errors to HTTP responses.
+- **EventBus**: In-memory pub/sub for cross-module communication.
+- **Validation**: `go-playground/validator` via struct tags on request DTOs.
+
+---
+
+## 15. Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | May 25, 2025 | TeraRush Team | Initial PRD document |
+| 2.0 | July 15, 2026 | TeraRush Team | Added 7 backend modules: agent, notifications, analytics, moderation, subscriptions, bookmarks, activity |
 
 ---
 
-## 15. Approval & Sign-Off
+## 16. Approval & Sign-Off
 
 - [ ] Project Manager: ___________________
 - [ ] Tech Lead (Backend): ___________________

@@ -1,384 +1,175 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useRouterState, useNavigate } from "@tanstack/react-router"
+import { LogOut, Moon, Sun } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
+import { useTheme } from "@/components/theme-provider"
+import { companyMeta } from "@/meta"
+import { sidebarContentList } from "@/globals/content/app-sidebar"
+
 import {
-	Bell,
-	Search,
-	ChevronLeft,
-	ChevronRight,
-	LogOut,
-	Crown,
-	Moon,
-	Sun,
-} from "lucide-react";
-import { cn, getAvatarUrl } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { useUser, useIsAdmin, useLogout } from "@/hooks";
-import { useTheme } from "@/components/theme-provider";
-import { siteConfig } from "@/content/config";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { sidebarNavItems } from "@/content/sidebar";
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarSeparator,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuBadge,
+  useSidebar,
+} from "@/components/ui/sidebar"
 
 export function AppSidebar() {
-	const [collapsed, setCollapsed] = useState(false);
-	const location = useLocation();
-	const navigate = useNavigate();
-	const user = useUser();
-	const isAdmin = useIsAdmin();
-	const logout = useLogout();
-	const { theme, setTheme } = useTheme();
-	const isMobile = useIsMobile();
+  const routerState = useRouterState()
+  const currentPath = routerState.location.pathname
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const { isMobile, setOpenMobile } = useSidebar()
+  const { theme, setTheme } = useTheme()
 
-	// Auto-collapse sidebar on mobile
-	useEffect(() => {
-		if (isMobile && !collapsed) {
-			setCollapsed(true);
-		}
-	}, [isMobile, collapsed]);
+  const isAdmin = user?.role === "admin"
 
-	const toggleTheme = () => {
-		setTheme(theme === "dark" ? "light" : "dark");
-	};
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
 
-	const handleLogout = async () => {
-		await logout();
-	};
+  const handleLogout = async () => {
+    await logout()
+    navigate({ to: "/" })
+  }
 
-	const getInitials = (name?: string | null) => {
-		return (name ?? "")
-			.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase()
-			.slice(0, 2);
-	};
+  const handleItemClick = (href: string) => {
+    if (isMobile) setOpenMobile(false)
+    navigate({ to: href })
+  }
 
-	const filteredNavItems = sidebarNavItems.filter(
-		(item) => !item.adminOnly || isAdmin,
-	);
+  const filteredSidebarContent = sidebarContentList.filter((group) => {
+    if (group.admin && !isAdmin) return false
+    return true
+  })
 
-	return (
-		<TooltipProvider delayDuration={0}>
-			<aside
-				className={cn(
-					"relative flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out",
-					collapsed ? "w-16" : "w-64",
-				)}
-			>
-				{/* Header */}
-				<div className="flex items-center justify-between h-16 px-4 border-b border-border">
-					{!collapsed && (
-						<Link
-							to="/"
-							className="flex items-center space-x-2 group"
-						>
-							<img
-								src={siteConfig.logo}
-								alt={siteConfig.name}
-								className="h-8 w-8 rounded-lg group-hover:scale-110 transition-transform duration-200"
-							/>
-							<span className="text-xl font-bold text-foreground">
-								{siteConfig.name}
-							</span>
-						</Link>
-					)}
-					{collapsed && (
-						<Link
-							to="/"
-							className="flex items-center justify-center w-full"
-						>
-							<img
-								src="/assets/logo.png"
-								alt={siteConfig.name}
-								className="h-8 w-8 rounded-lg hover:scale-110 transition-transform duration-200"
-							/>
-						</Link>
-					)}
-				</div>
+  return (
+    <Sidebar collapsible="icon" variant="sidebar" className="border-r bg-sidebar text-sidebar-foreground">
+      <SidebarHeader className="h-14 flex flex-row items-center justify-center border-b border-sidebar-border group-data-[collapsible=icon]:px-0">
+        <div className="flex items-center gap-2.5 overflow-hidden w-full px-5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-[10px] font-bold">
+            {companyMeta.name.charAt(0)}
+          </div>
+          <span className="text-sm font-semibold tracking-tight text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">
+            {companyMeta.name}
+          </span>
+        </div>
+      </SidebarHeader>
 
-				{/* Search Bar */}
-				{!collapsed && (
-					<div className="p-4">
-						<Button
-							variant="outline"
-							className="w-full justify-start text-muted-foreground hover:text-foreground"
-							onClick={() => navigate("/dashboard/search")}
-						>
-							<Search className="h-4 w-4 mr-2" />
-							Search...
-						</Button>
-					</div>
-				)}
+      <SidebarContent className="py-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {filteredSidebarContent.map((group) => (
+          <SidebarGroup key={group.groupName || "default"} className="px-2 py-0.5">
+            {group.groupName && (
+              <SidebarGroupLabel className="px-3 py-1 text-[11px] font-medium tracking-wide text-sidebar-foreground/50 uppercase">
+                {group.groupName}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = currentPath === item.href
 
-			{/* Navigation */}
-			<nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-				{filteredNavItems.map((item) => {
-					const Icon = item.icon;
-					// For Dashboard, use exact match. For others, check if path starts with the link
-					const isActive = item.link === "/dashboard" 
-						? location.pathname === item.link 
-						: location.pathname.startsWith(item.link);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        onClick={() => handleItemClick(item.href)}
+                        className={cn(
+                          "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
+                          isActive
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                        )}
+                      >
+                        <Icon className={cn(
+                          "size-4 shrink-0 transition-colors",
+                          isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50"
+                        )} />
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.title}
+                        </span>
+                      </SidebarMenuButton>
+                      {item.badge && (
+                        <SidebarMenuBadge className="group-data-[collapsible=icon]:hidden ml-auto bg-sidebar-primary/10 text-sidebar-primary text-[10px] font-semibold px-1.5 py-0.5 rounded-md">
+                          {item.badge}
+                        </SidebarMenuBadge>
+                      )}
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
 
-						const navButton = (
-							<Button
-								key={item.link}
-								variant={isActive ? "secondary" : "ghost"}
-								className={cn(
-									"w-full justify-start group relative transition-all duration-200",
-									collapsed ? "px-0 justify-center" : "px-3",
-									isActive &&
-										"bg-primary/10 text-primary hover:bg-primary/15",
-								)}
-								onClick={() => navigate(item.link)}
-							>
-								{isActive && (
-									<div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
-								)}
-								<Icon
-									className={cn(
-										"h-5 w-5 transition-transform duration-200 group-hover:scale-110",
-										collapsed ? "" : "mr-3",
-										isActive && "text-primary",
-									)}
-								/>
-								{!collapsed && (
-									<>
-										<span className="flex-1 text-left">
-											{item.name}
-										</span>
-										{item.badge && (
-											<Badge
-												variant={
-													item.badge === "New"
-														? "default"
-														: "secondary"
-												}
-												className="ml-auto text-xs"
-											>
-												{item.badge}
-											</Badge>
-										)}
-									</>
-								)}
-							</Button>
-						);
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+        {user && (
+          <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+            <div className="relative shrink-0">
+              <img
+                src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`}
+                alt={user.name}
+                className="size-7 rounded-full object-cover"
+              />
+            </div>
+            <div className="flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
+              <p className="truncate text-sm font-medium text-sidebar-foreground leading-tight">
+                {user.name}
+              </p>
+              <p className="truncate text-[11px] text-sidebar-foreground/50 leading-tight">
+                {user.email}
+              </p>
+            </div>
+          </div>
+        )}
 
-						if (collapsed) {
-							return (
-								<Tooltip key={item.link}>
-									<TooltipTrigger asChild>
-										{navButton}
-									</TooltipTrigger>
-									<TooltipContent
-										side="right"
-										className="flex items-center gap-2"
-									>
-										{item.name}
-										{item.badge && (
-											<Badge
-												variant={
-													item.badge === "New"
-														? "default"
-														: "secondary"
-												}
-												className="text-xs"
-											>
-												{item.badge}
-											</Badge>
-										)}
-									</TooltipContent>
-								</Tooltip>
-							);
-						}
+        <SidebarSeparator className="bg-sidebar-border/50 mb-2 group-data-[collapsible=icon]:hidden" />
 
-						return navButton;
-					})}
-				</nav>
+        <div className="flex flex-col gap-0.5">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={toggleTheme}
+                tooltip={theme === "light" ? "Dark Mode" : "Light Mode"}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-150 cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+              >
+                {theme === "light" ? (
+                  <Moon className="size-4 shrink-0 text-sidebar-foreground/50" />
+                ) : (
+                  <Sun className="size-4 shrink-0 text-sidebar-foreground/50" />
+                )}
+                <span className="group-data-[collapsible=icon]:hidden">
+                  {theme === "light" ? "Dark Mode" : "Light Mode"}
+                </span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
 
-				<Separator />
-
-				{/* User Profile & Controls */}
-				<div className="p-3 space-y-2">
-					{/* Notifications & Theme Toggle */}
-					<div className={cn(
-						"flex gap-2",
-						collapsed && "flex-col"
-					)}>
-						{!collapsed ? (
-							<>
-								<Button
-									variant="ghost"
-									className="flex-1 justify-start"
-									onClick={() => navigate("/dashboard/notifications")}
-								>
-									<Bell className="h-5 w-5 mr-3" />
-									<span className="flex-1 text-left">
-										Notifications
-									</span>
-									<Badge variant="destructive" className="text-xs">
-										5
-									</Badge>
-								</Button>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={toggleTheme}
-								>
-									{theme === "light" ? (
-										<Moon className="h-4 w-4" />
-									) : (
-										<Sun className="h-4 w-4" />
-									)}
-								</Button>
-							</>
-						) : (
-							<>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											className="w-full justify-center relative"
-											onClick={() =>
-												navigate("/dashboard/notifications")
-											}
-										>
-											<Bell className="h-5 w-5" />
-											<span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
-												5
-											</span>
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent side="right">
-										Notifications (5)
-									</TooltipContent>
-								</Tooltip>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											size="sm"
-											className="w-full"
-											onClick={toggleTheme}
-										>
-											{theme === "light" ? (
-												<Moon className="h-4 w-4" />
-											) : (
-												<Sun className="h-4 w-4" />
-											)}
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent side="right">
-										{theme === "light" ? "Dark Mode" : "Light Mode"}
-									</TooltipContent>
-								</Tooltip>
-							</>
-						)}
-					</div>
-
-					{/* User Profile */}
-					<div
-						className={cn(
-							"flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer",
-							collapsed && "justify-center",
-						)}
-						onClick={() => navigate("/dashboard/profile")}
-					>
-					<Avatar className="h-9 w-9 border-2 border-primary/20">
-						{user?.avatar && (
-							<AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} />
-						)}
-						<AvatarFallback className="bg-primary/10 text-primary font-semibold">
-							{user?.name ? getInitials(user.name) : "U"}
-						</AvatarFallback>
-					</Avatar>
-						{!collapsed && (
-							<div className="flex-1 min-w-0">
-								<div className="flex items-center gap-2">
-									<p className="text-sm font-medium truncate">
-										{user?.name || "User"}
-									</p>
-									{isAdmin && (
-										<Crown className="h-3.5 w-3.5 text-yellow-500" />
-									)}
-								</div>
-								<p className="text-xs text-muted-foreground truncate">
-									{user?.email}
-								</p>
-							</div>
-						)}
-					</div>
-
-					<Separator />
-
-					{/* Logout & Collapse */}
-					<div className={cn(
-						"flex gap-2",
-						collapsed && "flex-col"
-					)}>
-						{!collapsed ? (
-							<>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-									onClick={handleLogout}
-								>
-									<LogOut className="h-4 w-4 mr-2" />
-									Logout
-								</Button>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => setCollapsed(true)}
-								>
-									<ChevronLeft className="h-4 w-4" />
-								</Button>
-							</>
-						) : (
-							<>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											size="sm"
-											className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-											onClick={handleLogout}
-										>
-											<LogOut className="h-4 w-4" />
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent side="right">
-										Logout
-									</TooltipContent>
-								</Tooltip>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											size="sm"
-											className="w-full"
-											onClick={() => setCollapsed(false)}
-										>
-											<ChevronRight className="h-4 w-4" />
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent side="right">
-										Expand
-									</TooltipContent>
-								</Tooltip>
-							</>
-						)}
-					</div>
-				</div>
-			</aside>
-		</TooltipProvider>
-	);
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={handleLogout}
+                tooltip="Sign Out"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-all duration-150 cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+              >
+                <LogOut className="size-4 shrink-0" />
+                <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  )
 }
