@@ -1,11 +1,13 @@
-import { createRootRoute, createRoute, Outlet, Link } from '@tanstack/react-router'
+import { createRootRoute, createRoute, Outlet, redirect } from '@tanstack/react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { Button } from '@/components/ui/button'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/auth-context'
 import LoginPage from '@/modules/auth/login'
 import RegisterPage from '@/modules/auth/register'
 import GitHubCallbackPage from '@/modules/auth/github-callback'
+import NotFound from '@/modules/error/not-found'
+import { GlobalsAppLayout } from '@/modules/app/layouts/globalsAppLayout'
+import AppPage from '@/modules/app/index'
 
 import '../styles.css'
 
@@ -13,6 +15,7 @@ import { Toaster } from '@/components/ui/sonner'
 
 export const rootRoute = createRootRoute({
   component: RootComponent,
+  notFoundComponent: NotFound,
 })
 
 function RootComponent() {
@@ -30,40 +33,50 @@ function RootComponent() {
   )
 }
 
-function Home() {
-  return (
-    <div className="p-8">
-      <div className="max-w-md mx-auto space-y-6 text-center mt-20">
-        <h1 className="text-4xl font-extrabold tracking-tight">TeraRush React Starter</h1>
-        <p className="text-muted-foreground text-sm">
-          A clean, programmatic routing setup using TanStack Router, Tailwind CSS v4, and shadcn/ui.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Link to="/login">
-            <Button className="cursor-pointer">Sign In</Button>
-          </Link>
-          <Link to="/register">
-            <Button variant="outline" className="cursor-pointer">Sign Up</Button>
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
+const routeConfig = {
+  root: [
+    {
+      path: '/',
+      beforeLoad: () => {
+        throw redirect({ to: '/app' })
+      },
+    },
+    { path: '/login', component: LoginPage },
+    { path: '/register', component: RegisterPage },
+    { path: '/auth/github/callback', component: GitHubCallbackPage },
+  ],
+  app: {
+    layout: GlobalsAppLayout,
+    children: [
+      { path: '/', component: AppPage },
+    ],
+  },
 }
 
-const routes = [
-  { path: '/', component: Home },
-  { path: '/login', component: LoginPage },
-  { path: '/register', component: RegisterPage },
-  { path: '/auth/github/callback', component: GitHubCallbackPage },
-]
-
-export const routeTree = rootRoute.addChildren(
-  routes.map((r) =>
+export const routeTree = rootRoute.addChildren([
+  ...routeConfig.root.map((r) =>
     createRoute({
       getParentRoute: () => rootRoute,
       path: r.path,
       component: r.component,
+      beforeLoad: r.beforeLoad,
     })
-  )
-)
+  ),
+  (() => {
+    const layout = createRoute({
+      getParentRoute: () => rootRoute,
+      path: '/app',
+      component: routeConfig.app.layout,
+    })
+    return layout.addChildren(
+      routeConfig.app.children.map((r) =>
+        createRoute({
+          getParentRoute: () => layout,
+          path: r.path,
+          component: r.component,
+          beforeLoad: r.beforeLoad,
+        })
+      )
+    )
+  })(),
+])
