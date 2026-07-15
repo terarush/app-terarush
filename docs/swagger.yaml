@@ -1,10 +1,122 @@
+basePath: /api/v1
 definitions:
+  entity.Collection:
+    properties:
+      color:
+        description: hex color
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      icon:
+        type: string
+      id:
+        type: integer
+      is_public:
+        type: boolean
+      name:
+        type: string
+      sort_order:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  entity.ContentFilter:
+    properties:
+      action:
+        description: flag, block, review, warn
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: integer
+      hit_count:
+        type: integer
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      pattern:
+        type: string
+      severity:
+        type: string
+      type:
+        description: keyword, regex, domain, ip
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.Newsletter:
+    properties:
+      bounce_count:
+        type: integer
+      click_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: integer
+      id:
+        type: integer
+      open_count:
+        type: integer
+      scheduled_for:
+        type: string
+      sent_at:
+        type: string
+      sent_count:
+        type: integer
+      status:
+        description: draft, queued, sending, sent, failed
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
   handler.UploadImageResponse:
     properties:
       path:
         type: string
       url:
         type: string
+    type: object
+  request.AddCapabilityRequest:
+    properties:
+      agent_id:
+        type: integer
+      capability:
+        enum:
+        - read
+        - write
+        - execute
+        - search
+        - analyze
+        - code
+        - integrate
+        - monitor
+        - schedule
+        - notify
+        type: string
+      config:
+        type: string
+    required:
+    - agent_id
+    - capability
+    type: object
+  request.AssignTaskRequest:
+    properties:
+      agent_id:
+        type: integer
+    required:
+    - agent_id
     type: object
   request.ChangePasswordRequest:
     properties:
@@ -20,6 +132,43 @@ definitions:
     - confirm_password
     - new_password
     - old_password
+    type: object
+  request.CompleteTaskRequest:
+    properties:
+      output:
+        type: string
+      result_summary:
+        maxLength: 5000
+        type: string
+    type: object
+  request.CreateAgentRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      max_concurrent:
+        maximum: 10
+        minimum: 1
+        type: integer
+      model:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      retry_limit:
+        maximum: 10
+        minimum: 0
+        type: integer
+      system_prompt:
+        maxLength: 10000
+        type: string
+      timeout:
+        maximum: 86400
+        minimum: 1
+        type: integer
+    required:
+    - name
     type: object
   request.CreateBlogRequest:
     properties:
@@ -80,6 +229,115 @@ definitions:
     - parent_id
     - post_id
     type: object
+  request.CreateScheduleRequest:
+    properties:
+      agent_id:
+        type: integer
+      cron_expr:
+        maxLength: 100
+        type: string
+      description:
+        maxLength: 2000
+        type: string
+      input_config:
+        type: string
+      max_runs:
+        minimum: 0
+        type: integer
+      name:
+        maxLength: 255
+        type: string
+      template_id:
+        type: integer
+      timezone:
+        maxLength: 50
+        type: string
+    required:
+    - agent_id
+    - cron_expr
+    - name
+    type: object
+  request.CreateTaskFromTemplateRequest:
+    properties:
+      input:
+        type: string
+      template_id:
+        type: integer
+    required:
+    - template_id
+    type: object
+  request.CreateTaskRequest:
+    properties:
+      category:
+        maxLength: 100
+        type: string
+      deadline:
+        description: RFC3339
+        type: string
+      description:
+        maxLength: 10000
+        type: string
+      input:
+        type: string
+      max_attempts:
+        maximum: 10
+        minimum: 1
+        type: integer
+      parent_task_id:
+        type: integer
+      priority:
+        enum:
+        - -1
+        - 0
+        - 1
+        - 2
+        type: integer
+      tags:
+        maxLength: 500
+        type: string
+      title:
+        maxLength: 500
+        type: string
+    required:
+    - title
+    type: object
+  request.CreateTemplateRequest:
+    properties:
+      category:
+        maxLength: 100
+        type: string
+      description:
+        maxLength: 2000
+        type: string
+      input_schema:
+        type: string
+      is_public:
+        type: boolean
+      max_attempts:
+        maximum: 10
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 255
+        type: string
+      priority:
+        enum:
+        - -1
+        - 0
+        - 1
+        - 2
+        type: integer
+      prompt:
+        type: string
+      tags:
+        maxLength: 500
+        type: string
+      variables:
+        type: string
+    required:
+    - name
+    - prompt
+    type: object
   request.CreateUserRequest:
     properties:
       email:
@@ -99,6 +357,13 @@ definitions:
     - name
     - password
     type: object
+  request.FailTaskRequest:
+    properties:
+      error_message:
+        type: string
+    required:
+    - error_message
+    type: object
   request.LoginRequest:
     properties:
       email:
@@ -116,6 +381,59 @@ definitions:
         type: string
     required:
     - refresh_token
+    type: object
+  request.SetAgentStatusRequest:
+    properties:
+      status:
+        enum:
+        - idle
+        - busy
+        - error
+        - disabled
+        type: string
+    required:
+    - status
+    type: object
+  request.ToggleCapabilityRequest:
+    properties:
+      enabled:
+        type: boolean
+    required:
+    - enabled
+    type: object
+  request.UpdateAgentRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      max_concurrent:
+        maximum: 10
+        minimum: 1
+        type: integer
+      model:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      retry_limit:
+        maximum: 10
+        minimum: 0
+        type: integer
+      status:
+        enum:
+        - idle
+        - busy
+        - error
+        - disabled
+        type: string
+      system_prompt:
+        maxLength: 10000
+        type: string
+      timeout:
+        maximum: 86400
+        minimum: 1
+        type: integer
     type: object
   request.UpdateBlogRequest:
     properties:
@@ -155,6 +473,48 @@ definitions:
     required:
     - content
     - post_id
+    type: object
+  request.UpdateTaskRequest:
+    properties:
+      category:
+        maxLength: 100
+        type: string
+      description:
+        maxLength: 10000
+        type: string
+      input:
+        type: string
+      max_attempts:
+        maximum: 10
+        minimum: 1
+        type: integer
+      priority:
+        enum:
+        - -1
+        - 0
+        - 1
+        - 2
+        type: integer
+      progress:
+        maximum: 100
+        minimum: 0
+        type: number
+      status:
+        enum:
+        - pending
+        - assigned
+        - in_progress
+        - completed
+        - failed
+        - cancelled
+        - paused
+        type: string
+      tags:
+        maxLength: 500
+        type: string
+      title:
+        maxLength: 500
+        type: string
     type: object
   request.UpdateUserRequest:
     properties:
@@ -250,6 +610,8 @@ definitions:
         type: array
       updated_at:
         type: integer
+      user_avatar:
+        type: string
       user_id:
         type: integer
       user_name:
@@ -302,9 +664,1400 @@ definitions:
       updated_at:
         type: string
     type: object
+  utils.CreatedResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  utils.ErrorResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+  utils.SuccessResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: Modular blogging platform API
+  title: TeraRush API
+  version: "1.0"
 paths:
+  /api/v1/activity:
+    get:
+      description: List all activities with optional type filter
+      parameters:
+      - description: Filter by activity type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Activities list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List activities
+      tags:
+      - Activity
+  /api/v1/activity/feed:
+    get:
+      description: Get paginated activity feed for current user
+      parameters:
+      - description: Number of items (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feed items
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get activity feed
+      tags:
+      - Activity
+  /api/v1/activity/feed/{id}/read:
+    patch:
+      description: Mark a single feed item as read by ID
+      parameters:
+      - description: Feed item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Marked read
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Mark feed item read
+      tags:
+      - Activity
+  /api/v1/activity/feed/unread:
+    get:
+      description: Get the count of unread feed items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unread count
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get unread count
+      tags:
+      - Activity
+  /api/v1/activity/follow/{userId}:
+    delete:
+      description: Unfollow a user by user ID
+      parameters:
+      - description: User ID to unfollow
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unfollowed
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Unfollow user
+      tags:
+      - Activity
+    post:
+      description: Follow another user by user ID
+      parameters:
+      - description: User ID to follow
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Following
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Follow user
+      tags:
+      - Activity
+  /api/v1/activity/followers:
+    get:
+      description: Get list of users following the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Followers list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get followers
+      tags:
+      - Activity
+  /api/v1/activity/following:
+    get:
+      description: Get list of users the current user follows
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Following list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get following
+      tags:
+      - Activity
+  /api/v1/activity/leaderboard:
+    get:
+      description: Get the leaderboard of most active users
+      parameters:
+      - description: Number of top users (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Leaderboard
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get leaderboard
+      tags:
+      - Activity
+  /api/v1/activity/metrics:
+    get:
+      description: Get aggregated activity metrics for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Activity metrics
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get activity metrics
+      tags:
+      - Activity
+  /api/v1/admin/agents:
+    get:
+      description: List all AI agents (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agents list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List agents
+      tags:
+      - Agent
+    post:
+      consumes:
+      - application/json
+      description: Create a new AI agent configuration (admin only)
+      parameters:
+      - description: Agent creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateAgentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Agent created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create agent
+      tags:
+      - Agent
+  /api/v1/admin/agents/{id}:
+    delete:
+      description: Delete an AI agent by ID (admin only)
+      parameters:
+      - description: Agent ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Invalid agent ID
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Agent not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete agent
+      tags:
+      - Agent
+    get:
+      description: Get a specific AI agent by ID (admin only)
+      parameters:
+      - description: Agent ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agent details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Agent not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get agent
+      tags:
+      - Agent
+    put:
+      consumes:
+      - application/json
+      description: Update an existing AI agent configuration (admin only)
+      parameters:
+      - description: Agent ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Agent update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateAgentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Agent updated
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Agent not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update agent
+      tags:
+      - Agent
+  /api/v1/admin/agents/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Set the operational status of an AI agent (admin only)
+      parameters:
+      - description: Agent ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetAgentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status updated
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Agent not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Set agent status
+      tags:
+      - Agent
+  /api/v1/admin/agents/agents/{agentId}/capabilities:
+    get:
+      description: List all capabilities for a specific agent (admin only)
+      parameters:
+      - description: Agent ID
+        in: path
+        name: agentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Capabilities list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid agent ID
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List capabilities
+      tags:
+      - Agent
+  /api/v1/admin/agents/capabilities:
+    post:
+      consumes:
+      - application/json
+      description: Add a new capability to an agent (admin only)
+      parameters:
+      - description: Capability data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddCapabilityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Capability added
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Add capability
+      tags:
+      - Agent
+  /api/v1/admin/agents/capabilities/{id}:
+    delete:
+      description: Remove a capability by ID (admin only)
+      parameters:
+      - description: Capability ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Remove capability
+      tags:
+      - Agent
+  /api/v1/admin/agents/capabilities/{id}/toggle:
+    patch:
+      consumes:
+      - application/json
+      description: Enable or disable an agent capability (admin only)
+      parameters:
+      - description: Capability ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Toggle data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ToggleCapabilityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Capability updated
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Capability not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Toggle capability
+      tags:
+      - Agent
+  /api/v1/admin/agents/logs:
+    get:
+      description: List agent execution logs with optional filters (admin only)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by agent ID
+        in: query
+        name: agent_id
+        type: string
+      - description: Filter by task ID
+        in: query
+        name: task_id
+        type: string
+      - description: Filter by log level
+        in: query
+        name: level
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logs list with pagination
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List logs
+      tags:
+      - Agent
+  /api/v1/admin/agents/schedules:
+    get:
+      description: List all scheduled agent tasks with optional filters (admin only)
+      parameters:
+      - description: Filter by agent ID
+        in: query
+        name: agent_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Schedules list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List schedules
+      tags:
+      - Agent
+    post:
+      consumes:
+      - application/json
+      description: Create a new scheduled task for an agent (admin only)
+      parameters:
+      - description: Schedule data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Schedule created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create schedule
+      tags:
+      - Agent
+  /api/v1/admin/agents/schedules/{id}:
+    delete:
+      description: Delete a scheduled agent task by ID (admin only)
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: Schedule not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete schedule
+      tags:
+      - Agent
+    get:
+      description: Get a specific agent schedule by ID (admin only)
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Schedule details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Schedule not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get schedule
+      tags:
+      - Agent
+  /api/v1/admin/agents/schedules/process-due:
+    post:
+      description: Process all schedules that are due for execution (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tasks created count
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Process due schedules
+      tags:
+      - Agent
+  /api/v1/admin/agents/sessions:
+    get:
+      description: List all agent execution sessions with optional filters (admin
+        only)
+      parameters:
+      - description: Filter by agent ID
+        in: query
+        name: agent_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sessions list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List sessions
+      tags:
+      - Agent
+  /api/v1/admin/agents/sessions/{id}:
+    get:
+      description: Get a specific agent execution session by ID (admin only)
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Session not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get session
+      tags:
+      - Agent
+  /api/v1/admin/agents/sessions/{id}/end:
+    post:
+      description: Terminate an active agent execution session (admin only)
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session ended
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Session not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: End session
+      tags:
+      - Agent
+  /api/v1/admin/agents/stats:
+    get:
+      description: Get aggregate statistics for agent dashboard (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stats
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get agent stats
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks:
+    get:
+      description: List all agent tasks with optional filters (admin only)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by agent ID
+        in: query
+        name: agent_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tasks list with pagination
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List tasks
+      tags:
+      - Agent
+    post:
+      consumes:
+      - application/json
+      description: Create a new agent task (admin only)
+      parameters:
+      - description: Task creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Task created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create task
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks/{id}:
+    delete:
+      description: Delete an agent task by ID (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Invalid task ID
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete task
+      tags:
+      - Agent
+    get:
+      description: Get a specific agent task by ID (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get task
+      tags:
+      - Agent
+    put:
+      consumes:
+      - application/json
+      description: Update an existing agent task (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Task update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task updated
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update task
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign an agent task to a specific agent (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Assignment data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AssignTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task assigned
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Task or agent not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "409":
+          description: Agent busy or disabled
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Assign task
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks/{id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Mark an agent task as completed with output (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Completion data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CompleteTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task completed
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Complete task
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks/{id}/fail:
+    post:
+      consumes:
+      - application/json
+      description: Mark an agent task as failed with error details (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Failure data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FailTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task failed
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Fail task
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks/{id}/start:
+    post:
+      description: Start executing an agent task (admin only)
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Start task
+      tags:
+      - Agent
+  /api/v1/admin/agents/tasks/auto-assign:
+    post:
+      description: Automatically assign pending tasks to idle agents (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assigned count
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Auto-assign tasks
+      tags:
+      - Agent
+  /api/v1/admin/agents/templates:
+    get:
+      description: List all task templates with optional category filter (admin only)
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Templates list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List templates
+      tags:
+      - Agent
+    post:
+      consumes:
+      - application/json
+      description: Create a new agent task template (admin only)
+      parameters:
+      - description: Template data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Template created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create template
+      tags:
+      - Agent
+  /api/v1/admin/agents/templates/{id}:
+    delete:
+      description: Delete a task template by ID (admin only)
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: Template not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete template
+      tags:
+      - Agent
+    get:
+      description: Get a specific task template by ID (admin only)
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Template details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Template not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get template
+      tags:
+      - Agent
+  /api/v1/admin/agents/templates/{id}/create-task:
+    post:
+      consumes:
+      - application/json
+      description: Create a new task from an existing template (admin only)
+      parameters:
+      - description: Template task data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTaskFromTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Task created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Template not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create task from template
+      tags:
+      - Agent
+  /api/v1/admin/analytics/dashboard:
+    get:
+      description: Get aggregated analytics dashboard statistics (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dashboard stats
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get dashboard stats
+      tags:
+      - Analytics
+  /api/v1/admin/analytics/events:
+    get:
+      description: List analytics events with optional event_type filter (admin only)
+      parameters:
+      - description: Filter by event type
+        in: query
+        name: event_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Events list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List analytics events
+      tags:
+      - Analytics
+  /api/v1/admin/analytics/top-blogs:
+    get:
+      description: Get the top performing blogs based on analytics (admin only)
+      parameters:
+      - description: Number of top blogs (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Top blogs
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get top blogs
+      tags:
+      - Analytics
   /api/v1/admin/assets:
     get:
       description: Get all assets with pagination (admin only)
@@ -641,6 +2394,291 @@ paths:
       summary: Upload blog image
       tags:
       - Blogs
+  /api/v1/admin/moderation/filters:
+    get:
+      description: List all content moderation filters (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Filters list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List filters
+      tags:
+      - Moderation
+    post:
+      consumes:
+      - application/json
+      description: Create a new content moderation filter (admin only)
+      parameters:
+      - description: Filter data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ContentFilter'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Filter created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create filter
+      tags:
+      - Moderation
+  /api/v1/admin/moderation/filters/{id}:
+    delete:
+      description: Delete a content moderation filter by ID (admin only)
+      parameters:
+      - description: Filter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete filter
+      tags:
+      - Moderation
+  /api/v1/admin/moderation/reports:
+    get:
+      description: List all moderation reports with optional status and severity filters
+        (admin only)
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by severity
+        in: query
+        name: severity
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reports list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List reports
+      tags:
+      - Moderation
+  /api/v1/admin/moderation/reports/{id}:
+    get:
+      description: Get a specific moderation report by ID (admin only)
+      parameters:
+      - description: Report ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Report details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Report not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get report
+      tags:
+      - Moderation
+  /api/v1/admin/moderation/reports/{id}/review:
+    post:
+      consumes:
+      - application/json
+      description: Review and take action on a moderation report (admin only)
+      parameters:
+      - description: Report ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Review data
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Report reviewed
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Review report
+      tags:
+      - Moderation
+  /api/v1/admin/moderation/stats:
+    get:
+      description: Get moderation statistics like pending report count (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stats
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get moderation stats
+      tags:
+      - Moderation
+  /api/v1/admin/subscriptions/newsletters:
+    get:
+      description: List all newsletters (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Newsletters list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List newsletters
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Create a new newsletter (admin only)
+      parameters:
+      - description: Newsletter data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Newsletter'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Newsletter created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create newsletter
+      tags:
+      - Subscriptions
+  /api/v1/admin/subscriptions/newsletters/{id}:
+    delete:
+      description: Delete a newsletter by ID (admin only)
+      parameters:
+      - description: Newsletter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete newsletter
+      tags:
+      - Subscriptions
+  /api/v1/admin/subscriptions/newsletters/{id}/send:
+    post:
+      description: Send a newsletter to all subscribers by ID (admin only)
+      parameters:
+      - description: Newsletter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Newsletter sent
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Send newsletter
+      tags:
+      - Subscriptions
   /api/v1/assets/{filename}:
     get:
       description: Retrieve an asset file by filename (public endpoint)
@@ -1080,6 +3118,253 @@ paths:
       summary: Get blog by slug
       tags:
       - Blogs
+  /api/v1/bookmarks:
+    get:
+      description: List all bookmarks with optional status and collection_id filters
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by collection ID
+        in: query
+        name: collection_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bookmarks list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List bookmarks
+      tags:
+      - Bookmarks
+    post:
+      consumes:
+      - application/json
+      description: Add a new bookmark for a resource
+      parameters:
+      - description: Bookmark data
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Bookmark created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Add bookmark
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/{id}:
+    delete:
+      description: Remove a bookmark by ID
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Remove bookmark
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/{id}/progress:
+    patch:
+      consumes:
+      - application/json
+      description: Update the reading progress and status of a bookmark
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Progress data
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update bookmark progress
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/collections:
+    get:
+      description: List all bookmark collections for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Collections list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List collections
+      tags:
+      - Bookmarks
+    post:
+      consumes:
+      - application/json
+      description: Create a new bookmark collection
+      parameters:
+      - description: Collection data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Collection'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Collection created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create collection
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/collections/{id}:
+    delete:
+      description: Delete a bookmark collection by ID
+      parameters:
+      - description: Collection ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete collection
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/goal:
+    get:
+      description: Get the reading goal for a specific year
+      parameters:
+      - description: Year (default 2026)
+        in: query
+        name: year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reading goal
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get reading goal
+      tags:
+      - Bookmarks
+    post:
+      consumes:
+      - application/json
+      description: Set the reading goal count for a specific year
+      parameters:
+      - description: Goal data
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Goal set
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Set reading goal
+      tags:
+      - Bookmarks
   /api/v1/comments:
     post:
       consumes:
@@ -1356,6 +3641,252 @@ paths:
       summary: Get user's favorites
       tags:
       - Favorites
+  /api/v1/notifications:
+    get:
+      description: List all notifications with optional status filter
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notifications list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List notifications
+      tags:
+      - Notifications
+  /api/v1/notifications/{id}:
+    delete:
+      description: Delete a notification by ID
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete notification
+      tags:
+      - Notifications
+    get:
+      description: Get a specific notification by ID
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notification details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get notification
+      tags:
+      - Notifications
+  /api/v1/notifications/{id}/read:
+    patch:
+      description: Mark a specific notification as read by ID
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Marked as read
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Mark notification read
+      tags:
+      - Notifications
+  /api/v1/notifications/read-all:
+    post:
+      description: Mark all notifications as read for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All marked read
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Mark all read
+      tags:
+      - Notifications
+  /api/v1/notifications/unread-count:
+    get:
+      description: Get the count of unread notifications for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unread count
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get unread count
+      tags:
+      - Notifications
+  /api/v1/subscriptions:
+    get:
+      description: List all subscriptions with optional resource_type filter
+      parameters:
+      - description: Filter by resource type
+        in: query
+        name: resource_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscriptions list
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List subscriptions
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Subscribe to a resource by type and ID
+      parameters:
+      - description: Subscription data
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Subscription created
+          schema:
+            $ref: '#/definitions/utils.CreatedResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Subscribe to resource
+      tags:
+      - Subscriptions
+  /api/v1/subscriptions/{id}:
+    delete:
+      description: Unsubscribe by subscription ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unsubscribed
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Unsubscribe
+      tags:
+      - Subscriptions
+    get:
+      description: Get a specific subscription by ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription details
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get subscription
+      tags:
+      - Subscriptions
   /api/v1/users:
     get:
       description: Retrieve a list of all users
@@ -1696,4 +4227,9 @@ paths:
       summary: Get blog image
       tags:
       - Blogs
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
